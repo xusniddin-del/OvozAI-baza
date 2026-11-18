@@ -296,6 +296,221 @@ textarea#txt{min-height:230px;resize:vertical;line-height:1.65;font-size:15.5px}
   .hero{padding-top:120px}
   .d-card strong{font-size:17px}
 }
+
+/* ================= SHAXSIY KABINET (yorug' tema) ================= */
+body.light{background:#f5f7fb;color:#0f172a;color-scheme:light}
+body.light .aurora,body.light .spot{display:none}
+body.light .msg.err{background:#fef2f2;color:#b91c1c;border-color:#fecaca}
+body.light .msg.ok{background:#f0fdf4;color:#15803d;border-color:#bbf7d0}
+.shell{display:grid;grid-template-columns:252px 1fr;min-height:100vh}
+.sbk{display:none}
+.sb{position:sticky;top:0;height:100vh;background:#fbfcfe;border-right:1px solid #e6e9f2;padding:18px 12px 14px;display:flex;flex-direction:column;gap:2px;overflow:auto;z-index:40}
+.sb .logo{color:#0f172a;padding:2px 10px 16px;font-size:15px}
+.ws{display:flex;align-items:center;gap:10px;border:1px solid #e3e7f0;border-radius:12px;padding:10px 12px;background:#fff;font-weight:700;font-size:13.5px;margin-bottom:12px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.ws i{width:22px;height:22px;border-radius:50%;background:conic-gradient(from 40deg,#2f6bff,#7c5cff,#34e0c8,#2f6bff);flex:none}
+.ni{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:#4b5470;font-weight:600;font-size:14.5px;transition:.15s}
+.ni svg{width:18px;height:18px;flex:none}
+.ni:hover{background:#eef2fa;color:#0f172a}
+.ni.on{background:#e9efff;color:#1d4ed8}
+.gl{font-size:12px;color:#8b93a8;font-weight:700;padding:18px 12px 6px}
+.me{margin-top:auto;display:flex;align-items:center;gap:10px;padding:12px 8px 2px;border-top:1px solid #e6e9f2}
+.me .mt{flex:1;min-width:0}.me b{display:block;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.me small{display:block;color:#7b849b;font-size:11.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none;box-shadow:0 4px 12px rgba(47,107,255,.3)}
+.ib{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:#55607a;flex:none;transition:.15s}
+.ib:hover{background:#eef2fa;color:#0f172a}.ib svg{width:18px;height:18px}
+.ib.dk{background:#0f172a;color:#fff;width:34px;height:34px}.ib.dk:hover{background:#1d4ed8}
+.main{min-width:0;display:flex;flex-direction:column}
+.tb{height:64px;display:flex;align-items:center;gap:12px;padding:0 24px;border-bottom:1px solid #e6e9f2;background:rgba(255,255,255,.88);backdrop-filter:blur(10px);position:sticky;top:0;z-index:30}
+.tb .mb{display:none}
+.crumb{display:flex;gap:8px;align-items:center;font-size:14px;color:#6b7390;font-weight:600}
+.crumb b{color:#0f172a}.crumb a:hover{color:#1d4ed8}
+.flex1{flex:1}
+.qpill{display:flex;align-items:center;gap:10px;border:1px solid #e3e7f0;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:700;color:#334155;background:#fff}
+.qpill .qb{width:80px;height:6px;background:#edf1f8;border-radius:9px;overflow:hidden}.qpill .qb i{display:block;height:100%;background:var(--grad);transition:width .5s}
+.tbb{display:flex;align-items:center;gap:7px;border:1px solid #e3e7f0;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:700;background:#fff;color:#334155}
+.tbb svg{width:16px;height:16px;color:#2f6bff}.tbb:hover{border-color:#2f6bff}
+.pg{padding:32px 28px 64px;max-width:1080px;width:100%;margin:0 auto;animation:fu .4s both}
+.pg h1.t{font-family:var(--fb);font-size:26px;font-weight:800;letter-spacing:-.025em;margin:0 0 6px;max-width:none;text-align:left;color:#0f172a}
+.sub2{color:#6b7390;font-size:14.5px;margin-bottom:24px;font-weight:500}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.lc{background:#fff;border:1px solid #e5e9f2;border-radius:18px;box-shadow:0 1px 3px rgba(15,23,42,.04)}
+.btn.sm{padding:9px 16px;font-size:13px}.btn svg{width:16px;height:16px}
+.btn-o{border:1px solid #dfe4ee;background:#fff;color:#0f172a}
+.btn-o:hover{border-color:#2f6bff;color:#1d4ed8}
+.btn-o.on{background:#eef3ff;border-color:#bcd0ff;color:#1d4ed8}
+.btn-o:disabled{color:#8b93a8;cursor:default}
+.spin.dk{border-color:rgba(15,23,42,.15);border-top-color:#2f6bff;display:inline-block}
+.ld{display:flex;gap:10px;align-items:center;color:#6b7390;font-weight:600}
+/* composer */
+.cmp{padding:16px 18px 14px;transition:box-shadow .2s,border-color .2s}
+.cmp:focus-within{border-color:#bcd0ff;box-shadow:0 0 0 4px rgba(47,107,255,.08),0 10px 30px rgba(15,23,42,.06)}
+.ctabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.ctabs>*{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:9px;font-size:13px;font-weight:700;color:#55607a}
+.ctabs>* svg{width:15px;height:15px}.ctabs .on{background:#f0f3fa;color:#0f172a}.ctabs a:hover{background:#f5f7fb;color:#0f172a}
+.cmp textarea{width:100%;min-height:170px;border:0;outline:0;resize:vertical;font:inherit;font-size:16.5px;line-height:1.65;color:#0f172a;background:none;padding:10px 4px}
+.cmp textarea::placeholder,.big::placeholder{color:#9aa2b6}
+.cbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-top:8px}
+.pick{display:flex;align-items:center;gap:8px;border:1px solid #e3e7f0;border-radius:11px;padding:8px 12px;font-size:13.5px;background:#fff;max-width:100%}
+.pick b{font-weight:800}.pick span{color:#7b849b;font-weight:600}.pick svg{width:15px;height:15px;color:#7b849b}
+.pick:hover,.selw:hover{border-color:#2f6bff}
+.selw{display:flex;align-items:center;gap:6px;border:1px solid #e3e7f0;border-radius:11px;padding:0 10px;background:#fff}
+.selw svg{width:15px;height:15px;color:#7b849b}
+.selw select,.sel2 select{border:0;outline:0;background:none;font:inherit;font-size:13.5px;font-weight:700;color:#0f172a;padding:9px 2px;cursor:pointer;appearance:none;-webkit-appearance:none}
+.cnt2{font-size:12.5px;color:#7b849b;font-weight:600}.cnt2 b{color:#0f172a}.cnt2 b.bad{color:#dc2626}
+.prog2{font-size:13px;color:#55607a;font-weight:600;display:flex;align-items:center;gap:8px}
+.prog2:empty{display:none}
+.vav{display:inline-block;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.4),0 2px 6px rgba(15,23,42,.12)}
+/* banner */
+.bn{position:relative;overflow:hidden;margin:22px 0 8px;border-radius:20px;padding:48px 24px;text-align:center;color:#fff;background:linear-gradient(120deg,#0b1f6b,#1d4ed8,#2563eb,#0ea5e9,#1d4ed8);background-size:300% 300%;animation:bgm 12s ease infinite}
+@keyframes bgm{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
+.bn h2{font-family:var(--fh);font-weight:500;font-size:clamp(20px,3vw,30px);letter-spacing:-.03em;position:relative}
+.bn p{opacity:.85;margin:8px 0 20px;font-weight:500;position:relative}
+.bn>div:last-child{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;position:relative}
+.bw{background:#fff;color:#0f172a}.bw:hover{transform:translateY(-2px)}
+.bt{color:#fff;border:1px solid rgba(255,255,255,.4)}.bt:hover{background:rgba(255,255,255,.12)}
+.bnw{position:absolute;inset:auto 0 0 0;height:70%;display:flex;align-items:flex-end;gap:5px;padding:0 10px;opacity:.18}
+.bnw i{flex:1;border-radius:4px 4px 0 0;background:#fff;animation:wv 1.6s ease-in-out infinite;height:30%}
+.sech{display:flex;justify-content:space-between;align-items:center;margin:26px 0 12px}
+.sech h3{font-size:16px;font-weight:800}.sech a{display:flex;gap:4px;align-items:center;font-size:13px;font-weight:700;color:#1d4ed8}.sech a svg{width:14px}
+/* history list */
+.hl{padding:6px}
+.hi{display:flex;gap:14px;align-items:flex-start;padding:14px;border-radius:14px;animation:si .5s both}
+.hi+.hi{border-top:1px solid #eef1f6}
+.hi:hover{background:#fafbfe}
+.hm{flex:1;min-width:0}
+.hm p{font-size:14px;font-weight:600;color:#1e293b;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hm small{display:block;color:#7b849b;font-size:12px;font-weight:600;margin:3px 0 8px}
+.hm audio{width:100%;height:36px}
+.emp{display:flex;flex-direction:column;align-items:center;gap:4px;padding:40px 16px;color:#7b849b;text-align:center;font-size:13.5px}
+.emp svg{width:30px;height:30px;color:#b4bccd;margin-bottom:6px}.emp b{color:#1e293b}
+.emp.sm{padding:20px}
+.res2{margin-top:16px;padding:16px;border-radius:16px;border:1px solid #cfe0ff;background:linear-gradient(180deg,#f3f7ff,#fff);animation:si .5s both}
+.rh{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.rh>div{flex:1}.rh b{display:block}.rh small{color:#6b7390;font-weight:600}
+.res2 audio{width:100%}
+#out .msg{margin-top:14px}
+/* TTS */
+.tts{display:grid;grid-template-columns:1fr 360px;min-height:calc(100vh - 64px)}
+.ed{display:flex;flex-direction:column;padding:30px 40px 20px;min-width:0}
+.big{flex:1;min-height:300px;border:0;outline:0;resize:none;font:inherit;font-size:18px;line-height:1.7;color:#0f172a;background:none}
+.starters{margin-top:16px}.starters small{display:block;color:#7b849b;font-weight:700;font-size:12.5px;margin-bottom:10px}
+.starters>div{display:flex;flex-wrap:wrap;gap:8px}
+.stc{border:1px solid #e3e7f0;background:#fff;border-radius:10px;padding:8px 13px;font-size:13.5px;font-weight:600;color:#334155;transition:.15s}
+.stc:hover{border-color:#2f6bff;color:#1d4ed8;transform:translateY(-1px)}
+.edbar{position:sticky;bottom:0;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px;padding:14px 0 6px;background:linear-gradient(180deg,rgba(245,247,251,0),#f5f7fb 30%)}
+.rp{background:#fff;border-left:1px solid #e6e9f2;padding:20px 22px 30px;overflow:auto}
+.tabs{display:flex;gap:18px;border-bottom:1px solid #e6e9f2;margin-bottom:8px}
+.tabs button{padding:8px 0 12px;font-weight:700;font-size:14px;color:#7b849b;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:#0f172a;border-color:#0f172a}
+.lb{display:flex;justify-content:space-between;font-size:13.5px;font-weight:700;color:#1e293b;margin:18px 0 8px}
+.lb em{font-style:normal;color:#1d4ed8;font-size:12.5px}
+.fbtn{display:flex;align-items:center;gap:10px;width:100%;border:1px solid #e3e7f0;border-radius:12px;padding:11px 13px;background:#fff;font-size:14px;text-align:left;color:#0f172a;transition:.15s}
+.fbtn>span:not(.vav){flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#55607a}.fbtn b{color:#0f172a}
+.fbtn svg{width:16px;height:16px;color:#7b849b;flex:none}
+.fbtn:hover{border-color:#2f6bff}
+.fbtn.ro{color:#55607a;cursor:default}.fbtn.ro:hover{border-color:#e3e7f0}
+.sel2{padding:0 13px;cursor:pointer}.sel2 select{flex:1;padding:12px 0;font-weight:600}
+.chips2{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.ch{padding:7px 12px;border-radius:99px;border:1px solid #e3e7f0;font-size:12.5px;font-weight:700;color:#4b5470;background:#fff;transition:.15s}
+.ch:hover{border-color:#2f6bff}.ch.on{background:#0f172a;border-color:#0f172a;color:#fff}
+.inp{width:100%;background:#fff;border:1px solid #e3e7f0;border-radius:12px;padding:11px 13px;font:inherit;font-size:13.5px;outline:0;color:#0f172a}
+.inp:focus{border-color:#2f6bff;box-shadow:0 0 0 3px rgba(47,107,255,.12)}
+.rng{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:9px;outline:0;cursor:pointer}
+.rng::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid #2f6bff;box-shadow:0 2px 6px rgba(47,107,255,.35)}
+.rng::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid #2f6bff}
+.rl{display:flex;justify-content:space-between;font-size:12px;color:#7b849b;font-weight:600;margin-top:6px}
+.rst{display:flex;align-items:center;gap:7px;margin:26px 0 0 auto;font-size:13px;font-weight:700;color:#7b849b}
+.rst svg{width:15px;height:15px}.rst:hover{color:#1d4ed8}
+#tabH{margin-top:8px;padding:0}
+#tabH .hi{padding:12px 4px}
+/* voices */
+.tabs2{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e6e9f2;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.tabs2 .on{display:flex;align-items:center;gap:7px;font-weight:800;font-size:14px;padding:10px 4px;border-bottom:2px solid #0f172a;margin-bottom:-1px}
+.tabs2 .on svg{width:16px}
+.cv{display:flex;align-items:center;gap:7px;font-size:13px;color:#6b7390;font-weight:600}.cv b{color:#0f172a}
+.srch{display:flex;align-items:center;gap:10px;border:1px solid #e3e7f0;border-radius:12px;padding:0 14px;background:#fff}
+.srch svg{width:17px;height:17px;color:#8b93a8;flex:none}
+.srch input{flex:1;border:0;outline:0;font:inherit;font-size:14.5px;padding:12px 0;background:none;color:#0f172a}
+.srch:focus-within{border-color:#2f6bff;box-shadow:0 0 0 3px rgba(47,107,255,.12)}
+.fcs{display:flex;gap:8px;overflow:auto;padding:14px 0 6px;scrollbar-width:none}
+.fc{flex:none;padding:8px 14px;border-radius:10px;border:1px solid #e3e7f0;background:#fff;font-size:13px;font-weight:700;color:#4b5470}
+.fc:hover{border-color:#2f6bff}.fc.on{background:#0f172a;color:#fff;border-color:#0f172a}
+.note{font-size:12.5px;color:#8b93a8;font-weight:600;margin:8px 0 14px}
+.vg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.vcard{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;border:1px solid #e8ebf3;background:#fff;transition:.2s;position:relative;animation:si .4s both}
+.vcard:hover{border-color:#cfdcff;box-shadow:0 8px 24px rgba(15,23,42,.07);transform:translateY(-2px)}
+.vcard.on{border-color:#2f6bff;box-shadow:0 0 0 3px rgba(47,107,255,.12)}
+.vi{flex:1;min-width:0}.vi b{display:block;font-size:14.5px}.vi small{display:block;color:#6b7390;font-size:12.5px;font-weight:600}
+.tg{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#8b93a8;margin-top:3px}.tg svg{width:12px;height:12px}
+.pl2{position:absolute;left:24px;top:50%;transform:translate(0,-50%);width:28px;height:28px;border-radius:50%;background:rgba(15,23,42,.72);color:#fff;display:grid;place-items:center;opacity:0;transition:.2s;z-index:2}
+.pl2 svg{width:12px;height:12px}.pl2 .spin{width:14px;height:14px}
+.vcard:hover .pl2,.pl2.on,.pl2:has(.spin){opacity:1}
+.pl2.on{background:#2f6bff;box-shadow:0 0 0 4px rgba(47,107,255,.25)}
+/* plans */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.uc{padding:20px}.uc .r{display:flex;justify-content:space-between;gap:10px;font-size:14px;font-weight:600;flex-wrap:wrap}
+.uc small{display:block;color:#7b849b;font-size:12.5px;font-weight:600;margin-top:10px}.uc small a{color:#1d4ed8}
+.pb{height:8px;background:#edf1f8;border-radius:9px;overflow:hidden;margin-top:12px}.pb i{display:block;height:100%;background:var(--grad);border-radius:9px}
+.plg{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.pc{padding:20px;display:flex;flex-direction:column;gap:14px;transition:.2s}
+.pc:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(15,23,42,.08)}
+.pc.cur{border:2px solid #0f172a}
+.pc.hot{border-color:#2f6bff}
+.pt2{display:flex;justify-content:space-between;align-items:center}.pt2 b{font-size:16px}
+.hb{background:#0f172a;color:#fff;font-size:11px;font-weight:800;padding:4px 10px;border-radius:99px}
+.pr{font-size:30px;font-weight:800;letter-spacing:-.03em}.pr small{font-size:13px;color:#7b849b;font-weight:600;letter-spacing:0}
+.tk{border-top:1px solid #eef1f6;padding-top:12px;display:grid;gap:9px}
+.tk small{color:#7b849b;font-weight:700;font-size:12px}
+.tk div{display:flex;justify-content:space-between;gap:8px;font-size:13.5px;font-weight:600;color:#334155}
+.tk span{display:flex;gap:7px;align-items:center}.tk svg{width:15px;height:15px;color:#2f6bff;flex:none}
+/* referral */
+.rf{max-width:660px;margin:0 auto;overflow:hidden}
+.rfh{height:170px;background:radial-gradient(400px 160px at 20% 30%,#7c5cff,transparent),radial-gradient(400px 180px at 80% 20%,#34e0c8,transparent),linear-gradient(135deg,#1d4ed8,#2f6bff,#60a5fa);background-size:200% 200%;animation:bgm 10s ease infinite;-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent);mask-image:linear-gradient(180deg,#000 55%,transparent)}
+.rfb{padding:0 30px 26px;margin-top:-40px;position:relative}
+.rfb h2{font-size:26px;font-weight:800;letter-spacing:-.02em}
+.rfb>p{color:#6b7390;font-weight:500;margin:4px 0 18px}
+.cap{display:block;color:#7b849b;font-weight:700;font-size:13px;margin:14px 0 10px}
+.how{list-style:none;display:grid;gap:14px;font-size:14.5px;font-weight:600;color:#1e293b}
+.how li{display:flex;gap:12px;align-items:center}.how svg{width:18px;height:18px;color:#55607a;flex:none}
+.lnk{display:flex;align-items:center;gap:8px;background:#f5f7fb;border:1px solid #e6e9f2;border-radius:14px;padding:8px 8px 8px 14px}
+.lnk code{flex:1;min-width:0;overflow:auto;white-space:nowrap;font-size:13px;color:#334155;scrollbar-width:none}
+.st4{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #e6e9f2}
+.st4>div{padding:16px 20px}.st4>div+div{border-left:1px solid #e6e9f2}
+.st4 small{display:block;color:#7b849b;font-size:12px;font-weight:600}.st4 b{font-size:20px;font-weight:800}
+/* modal, toast */
+.md{position:fixed;inset:0;z-index:100;background:rgba(15,23,42,.4);backdrop-filter:blur(4px);display:grid;place-items:center;padding:20px;animation:fd .2s}
+@keyframes fd{from{opacity:0}}
+.mdb{width:100%;max-width:440px;max-height:80vh;display:flex;flex-direction:column;background:#fff;border-radius:20px;padding:18px;box-shadow:0 30px 80px rgba(15,23,42,.3);animation:fu .3s both;color:#0f172a}
+.mdh{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.mdh b{font-size:17px}
+.mdh .x{width:32px;height:32px;border-radius:9px;color:#7b849b}.mdh .x:hover{background:#f0f3fa}
+.ml{overflow:auto;margin-top:10px;display:grid;gap:2px}
+.mi{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:12px;text-align:left}
+.mi:hover{background:#f3f6fc}.mi.on{background:#eef3ff}
+.mi span{flex:1}.mi b{display:block;font-size:14px}.mi small{color:#7b849b;font-weight:600;font-size:12.5px}
+.mi svg{width:18px;height:18px;color:#2f6bff}
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:#0f172a;color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:.3s;z-index:200;box-shadow:0 12px 30px rgba(15,23,42,.3)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media(max-width:1100px){.vg{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:980px){
+  .tts{grid-template-columns:1fr}.rp{border-left:0;border-top:1px solid #e6e9f2}
+  .ed{padding:22px 20px}.big{min-height:220px}
+  .plg{grid-template-columns:1fr}.g2{grid-template-columns:1fr}
+}
+@media(max-width:900px){
+  .shell{grid-template-columns:1fr}
+  .sb{position:fixed;left:0;top:0;bottom:0;width:270px;transform:translateX(-100%);transition:transform .3s;box-shadow:20px 0 60px rgba(15,23,42,.15)}
+  .sb.open{transform:none}
+  .sb.open+.sbk{display:block;position:fixed;inset:0;background:rgba(15,23,42,.35);z-index:35}
+  .tb{padding:0 14px}.tb .mb{display:grid}
+  .tbb span,.qpill .qb{display:none}
+  .pg{padding:22px 16px 50px}
+  .vg{grid-template-columns:1fr}
+  .st4{grid-template-columns:1fr 1fr}.st4>div:nth-child(3){border-left:0;border-top:1px solid #e6e9f2}.st4>div:nth-child(4){border-top:1px solid #e6e9f2}
+  .rfb{padding:0 18px 22px}
+  .crumb a,.crumb span{display:none}
+}
+
 @media(prefers-reduced-motion:reduce){
   *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   .w,.lead,.hero-form,.proof,.dashwrap{opacity:1!important;transform:none!important;filter:none!important}
@@ -456,7 +671,7 @@ function navHTML(fix){
     <a class="logo" href="#/"><i>${ICON_MIC}</i>${CONFIG.BRAND}</a>
     <div class="links"><a href="#/">Bosh sahifa</a><a href="#/" data-s="features">Imkoniyatlar</a><a href="#/" data-s="pricing">Tariflar</a><a href="#/" data-s="faq">Savollar</a></div>
     <div class="nav-cta">${logged
-      ? `<a class="btn btn-p" href="#/studio">Studiya</a>`
+      ? `<a class="btn btn-p" href="#/app">Kabinet</a>`
       : `<a class="btn btn-p" href="#/login">Kirish</a>`}</div>
   </div></div>`;
 }
@@ -592,34 +807,6 @@ function authPage(mode){
   </div></div>`;
 }
 
-function studioPage(){
-  return `<div class="nav fix"><div class="wrap">
-    <a class="logo" href="#/"><i>${ICON_MIC}</i>${CONFIG.BRAND}</a>
-    <div class="user-menu"><span class="em" id="uem"></span><span class="badge" id="upl"></span><button class="btn btn-g" id="lo" style="padding:8px 16px">Chiqish</button></div>
-  </div></div>
-  <div class="studio"><div class="wrap">
-    <div class="st-head"><h2>Ovoz studiyasi</h2>
-      <div class="quota"><div class="row"><span>Bugungi limit</span><span id="qt">—</span></div><div class="bar"><i id="qb" style="width:0"></i></div></div>
-    </div>
-    <div class="st-grid">
-      <div class="card">
-        <h3>1 · MATN</h3>
-        <div class="f" style="margin:0"><textarea id="txt" placeholder="Ovozga aylantirmoqchi bo'lgan matnni shu yerga yozing..."></textarea></div>
-        <div class="cnt"><span id="cc">0 belgi</span><span id="cb"></span></div>
-        <h3 style="margin-top:20px">2 · USLUB</h3>
-        <div class="chips" id="chips">${STYLES.map((s,i)=>`<button class="chip ${i===0?"on":""}" data-v="${esc(s[1])}">${s[0]}</button>`).join("")}</div>
-        <div class="f" style="margin:0"><input id="cst" placeholder="Yoki o'zingiz yozing (inglizcha): masalan, warm and slow" maxlength="120"></div>
-        <div class="gen"><button class="btn btn-p btn-lg" id="go">🎙️ Ovoz yaratish</button><span class="prog" id="pg"></span></div>
-        <div id="smsg" style="margin-top:14px"></div>
-      </div>
-      <div>
-        <div class="card"><h3>3 · OVOZ TANLANG</h3><div class="voices" id="vs">${VOICES.map((v)=>`<button class="vc ${v[0]==="Kore"?"on":""}" data-v="${v[0]}"><b>${v[0]}</b><small>${v[1]}</small></button>`).join("")}</div></div>
-        <div class="card res"><h3>NATIJALAR</h3><div id="hist"><div class="empty">Hozircha audio yo'q</div></div></div>
-      </div>
-    </div>
-  </div></div>`;
-}
-
 /* ============================================================
    Jonlantirish effektlari
    ============================================================ */
@@ -725,6 +912,7 @@ function bindAuth(mode){
     const d = Object.fromEntries(new FormData(form));
     const digits = (d.phone||"").replace(/\D/g,"");
     d.phone = "998" + digits;
+    if(mode==="register") d.ref = getRef();
     msg.innerHTML = "";
     const bad = t => { msg.innerHTML = `<div class="msg err">${esc(t)}</div>`; };
     if(mode==="register" && (d.name||"").trim().length<2) return bad("Ismingizni kiriting");
@@ -734,94 +922,469 @@ function bindAuth(mode){
     const r = await api(mode, d);
     btn.disabled = false; btn.textContent = mode==="register"?"Ro'yxatdan o'tish":"Kirish";
     if(!r.ok) return bad(r.error||"Xatolik");
-    store.token = r.token; USER = r.user; PREFILL = ""; location.hash = "#/studio";
+    store.token = r.token; USER = r.user; PREFILL = ""; location.hash = "#/app";
   };
 }
 
-async function bindStudio(){
-  let voice = "Kore", style = "";
-  const txt = $("#txt"), go = $("#go"), pg = $("#pg"), smsg = $("#smsg");
-  const setQuota = (u,l) => { $("#qt").textContent = `${fmt(u)} / ${fmt(l)}`; $("#qb").style.width = Math.min(100, u/l*100)+"%"; USER && (USER.used=u, USER.limit=l); };
-  const paintUser = () => { $("#uem").textContent = fmtPhone(USER.phone); $("#upl").textContent = USER.plan; setQuota(USER.used, USER.limit); };
+/* ============================================================
+   SHAXSIY KABINET
+   ============================================================ */
+const mk = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const IC = {
+  home: mk('<path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/>'),
+  grid: mk('<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>'),
+  wave: mk('<path d="M3 10v4M7.5 6v12M12 3v18M16.5 7v10M21 10v4"/>'),
+  clock: mk('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+  card: mk('<rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20M6 15h4"/>'),
+  gift: mk('<rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18M12 8S10 3 7.5 4.5 9 8 12 8zm0 0s2-5 4.5-3.5S15 8 12 8z"/>'),
+  out: mk('<path d="M15 4h4a1 1 0 011 1v14a1 1 0 01-1 1h-4M10 17l5-5-5-5M15 12H3"/>'),
+  menu: mk('<path d="M4 6h16M4 12h16M4 18h16"/>'),
+  search: mk('<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.5-4.5"/>'),
+  chev: mk('<path d="M6 9l6 6 6-6"/>'),
+  right: mk('<path d="M9 6l6 6-6 6"/>'),
+  play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5l13 7.5-13 7.5z"/></svg>',
+  stop: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>',
+  dl: mk('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'),
+  copy: mk('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 011-1h10"/>'),
+  share: mk('<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>'),
+  link: mk('<path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/>'),
+  user: mk('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/>'),
+  check: mk('<path d="M5 12l5 5 9-10"/>'),
+  reset: mk('<path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8M3 3v5h5"/>'),
+  globe: mk('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/>')
+};
+const TRAIT = Object.fromEntries(VOICES);
+const vgrad = n => { let h = 0; for(const c of n) h = (h*37 + c.charCodeAt(0)) % 360;
+  return `radial-gradient(circle at 30% 28%,hsl(${h} 95% 80%),hsl(${(h+50)%360} 78% 55%) 58%,hsl(${(h+95)%360} 70% 32%))`; };
+const vav = (n, s=36) => `<span class="vav" style="width:${s}px;height:${s}px;background:${vgrad(n)}"></span>`;
 
+const SEL_DEFAULT = {voice:"Kore", style:"", styleName:"Tabiiy", lang:"", speed:1};
+let SEL = Object.assign({}, SEL_DEFAULT, (()=>{ try{ return JSON.parse(localStorage.getItem("ovoz_sel")||"{}"); }catch(e){ return {}; } })());
+const saveSel = () => { try{ localStorage.setItem("ovoz_sel", JSON.stringify(SEL)); }catch(e){} };
+const LANGS = [["","Avto (matndan aniqlaydi)"],["Uzbek","O'zbek"],["Russian","Rus"],["English","Ingliz"],["Turkish","Turk"],["Kazakh","Qozoq"]];
+const LANG_FLAG = {"":"🌐","Uzbek":"🇺🇿","Russian":"🇷🇺","English":"🇬🇧","Turkish":"🇹🇷","Kazakh":"🇰🇿"};
+const STARTERS = [
+  ["📖","Hikoya aytish","Bir bor ekan, bir yo'q ekan, olis bir qishloqda Alisher ismli bola yashar ekan. U har kuni tongda tog'larga qarab, katta orzular qilardi.","calm and warm storyteller","Sokin"],
+  ["😄","Hazil aytish","Dasturchi do'koniga kiribdi: «Bitta non bering, agar tuxum bo'lsa — o'nta». Sotuvchi unga o'nta non beribdi.","cheerful and friendly","Quvnoq"],
+  ["📣","Reklama matni","Faqat shu hafta! Barcha kurslarimizga 30 foiz chegirma. Hoziroq ro'yxatdan o'ting va kelajak kasbini o'rganing!","excited and energetic","Hayajonli"],
+  ["🎙","Podkastga kirish","Assalomu alaykum, aziz tinglovchilar! Podkastimizning yangi sonida bugun texnologiyalar haqida suhbatlashamiz.","cheerful and friendly","Quvnoq"],
+  ["🎓","Dars kirish so'zi","Salom, o'quvchilar! Bugungi darsimizda HTML asoslarini o'rganamiz. Darsning oxirida birinchi saytingizni yaratasiz.","serious and authoritative","Jiddiy"],
+  ["📰","Yangilik o'qish","Bugun poytaxtda yangi IT-park ochildi. Unda yuzdan ortiq yosh dasturchilar ish bilan ta'minlanadi.","like a professional news announcer","Diktor"],
+  ["🧘","Meditatsiya","Ko'zlaringizni yuming. Chuqur nafas oling... va sekin chiqaring. Tanangiz bo'shashib, xotirjamlik his qilyapsiz.","whispering softly","Shivirlab"]
+];
+const SAMPLES = {};
+let PLAYER = null, RENDER = 0;
+
+const APP_NAV = [
+  {id:"home", t:"Bosh sahifa", ic:IC.home},
+  {id:"voices", t:"Ovozlar", ic:IC.grid},
+  {g:"Ilovalar"},
+  {id:"tts", t:"Matnni nutqqa", ic:IC.wave},
+  {id:"history", t:"Nutq tarixi", ic:IC.clock},
+  {g:"Hisob"},
+  {id:"plans", t:"Tarif va to'lovlar", ic:IC.card},
+  {id:"ref", t:"Takliflar va mukofotlar", ic:IC.gift}
+];
+
+function getRef(){ try{ return localStorage.getItem("ovoz_ref")||""; }catch(e){ return ""; } }
+function toast(t){
+  let el = $("#toast");
+  if(!el){ el = document.createElement("div"); el.id = "toast"; el.className = "toast"; document.body.append(el); }
+  el.textContent = t; el.classList.add("on"); clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove("on"), 2400);
+}
+function setQuota(u, l){
+  if(USER){ USER.used = u; USER.limit = l; }
+  const t = $("#qt"), b = $("#qb");
+  if(t) t.textContent = `${fmt(u)} / ${fmt(l)}`;
+  if(b) b.style.width = Math.min(100, u/l*100) + "%";
+}
+function initials(n){ return String(n||"?").trim().split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUpperCase(); }
+function planName(id){ const p = CONFIG.PLANS.find(x=>x.id===id); return p ? p.name : id; }
+function buildStyle(){
+  const p = [];
+  if(SEL.style) p.push(SEL.style);
+  const s = +SEL.speed;
+  if(s <= 0.8) p.push("speaking slowly"); else if(s < 0.95) p.push("speaking a little slowly");
+  else if(s >= 1.2) p.push("speaking quickly"); else if(s > 1.05) p.push("speaking a little faster");
+  if(SEL.lang) p.push("in " + SEL.lang);
+  return p.join(", ").slice(0, 160);
+}
+
+/* ---- Ovoz yaratish ---- */
+async function generate(text, prog){
+  text = text.trim();
+  if(!text) return {ok:false, error:"Avval matn kiriting"};
+  const left = USER.limit - USER.used;
+  if(text.length > left) return {ok:false, error:`Bugungi qolgan limit: ${fmt(left)} belgi. Matnni qisqartiring yoki tarifni oshiring.`};
+  const parts = splitText(text, CONFIG.MAX_CHUNK), style = buildStyle(), voice = SEL.voice;
+  const pcms = []; let rate = 24000;
+  for(let i=0;i<parts.length;i++){
+    prog && prog(parts.length>1 ? `Bo'lak ${i+1} / ${parts.length}...` : "Ovoz tayyorlanmoqda...");
+    const r = await api("tts", {text: parts[i], voice, style});
+    if(!r.ok){
+      if(r.error==="auth"){ store.token=""; USER=null; location.hash="#/login"; return {ok:false, error:""}; }
+      if(r.error==="limit"){ setQuota(r.used, r.limit); return {ok:false, error:r.message}; }
+      return {ok:false, error:r.error||"Ovoz yaratilmadi"};
+    }
+    const {pcm, rate:rt} = extractPcm(b64ToBytes(r.audio), r.mime); rate = rt;
+    if(i>0) pcms.push(new Uint8Array(Math.round(rate*0.18)*2));
+    pcms.push(pcm);
+    setQuota(r.used, r.limit);
+  }
+  const {blob, seconds} = buildWav(pcms, rate);
+  const item = {text, voice, style: SEL.styleName||"Tabiiy", url: URL.createObjectURL(blob), seconds, time: new Date()};
+  HISTORY.unshift(item);
+  if(HISTORY.length > 20){ const o = HISTORY.pop(); URL.revokeObjectURL(o.url); }
+  return {ok:true, item};
+}
+
+function fileName(h){ return `${CONFIG.BRAND.toLowerCase()}-${h.voice.toLowerCase()}-${h.time.getTime()}.wav`; }
+function itemHTML(h){
+  return `<div class="hi">${vav(h.voice,40)}<div class="hm"><p>${esc(h.text)}</p>
+    <small>${h.voice} · ${esc(h.style)} · ${h.seconds.toFixed(1)} s · ${h.time.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})}</small>
+    <audio controls preload="metadata" src="${h.url}"></audio></div>
+    <a class="ib" title="Yuklab olish" href="${h.url}" download="${fileName(h)}">${IC.dl}</a></div>`;
+}
+function histList(n){
+  const list = n ? HISTORY.slice(0,n) : HISTORY;
+  return list.length ? list.map(itemHTML).join("")
+    : `<div class="emp">${IC.wave}<b>Hozircha audio yo'q</b><span>Yaratilgan audiolar shu yerda ko'rinadi.</span></div>`;
+}
+function resultHTML(h){
+  return `<div class="res2"><div class="rh">${vav(h.voice,44)}<div><b>Audio tayyor ✓</b><small>${h.voice} · ${esc(h.style)} · ${h.seconds.toFixed(1)} s</small></div>
+    <a class="btn btn-p sm" href="${h.url}" download="${fileName(h)}">${IC.dl} WAV yuklab olish</a></div>
+    <audio controls src="${h.url}"></audio></div>`;
+}
+
+function wireGen(){
+  const txt = $("#txt"), go = $("#go"), cc = $("#cc"), out = $("#out"), pg = $("#pg");
+  try{ const d = sessionStorage.getItem("ovoz_draft"); if(d && !txt.value) txt.value = d; }catch(e){}
+  const upd = () => {
+    const n = txt.value.length, left = Math.max(0, USER.limit - USER.used);
+    cc.innerHTML = `<b class="${n>left?"bad":""}">${fmt(n)}</b> / ${fmt(left)} belgi`;
+  };
+  txt.addEventListener("input", () => { upd(); try{ sessionStorage.setItem("ovoz_draft", txt.value); }catch(e){} });
+  upd();
+  go.onclick = async () => {
+    out.innerHTML = "";
+    go.disabled = true; const old = go.innerHTML; go.innerHTML = '<span class="spin"></span> Yaratilmoqda...';
+    const r = await generate(txt.value, t => { if(pg) pg.innerHTML = `<span class="eq">${eqBars(7,.1)}</span>${t}`; });
+    go.disabled = false; go.innerHTML = old; if(pg) pg.textContent = "";
+    if(!r.ok){ if(r.error) out.innerHTML = `<div class="msg err">${esc(r.error)}</div>`; return; }
+    out.innerHTML = resultHTML(r.item); upd();
+    const rec = $("#recent"); if(rec) rec.innerHTML = histList(4);
+    const th = $("#tabH"); if(th) th.innerHTML = histList();
+    const a = out.querySelector("audio"); if(a) a.play().catch(()=>{});
+  };
+  return upd;
+}
+
+function openPicker(onPick){
+  const m = document.createElement("div"); m.className = "md";
+  m.innerHTML = `<div class="mdb"><div class="mdh"><b>Ovoz tanlang</b><button class="x" aria-label="Yopish">✕</button></div>
+    <div class="srch">${IC.search}<input placeholder="Ovoz yoki uslub qidirish..." id="mq"></div><div class="ml" id="ml"></div></div>`;
+  document.body.append(m);
+  const ml = m.querySelector("#ml"), q = m.querySelector("#mq");
+  const draw = () => {
+    const s = q.value.toLowerCase();
+    ml.innerHTML = VOICES.filter(v => (v[0]+" "+v[1]).toLowerCase().includes(s)).map(v =>
+      `<button class="mi ${v[0]===SEL.voice?"on":""}" data-v="${v[0]}">${vav(v[0],36)}<span><b>${v[0]}</b><small>${v[1]}</small></span>${v[0]===SEL.voice?IC.check:""}</button>`).join("")
+      || `<div class="emp sm">Topilmadi</div>`;
+  };
+  draw(); q.oninput = draw; setTimeout(()=>q.focus(), 60);
+  const close = () => { m.remove(); document.removeEventListener("keydown", esc_); };
+  const esc_ = e => { if(e.key==="Escape") close(); };
+  document.addEventListener("keydown", esc_);
+  m.onclick = e => {
+    if(e.target===m || e.target.closest(".x")) return close();
+    const b = e.target.closest(".mi");
+    if(b){ SEL.voice = b.dataset.v; saveSel(); close(); toast(`${SEL.voice} ovozi tanlandi`); onPick && onPick(); }
+  };
+}
+
+function setPlayBtns(){
+  document.querySelectorAll("[data-play]").forEach(b => {
+    const on = PLAYER && PLAYER._v===b.dataset.play && !PLAYER.paused;
+    b.innerHTML = on ? IC.stop : IC.play; b.classList.toggle("on", on);
+  });
+}
+async function playSample(name, btn){
+  if(PLAYER && PLAYER._v===name && !PLAYER.paused){ PLAYER.pause(); return; }
+  if(PLAYER) PLAYER.pause();
+  if(!SAMPLES[name]){
+    btn.innerHTML = '<span class="spin dk"></span>';
+    const r = await api("tts", {text:`Assalomu alaykum! Men ${name}. Matningizni shu ovozda o'qib beraman.`, voice:name, style:""});
+    if(!r.ok){
+      setPlayBtns();
+      if(r.error==="limit"){ setQuota(r.used, r.limit); toast(r.message); } else toast(r.error==="auth"?"Qayta kiring":(r.error||"Namuna yaratilmadi"));
+      return;
+    }
+    setQuota(r.used, r.limit);
+    const {pcm, rate} = extractPcm(b64ToBytes(r.audio), r.mime);
+    SAMPLES[name] = URL.createObjectURL(buildWav([pcm], rate).blob);
+  }
+  PLAYER = new Audio(SAMPLES[name]); PLAYER._v = name;
+  PLAYER.onended = PLAYER.onpause = PLAYER.onplay = setPlayBtns;
+  PLAYER.play().catch(()=>{});
+}
+
+/* ---- Kabinet karkasi ---- */
+function shellHTML(page){
+  const cur = APP_NAV.find(n=>n.id===page) || APP_NAV[0];
+  return `<div class="shell">
+  <aside class="sb" id="sb">
+    <a class="logo" href="#/"><i>${ICON_MIC}</i>${CONFIG.BRAND}</a>
+    <div class="ws"><i></i><span>${CONFIG.BRAND} Studio</span></div>
+    ${APP_NAV.map(n => n.g ? `<div class="gl">${n.g}</div>`
+      : `<a class="ni ${n.id===page?"on":""}" href="#/app/${n.id}">${n.ic}<span>${n.t}</span></a>`).join("")}
+    <div class="me"><div class="avatar" id="av2">·</div><div class="mt"><b id="uname">…</b><small id="uphone"></small></div>
+      <button class="ib" id="lo" title="Chiqish">${IC.out}</button></div>
+  </aside>
+  <div class="sbk" id="sbk"></div>
+  <div class="main">
+    <header class="tb">
+      <button class="ib mb" id="mb" aria-label="Menyu">${IC.menu}</button>
+      <div class="crumb">${page==="home" ? "<b>Bosh sahifa</b>" : `<a href="#/app/home">Bosh sahifa</a><span>›</span><b>${cur.t}</b>`}</div>
+      <div class="flex1"></div>
+      <a class="qpill" href="#/app/plans" title="Bugungi limit"><span id="qt">—</span><span class="qb"><i id="qb"></i></span></a>
+      <a class="tbb" href="#/app/ref">${IC.gift}<span>Taklif qilish</span></a>
+      <div class="avatar" id="av">·</div>
+    </header>
+    <div id="pgv"></div>
+  </div></div>`;
+}
+
+function paintUser(){
+  $("#uname").textContent = USER.name || "Foydalanuvchi";
+  $("#uphone").textContent = fmtPhone(USER.phone) + " · " + planName(USER.plan);
+  $("#av").textContent = $("#av2").textContent = initials(USER.name);
+  setQuota(USER.used, USER.limit);
+}
+
+async function renderApp(page){
+  const my = ++RENDER;
+  if(PLAYER){ PLAYER.pause(); }
+  $("#app").innerHTML = shellHTML(page);
+  const sb = $("#sb");
+  $("#mb").onclick = () => sb.classList.add("open");
+  $("#sbk").onclick = () => sb.classList.remove("open");
   $("#lo").onclick = async () => { await api("logout"); store.token=""; USER=null; HISTORY=[]; location.hash="#/"; };
-
   if(!USER){
+    $("#pgv").innerHTML = `<div class="pg"><div class="ld"><span class="spin dk"></span> Yuklanmoqda...</div></div>`;
     const r = await api("me");
-    if(!r.ok){ if(r.error==="auth"){ store.token=""; location.hash="#/login"; } else smsg.innerHTML=`<div class="msg err">${esc(r.error)}</div>`; return; }
+    if(my !== RENDER) return;
+    if(!r.ok){
+      if(r.error==="auth"){ store.token=""; location.hash="#/login"; }
+      else $("#pgv").innerHTML = `<div class="pg"><div class="msg err">${esc(r.error)}</div></div>`;
+      return;
+    }
     USER = r.user;
   }
   paintUser();
-
-  txt.oninput = () => { $("#cc").textContent = fmt(txt.value.length)+" belgi"; const left=USER.limit-USER.used; $("#cb").textContent = txt.value.length>left ? "Limitdan oshdi" : ""; $("#cb").style.color="var(--err)"; };
-  $("#chips").onclick = e => { const b=e.target.closest(".chip"); if(!b) return; document.querySelectorAll(".chip").forEach(c=>c.classList.remove("on")); b.classList.add("on"); style=b.dataset.v; $("#cst").value=""; };
-  $("#cst").oninput = e => { if(e.target.value.trim()){ document.querySelectorAll(".chip").forEach(c=>c.classList.remove("on")); style=e.target.value.trim(); } };
-  $("#vs").onclick = e => { const b=e.target.closest(".vc"); if(!b) return; document.querySelectorAll(".vc").forEach(c=>c.classList.remove("on")); b.classList.add("on"); voice=b.dataset.v; };
-  renderHistory();
-
-  go.onclick = async () => {
-    const text = txt.value.trim();
-    smsg.innerHTML = "";
-    const bad = t => { smsg.innerHTML = `<div class="msg err">${esc(t)}</div>`; };
-    if(!text) return bad("Avval matn kiriting");
-    if(text.length > USER.limit - USER.used) return bad(`Bugungi qolgan limit: ${fmt(USER.limit-USER.used)} belgi. Matnni qisqartiring yoki tarifni oshiring.`);
-    const parts = splitText(text, CONFIG.MAX_CHUNK);
-    go.disabled = true; const old = go.innerHTML; go.innerHTML = '<span class="spin"></span> Yaratilmoqda...';
-    const eq = `<span class="eq">${eqBars(7,0.1)}</span>`;
-    const pcms = []; let rate = 24000;
-    for(let i=0;i<parts.length;i++){
-      pg.innerHTML = eq + (parts.length>1 ? `Bo'lak ${i+1} / ${parts.length}...` : "Ovoz tayyorlanmoqda...");
-      const r = await api("tts", {text: parts[i], voice, style});
-      if(!r.ok){
-        if(r.error==="auth"){ store.token=""; USER=null; location.hash="#/login"; return; }
-        if(r.error==="limit"){ setQuota(r.used, r.limit); bad(r.message); }
-        else bad(r.error||"Ovoz yaratilmadi");
-        go.disabled=false; go.innerHTML=old; pg.textContent=""; return;
-      }
-      const {pcm, rate:rt} = extractPcm(b64ToBytes(r.audio), r.mime); rate = rt;
-      if(i>0) pcms.push(new Uint8Array(Math.round(rate*0.18)*2));
-      pcms.push(pcm);
-      setQuota(r.used, r.limit);
-    }
-    const {blob, seconds} = buildWav(pcms, rate);
-    HISTORY.unshift({text, voice, url: URL.createObjectURL(blob), seconds, time: new Date()});
-    if(HISTORY.length>8){ const old=HISTORY.pop(); URL.revokeObjectURL(old.url); }
-    renderHistory();
-    go.disabled=false; go.innerHTML=old; pg.textContent="Tayyor ✓";
-    smsg.innerHTML = '<div class="msg ok">Audio tayyor — pastdagi natijalardan tinglang va yuklab oling.</div>';
-    txt.oninput();
-  };
+  PAGES[page]();
 }
 
-function renderHistory(){
-  const el = $("#hist"); if(!el) return;
-  if(!HISTORY.length){ el.innerHTML = '<div class="empty">Hozircha audio yo\'q</div>'; return; }
-  el.innerHTML = "";
-  HISTORY.forEach((h,i)=>{
-    const d = document.createElement("div"); d.className="item";
-    const p = document.createElement("p"); p.textContent = h.text;
-    const a = document.createElement("audio"); a.controls = true; a.src = h.url;
-    const m = document.createElement("div"); m.className="meta";
-    const info = document.createElement("span"); info.textContent = `${h.voice} · ${h.seconds.toFixed(1)} s`;
-    const dl = document.createElement("a"); dl.className="dl"; dl.href=h.url; dl.download=`${CONFIG.BRAND.toLowerCase()}-${h.voice.toLowerCase()}-${i+1}.wav`; dl.textContent="⬇ WAV yuklab olish";
-    m.append(info, dl); d.append(p,a,m); el.append(d);
-  });
-}
+const langOpts = () => LANGS.map(l=>`<option value="${l[0]}" ${l[0]===SEL.lang?"selected":""}>${LANG_FLAG[l[0]]} ${l[1]}</option>`).join("");
+
+const PAGES = {
+  home(){
+    const hour = new Date().getHours();
+    const hi = hour<11 ? "Xayrli tong" : hour<18 ? "Xayrli kun" : "Xayrli kech";
+    $("#pgv").innerHTML = `<div class="pg">
+      <h1 class="t">${hi}, ${esc((USER.name||"").split(" ")[0])} 👋</h1>
+      <p class="sub2">Matn yozing, ovozni tanlang — audio bir necha soniyada tayyor.</p>
+      <div class="lc cmp">
+        <div class="ctabs"><span class="on">${IC.wave} Nutq</span><a href="#/app/voices">${IC.grid} Ovozlar</a><a href="#/app/history">${IC.clock} Tarix</a><a href="#/app/tts">${IC.right} Kengaytirilgan</a></div>
+        <textarea id="txt" placeholder="Yozishni boshlang yoki matnni joylashtiring..."></textarea>
+        <div class="cbar">
+          <button class="pick" id="pick"></button>
+          <label class="selw">${IC.globe}<select id="lang">${langOpts()}</select></label>
+          <div class="flex1"></div>
+          <span class="cnt2" id="cc"></span>
+          <button class="btn btn-p" id="go">Yaratish</button>
+        </div>
+        <div class="prog2" id="pg"></div>
+      </div>
+      <div id="out"></div>
+      <div class="bn"><div class="bnw">${eqBars(40,.07)}</div>
+        <h2>30 ta tabiiy ovoz bilan tanishing</h2><p>Har birini tinglab ko'ring va loyihangizga mosini tanlang.</p>
+        <div><a class="btn bw" href="#/app/voices">Ovozlarni ko'rish</a><a class="btn bt" href="#/app/tts">Studiyani ochish</a></div></div>
+      <div class="sech"><h3>So'nggi audiolar</h3><a href="#/app/history">Hammasi ${IC.right}</a></div>
+      <div class="lc hl" id="recent">${histList(4)}</div>
+    </div>`;
+    const paintPick = () => { $("#pick").innerHTML = `${vav(SEL.voice,22)}<b>${SEL.voice}</b><span>${TRAIT[SEL.voice]}</span>${IC.chev}`; };
+    paintPick();
+    $("#pick").onclick = () => openPicker(paintPick);
+    $("#lang").onchange = e => { SEL.lang = e.target.value; saveSel(); };
+    wireGen();
+  },
+
+  tts(){
+    $("#pgv").innerHTML = `<div class="tts">
+      <div class="ed">
+        <textarea id="txt" class="big" placeholder="Nutqqa aylantirmoqchi bo'lgan matnni yozing yoki shu yerga joylang..."></textarea>
+        <div id="out"></div>
+        <div class="starters"><small>Boshlash uchun</small><div>${STARTERS.map((s,i)=>`<button class="stc" data-i="${i}">${s[0]} ${s[1]}</button>`).join("")}</div></div>
+        <div class="edbar"><span class="cnt2" id="cc"></span><span class="prog2" id="pg"></span><div class="flex1"></div><button class="btn btn-p" id="go">${IC.wave} Ovoz yaratish</button></div>
+      </div>
+      <aside class="rp">
+        <div class="tabs"><button class="on" data-t="S">Sozlamalar</button><button data-t="H">Nutq tarixi</button></div>
+        <div id="tabS">
+          <label class="lb">Ovoz</label><button class="fbtn" id="pick"></button>
+          <label class="lb">Uslub</label>
+          <div class="chips2" id="chips">${STYLES.map(s=>`<button class="ch ${s[0]===SEL.styleName?"on":""}" data-l="${s[0]}" data-v="${esc(s[1])}">${s[0]}</button>`).join("")}</div>
+          <input class="inp" id="cst" maxlength="100" placeholder="Yoki o'zingiz yozing (inglizcha): warm and slow" value="${SEL.styleName==="Maxsus"?esc(SEL.style):""}">
+          <label class="lb">Til</label><label class="fbtn sel2">${IC.globe}<select id="lang">${langOpts()}</select>${IC.chev}</label>
+          <label class="lb">Tezlik <em id="spv"></em></label>
+          <input type="range" class="rng" id="spd" min="0.7" max="1.3" step="0.1" value="${SEL.speed}">
+          <div class="rl"><span>Sekinroq</span><span>Tezroq</span></div>
+          <label class="lb">Chiqish formati</label><div class="fbtn ro">WAV 24 kHz (Lossless)</div>
+          <button class="rst" id="rst">${IC.reset} Standart qiymatlarni tiklash</button>
+        </div>
+        <div id="tabH" class="hl" hidden>${histList()}</div>
+      </aside></div>`;
+    const paintPick = () => { $("#pick").innerHTML = `${vav(SEL.voice,26)}<span><b>${SEL.voice}</b> — ${TRAIT[SEL.voice]}</span>${IC.right}`; };
+    const paintSpd = () => { const s = +SEL.speed; $("#spv").textContent = s===1 ? "Oddiy" : s.toFixed(1)+"x";
+      const p = ((s-0.7)/0.6)*100; $("#spd").style.background = `linear-gradient(90deg,#2f6bff ${p}%,#e6e9f2 ${p}%)`; };
+    paintPick(); paintSpd();
+    $("#pick").onclick = () => openPicker(paintPick);
+    $("#chips").onclick = e => { const b = e.target.closest(".ch"); if(!b) return;
+      document.querySelectorAll("#chips .ch").forEach(c=>c.classList.remove("on")); b.classList.add("on");
+      SEL.style = b.dataset.v; SEL.styleName = b.dataset.l; $("#cst").value = ""; saveSel(); };
+    $("#cst").oninput = e => { const v = e.target.value.trim();
+      if(v){ document.querySelectorAll("#chips .ch").forEach(c=>c.classList.remove("on")); SEL.style = v; SEL.styleName = "Maxsus"; }
+      else { SEL.style = ""; SEL.styleName = "Tabiiy"; document.querySelector('#chips .ch[data-l="Tabiiy"]').classList.add("on"); }
+      saveSel(); };
+    $("#lang").onchange = e => { SEL.lang = e.target.value; saveSel(); };
+    $("#spd").oninput = e => { SEL.speed = +e.target.value; saveSel(); paintSpd(); };
+    $("#rst").onclick = () => { SEL = Object.assign({}, SEL_DEFAULT); saveSel(); PAGES.tts(); toast("Standart sozlamalar tiklandi"); };
+    document.querySelector(".tabs").onclick = e => { const b = e.target.closest("button"); if(!b) return;
+      document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on", x===b));
+      $("#tabS").hidden = b.dataset.t!=="S"; $("#tabH").hidden = b.dataset.t!=="H"; if(b.dataset.t==="H") $("#tabH").innerHTML = histList(); };
+    const upd = wireGen();
+    document.querySelector(".starters").onclick = e => { const b = e.target.closest(".stc"); if(!b) return;
+      const s = STARTERS[+b.dataset.i], t = $("#txt");
+      t.value = s[2]; t.dispatchEvent(new Event("input")); t.focus();
+      SEL.style = s[3]; SEL.styleName = s[4]; saveSel();
+      document.querySelectorAll("#chips .ch").forEach(c=>c.classList.toggle("on", c.dataset.l===s[4])); $("#cst").value = ""; upd(); };
+  },
+
+  voices(){
+    const traits = ["Barchasi", ...new Set(VOICES.map(v=>v[1]))];
+    let f = "Barchasi";
+    $("#pgv").innerHTML = `<div class="pg">
+      <div class="ph"><div><h1 class="t">Ovozlar</h1><p class="sub2">30 ta tayyor ovoz. Tinglang va loyihangizga mosini tanlang.</p></div>
+        <a class="btn btn-p" href="#/app/tts">${IC.wave} Studiyada ishlatish</a></div>
+      <div class="tabs2"><span class="on">${IC.wave} Kutubxona</span><span class="cv">Tanlangan: ${vav(SEL.voice,20)} <b id="curv">${SEL.voice}</b></span></div>
+      <div class="srch">${IC.search}<input id="vq" placeholder="Kutubxonadan ovoz qidirish..."></div>
+      <div class="fcs" id="fcs">${traits.map(t=>`<button class="fc ${t===f?"on":""}" data-f="${t}">${t}</button>`).join("")}</div>
+      <p class="note">▶ Namunani tinglash bugungi limitingizdan ~70 belgi oladi.</p>
+      <div class="vg" id="vg"></div></div>`;
+    const draw = () => {
+      const q = $("#vq").value.toLowerCase();
+      const list = VOICES.filter(v => (f==="Barchasi" || v[1]===f) && (v[0]+" "+v[1]).toLowerCase().includes(q));
+      $("#vg").innerHTML = list.map(v => `<div class="vcard ${v[0]===SEL.voice?"on":""}">
+        <button class="pl2" data-play="${v[0]}" title="Tinglash">${IC.play}</button>
+        ${vav(v[0],46)}<div class="vi"><b>${v[0]}</b><small>${v[1]} ovoz</small><span class="tg">${IC.globe} Ko'p tilli</span></div>
+        <button class="btn ${v[0]===SEL.voice?"btn-o on":"btn-o"} sm" data-sel="${v[0]}">${v[0]===SEL.voice?IC.check+" Tanlangan":"Tanlash"}</button></div>`).join("")
+        || `<div class="emp">${IC.search}<b>Hech narsa topilmadi</b><span>Boshqa so'z bilan qidirib ko'ring.</span></div>`;
+      setPlayBtns();
+    };
+    draw();
+    $("#vq").oninput = draw;
+    $("#fcs").onclick = e => { const b = e.target.closest(".fc"); if(!b) return; f = b.dataset.f;
+      document.querySelectorAll(".fc").forEach(x=>x.classList.toggle("on", x===b)); draw(); };
+    $("#vg").onclick = e => {
+      const p = e.target.closest("[data-play]"); if(p) return playSample(p.dataset.play, p);
+      const s = e.target.closest("[data-sel]");
+      if(s){ SEL.voice = s.dataset.sel; saveSel(); $("#curv").textContent = SEL.voice;
+        document.querySelector(".cv .vav").style.background = vgrad(SEL.voice); toast(`${SEL.voice} ovozi tanlandi`); draw(); }
+    };
+  },
+
+  history(){
+    $("#pgv").innerHTML = `<div class="pg">
+      <div class="ph"><div><h1 class="t">Nutq tarixi</h1><p class="sub2">Shu seansda yaratilgan audiolar. Kerakli faylni yuklab olishni unutmang — sahifa yopilsa tarix tozalanadi.</p></div>
+      <a class="btn btn-p" href="#/app/tts">${IC.wave} Yangi audio</a></div>
+      <div class="lc hl">${histList()}</div></div>`;
+  },
+
+  plans(){
+    const u = USER, pct = Math.min(100, u.used/u.limit*100);
+    $("#pgv").innerHTML = `<div class="pg">
+      <h1 class="t">Tarif va to'lovlar</h1><p class="sub2">Tarifingiz va kunlik limitingizni boshqaring.</p>
+      <div class="g2">
+        <div class="lc uc"><div class="r"><span>Bugun ishlatilgan</span><b>${fmt(u.used)} / ${fmt(u.limit)} belgi</b></div>
+          <div class="pb"><i style="width:${pct}%"></i></div><small>Limit har kuni yarim tunda (Toshkent vaqti) yangilanadi.</small></div>
+        <div class="lc uc"><span>Joriy tarif: <b>${esc(planName(u.plan))}</b></span>
+          <small>Taklif bonusi: <b>+${fmt(u.bonus||0)}</b> belgi / kun · <a href="#/app/ref">Ko'proq olish</a></small></div>
+      </div>
+      <div class="sech"><h3>Tariflar</h3></div>
+      <div class="plg">${CONFIG.PLANS.map(p => `<div class="lc pc ${p.id===u.plan?"cur":""} ${p.hot?"hot":""}">
+        <div class="pt2"><b>${esc(p.name)}</b>${p.hot?'<span class="hb">Eng mashhur</span>':""}</div>
+        <div class="pr">${esc(p.price)}<small>${esc(p.per)}</small></div>
+        ${p.id===u.plan ? `<button class="btn btn-o" disabled>Joriy tarif</button>`
+          : `<a class="btn btn-p" target="_blank" rel="noopener" href="${esc(CONFIG.CONTACT_URL)}">Yuqori tarifga o'tish</a>`}
+        <div class="tk"><small>Tarif tarkibi</small><div><span>${IC.check} Kunlik limit</span><b>${esc(p.daily)}</b></div>
+          ${p.feats.map(x=>`<div><span>${IC.check} ${esc(x)}</span></div>`).join("")}</div></div>`).join("")}</div>
+      <p class="note">To'lov qilish uchun «Yuqori tarifga o'tish» tugmasi orqali biz bilan bog'laning — tarifingiz shu zahoti yoqiladi.</p>
+    </div>`;
+  },
+
+  ref(){
+    const u = USER;
+    const link = u.ref ? location.href.split("#")[0] + "#/register?ref=" + u.ref : "";
+    $("#pgv").innerHTML = `<div class="pg"><div class="lc rf">
+      <div class="rfh"></div>
+      <div class="rfb"><h2>Takliflar</h2><p>Do'stlaringizni taklif qiling — har biri uchun kunlik limitingiz oshadi.</p>
+        <small class="cap">Qanday ishlaydi</small>
+        <ul class="how"><li>${IC.link} Havolangizni ulashing</li>
+          <li>${IC.user} Shu havola orqali ro'yxatdan o'tganlar avtomatik hisoblanadi</li>
+          <li>${IC.gift} Har bir do'st uchun kunlik limitingizga <b>+${fmt(u.refBonus||1000)} belgi</b> qo'shiladi (${u.refMax||10} tagacha)</li></ul>
+        <small class="cap">Taklif havolangiz</small>
+        <div class="lnk"><code id="rl">${esc(link||"Havola tayyorlanmoqda — sahifani yangilang")}</code>
+          <button class="ib dk" id="cp" title="Nusxalash">${IC.copy}</button><button class="ib dk" id="sh" title="Ulashish">${IC.share}</button></div>
+      </div>
+      <div class="st4"><div><small>Taklif qilinganlar</small><b>${fmt(u.invited||0)}</b></div>
+        <div><small>Bonus</small><b>+${fmt(u.bonus||0)}</b></div>
+        <div><small>Kunlik limit</small><b>${fmt(u.limit)}</b></div>
+        <div><small>Qolgan takliflar</small><b>${Math.max(0,(u.refMax||10)-(u.invited||0))}</b></div></div>
+    </div></div>`;
+    const copy = async () => {
+      try{ await navigator.clipboard.writeText(link); }
+      catch(e){ const r = document.createRange(); r.selectNode($("#rl")); getSelection().removeAllRanges(); getSelection().addRange(r); document.execCommand("copy"); }
+      toast("Havola nusxalandi ✓");
+    };
+    $("#cp").onclick = () => link && copy();
+    $("#sh").onclick = () => {
+      if(!link) return;
+      const text = `${CONFIG.BRAND} — matnni tabiiy ovozga aylantiradi. Shu havola orqali bepul ro'yxatdan o'ting:`;
+      if(navigator.share) navigator.share({title:CONFIG.BRAND, text, url:link}).catch(()=>{});
+      else window.open("https://t.me/share/url?url="+encodeURIComponent(link)+"&text="+encodeURIComponent(text), "_blank");
+    };
+  }
+};
 
 /* ============================================================
    Router
    ============================================================ */
 function route(){
   clearTimers();
-  const h = (location.hash||"#/").replace(/^#/,"") || "/";
-  const app = $("#app");
+  const raw = (location.hash||"#/").replace(/^#/,"") || "/";
+  const [h, qs] = raw.split("?");
+  const ref = new URLSearchParams(qs||"").get("ref") || new URLSearchParams(location.search).get("ref");
+  if(ref){ try{ localStorage.setItem("ovoz_ref", ref); }catch(e){} }
+  const isApp = h.startsWith("/app") || h==="/studio";
+  document.body.classList.toggle("light", isApp);
   window.scrollTo(0,0);
-  if(h==="/studio"){
+  const app = $("#app");
+  if(isApp){
     if(!store.token){ location.hash="#/login"; return; }
-    app.innerHTML = studioPage(); bindStudio(); return;
+    const page = h.split("/")[2] || "home";
+    renderApp(PAGES[page] ? page : "home"); return;
   }
   if(h==="/login" || h==="/register"){
-    if(store.token){ location.hash="#/studio"; return; }
+    if(store.token){ location.hash="#/app"; return; }
     const mode = h.slice(1);
     app.innerHTML = authPage(mode); bindNav(); bindAuth(mode); return;
   }
@@ -829,6 +1392,7 @@ function route(){
 }
 window.addEventListener("hashchange", route);
 route();
+
 </script>
 </body>
 </html>
