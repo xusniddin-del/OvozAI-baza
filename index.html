@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OvozAI — Matnni tabiiy ovozga aylantiring</title>
+<meta name="description" content="Matnni bir necha soniyada tabiiy o'zbekcha ovozga aylantiring. 30 ta ovoz, uslub tanlash, WAV yuklab olish.">
+<meta name="theme-color" content="#03050f">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#03050f; --ink:#eef2ff; --muted:#8e9cc7; --blue:#2f6bff; --blue2:#5b8cff; --cyan:#34e0c8; --violet:#8b5cff;
+  --glass:rgba(255,255,255,.045); --line:rgba(130,165,255,.18);
+  --ok:#34d399; --err:#ff6b6b;
+  --grad:linear-gradient(135deg,#2358ff 0%,#4a7dff 55%,#7aa8ff 100%);
+  --fh:'Unbounded','Manrope',system-ui,sans-serif;
+  --fb:'Manrope',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;color-scheme:dark}
+body{font-family:var(--fb);background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+#app{position:relative;z-index:2}
+.wrap{max-width:1160px;margin:0 auto;padding:0 22px}
+
+/* ---------- jonli fon ---------- */
+.aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.aurora i{position:absolute;border-radius:50%;filter:blur(90px);opacity:.38;will-change:transform}
+.aurora i:nth-child(1){width:520px;height:520px;background:#2f6bff;left:-8%;top:8%;animation:dr1 22s ease-in-out infinite}
+.aurora i:nth-child(2){width:460px;height:460px;background:#7b4dff;right:-6%;top:30%;animation:dr2 26s ease-in-out infinite}
+.aurora i:nth-child(3){width:420px;height:420px;background:#12c8b4;left:30%;bottom:-12%;animation:dr3 30s ease-in-out infinite;opacity:.22}
+@keyframes dr1{0%,100%{transform:translate(0,0)}50%{transform:translate(160px,120px)}}
+@keyframes dr2{0%,100%{transform:translate(0,0)}50%{transform:translate(-180px,-90px)}}
+@keyframes dr3{0%,100%{transform:translate(0,0)}50%{transform:translate(140px,-120px)}}
+.spot{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(420px circle at var(--mx,50%) var(--my,30%),rgba(110,160,255,.13),transparent 65%)}
+
+/* ---------- nav ---------- */
+.nav{position:absolute;top:0;left:0;right:0;z-index:50}
+.nav.fix{position:sticky;background:rgba(3,5,15,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:78px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--fh);font-weight:500;font-size:16px;letter-spacing:-.01em}
+.logo i{width:34px;height:34px;border-radius:10px;background:var(--grad);display:grid;place-items:center;box-shadow:0 0 22px rgba(47,107,255,.6)}
+.logo i svg{width:19px;height:19px}
+.links{display:flex;gap:4px;padding:5px;border-radius:99px;border:1px solid var(--line);background:rgba(255,255,255,.04);backdrop-filter:blur(10px);font-size:13px;font-weight:600;color:#b9c6ea}
+.links a{padding:8px 17px;border-radius:99px;transition:.2s}
+.links a:hover{color:#fff;background:rgba(255,255,255,.09)}
+.btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:99px;font-weight:700;font-size:14px;transition:.25s;white-space:nowrap}
+.btn-p{background:var(--grad);color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.14) inset,0 8px 28px rgba(47,107,255,.5)}
+.btn-p:before{content:"";position:absolute;top:0;left:-70%;width:50%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.4),transparent);transform:skewX(-20deg);transition:.6s}
+.btn-p:hover:before{left:130%}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 0 0 1px rgba(255,255,255,.22) inset,0 14px 38px rgba(47,107,255,.7)}
+.btn-p:disabled{opacity:.6;transform:none;cursor:wait}
+.btn-g{border:1px solid var(--line);background:rgba(255,255,255,.05);color:#dbe5ff}
+.btn-g:hover{border-color:var(--blue2);color:#fff}
+.btn-lg{padding:16px 32px;font-size:15px}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:150px 0 0;text-align:center}
+.stars{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.stars span{position:absolute;border-radius:50%;background:#9db8ff;opacity:.5;animation:tw 4s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:.12;transform:scale(.8)}50%{opacity:.95;transform:scale(1.2)}}
+.shoot{position:absolute;top:12%;left:70%;width:110px;height:2px;background:linear-gradient(90deg,#fff,transparent);transform:rotate(215deg);opacity:0;animation:sh 7s ease-in infinite 2s}
+@keyframes sh{0%{opacity:0;transform:translate(0,0) rotate(215deg)}4%{opacity:1}14%{opacity:0;transform:translate(-340px,230px) rotate(215deg)}100%{opacity:0}}
+.beam{position:absolute;left:50%;top:0;transform:translateX(-50%);width:300px;height:720px;background:linear-gradient(180deg,rgba(60,120,255,0),rgba(70,130,255,.9) 52%,rgba(60,120,255,0));filter:blur(46px);animation:bm 5s ease-in-out infinite;pointer-events:none}
+@keyframes bm{0%,100%{opacity:.55;width:260px}50%{opacity:.95;width:360px}}
+.beam:after{content:"";position:absolute;left:50%;top:0;bottom:0;width:3px;transform:translateX(-50%);background:linear-gradient(180deg,transparent,#d6e4ff 55%,transparent)}
+.hero .wrap{position:relative}
+.tag{display:inline-flex;align-items:center;gap:9px;padding:8px 17px;border-radius:99px;border:1px solid var(--line);background:rgba(255,255,255,.06);backdrop-filter:blur(8px);font-size:12.5px;font-weight:600;color:#d3deff}
+.tag .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 0 0 rgba(52,224,200,.7);animation:pl 1.8s infinite}
+@keyframes pl{70%{box-shadow:0 0 0 9px rgba(52,224,200,0)}100%{box-shadow:0 0 0 0 rgba(52,224,200,0)}}
+.tag svg{width:14px;height:14px}
+h1{font-family:var(--fh);font-size:clamp(28px,4.7vw,58px);line-height:1.14;letter-spacing:-.035em;font-weight:500;margin:26px auto 22px;max-width:960px}
+.w{display:inline-block;margin:0 .13em;opacity:0;transform:translateY(34px);filter:blur(10px);animation:wi .95s cubic-bezier(.2,.7,.2,1) forwards;animation-delay:calc(var(--i)*.1s + .15s);background:linear-gradient(180deg,#fff 30%,#a9bcf5);-webkit-background-clip:text;background-clip:text;color:transparent}
+.w.hl{background:linear-gradient(90deg,#5b8cff,#34e0c8,#8b5cff,#5b8cff);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;animation:wi .95s cubic-bezier(.2,.7,.2,1) forwards,sf 6s linear infinite;animation-delay:calc(var(--i)*.1s + .15s),0s}
+@keyframes wi{to{opacity:1;transform:none;filter:none}}
+@keyframes sf{to{background-position:300% 0}}
+.lead{font-size:clamp(14.5px,1.8vw,17px);color:var(--muted);max-width:540px;margin:0 auto 34px;font-weight:500;opacity:0;animation:fu .9s .7s forwards}
+@keyframes fu{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.hero-form{display:flex;align-items:center;gap:8px;max-width:530px;margin:0 auto;padding:7px 7px 7px 22px;border-radius:99px;border:1px solid rgba(130,170,255,.4);background:rgba(8,16,40,.6);backdrop-filter:blur(14px);box-shadow:0 0 44px rgba(47,107,255,.3);opacity:0;animation:fu .9s .9s forwards}
+.hero-form svg{width:20px;height:20px;flex:none;color:#9db3f0}
+.hero-form input{flex:1;min-width:0;background:none;border:0;outline:0;color:#fff;font:inherit;font-size:14.5px;padding:10px 4px}
+.hero-form input::placeholder{color:#8493bd}
+.hero-form .pre{font-weight:700;color:#b9c6ea;font-size:14.5px;margin-left:-2px}
+.phf{display:flex;align-items:center;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.045);transition:.2s}
+.phf:focus-within{border-color:var(--blue2);box-shadow:0 0 0 4px rgba(47,107,255,.22);background:rgba(255,255,255,.07)}
+.phf span{padding:0 0 0 16px;font-weight:700;color:#aab9e6;font-size:14.5px}
+.phf input{border:0!important;background:none!important;box-shadow:none!important;padding-left:8px!important;letter-spacing:.02em}
+.proof{margin-top:18px;font-size:12.5px;color:#7f8fba;font-weight:600;opacity:0;animation:fu .9s 1.1s forwards}
+
+/* ---------- jonli dashboard ---------- */
+.dashwrap{position:relative;max-width:1000px;margin:70px auto 0;perspective:1500px;opacity:0;animation:fu 1.1s 1.2s forwards}
+.dash{position:relative;border-radius:22px;border:1px solid rgba(130,170,255,.32);background:linear-gradient(180deg,rgba(14,26,66,.86),rgba(4,8,22,.94));box-shadow:0 0 90px rgba(47,107,255,.32),0 1px 0 rgba(255,255,255,.14) inset;display:grid;grid-template-columns:170px 1fr;text-align:left;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,#000 66%,transparent 100%);mask-image:linear-gradient(180deg,#000 66%,transparent 100%);padding:12px;gap:12px;transition:transform .25s ease-out;transform-style:preserve-3d}
+.d-side{border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);padding:14px 10px;min-height:430px}
+.d-side .logo{font-size:11px;padding:2px 6px 16px}
+.d-side .logo i{width:22px;height:22px;border-radius:7px}.d-side .logo i svg{width:12px;height:12px}
+.d-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:9px;font-size:11.5px;font-weight:600;color:#98a8d6;margin-bottom:3px}
+.d-item.on{background:rgba(47,107,255,.24);color:#fff;border:1px solid rgba(110,160,255,.4)}
+.d-item b{width:10px;height:10px;border-radius:3px;border:1.5px solid currentColor;opacity:.8}
+.d-main{display:grid;gap:12px;align-content:start;min-width:0}
+.d-top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 8px 8px 14px;border-radius:12px;border:1px solid rgba(110,160,255,.3);background:rgba(255,255,255,.04);font-size:12px;color:#d6e0ff;min-height:46px}
+.d-top .ty{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.d-top .ty:before{content:"✦ ";color:var(--blue2)}
+.d-top .ty u{display:inline-block;width:2px;height:13px;background:#8fb0ff;margin-left:2px;vertical-align:-2px;animation:bk 1s steps(2) infinite}
+@keyframes bk{50%{opacity:0}}
+.d-top .gb{flex:none;font-size:11px;font-weight:700;padding:8px 16px;border-radius:9px;background:var(--grad);box-shadow:0 0 18px rgba(47,107,255,.6);animation:gp 2.4s ease-in-out infinite}
+@keyframes gp{50%{box-shadow:0 0 30px rgba(80,140,255,.95);transform:scale(1.04)}}
+.d-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.d-card{border-radius:14px;border:1px solid var(--line);background:linear-gradient(160deg,rgba(47,107,255,.22),rgba(255,255,255,.03));padding:14px}
+.d-card small{display:block;color:#8d9dc9;font-size:10.5px;margin-top:20px;font-weight:600}
+.d-card strong{font-family:var(--fh);font-size:22px;font-weight:500;letter-spacing:-.04em}
+.d-card .mini{float:right;font-size:9.5px;padding:3px 9px;border-radius:99px;border:1px solid var(--line);color:#b9c6ea}
+.d-two{display:grid;grid-template-columns:1.25fr 1fr;gap:12px}
+.d-panel{border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.025);padding:14px;min-width:0;overflow:hidden}
+.d-panel h6{font-size:12px;font-weight:700;margin-bottom:2px}
+.d-panel p{font-size:10px;color:#7f8fba;margin-bottom:12px;font-weight:600}
+.bars{display:flex;align-items:flex-end;gap:8px;height:135px}
+.bars i{flex:1;border-radius:4px;background:rgba(255,255,255,.11);transition:height 1s cubic-bezier(.3,.8,.3,1),background .6s;position:relative;transform-origin:bottom;animation:gr 1s cubic-bezier(.2,.8,.2,1) backwards}
+@keyframes gr{from{transform:scaleY(0)}}
+.bars i.hl{background:linear-gradient(180deg,#4a85ff,#1c43c9);box-shadow:0 0 20px rgba(61,123,255,.75)}
+.bars i.hl:after{content:attr(data-v) " audio";position:absolute;left:50%;top:-26px;transform:translateX(-50%);font-size:9px;font-style:normal;white-space:nowrap;background:#2f6bff;padding:3px 8px;border-radius:5px;font-weight:700}
+.act{display:grid;gap:9px}
+.act div{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;color:#a9b7df;font-weight:600;animation:si .6s cubic-bezier(.2,.8,.2,1)}
+@keyframes si{from{opacity:0;transform:translateX(-18px)}}
+.act div span:first-child{display:flex;align-items:center;gap:8px}
+.act div span:first-child:before{content:"";width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,#5b8cff,#34e0c8);flex:none}
+.act div span:last-child{color:#6f7fa9}
+.fl{position:absolute;z-index:5;display:flex;align-items:center;gap:11px;padding:11px 15px;border-radius:15px;border:1px solid rgba(140,175,255,.4);background:rgba(10,18,48,.82);backdrop-filter:blur(14px);box-shadow:0 18px 50px rgba(0,0,0,.5),0 0 30px rgba(47,107,255,.25);font-size:12px;animation:fy 6s ease-in-out infinite}
+.fl b{display:block;font-size:12.5px;font-weight:700}
+.fl small{color:#92a3d6;font-weight:600;font-size:11px}
+.fl .fi{width:30px;height:30px;border-radius:50%;background:var(--grad);display:grid;place-items:center;font-size:11px;flex:none;box-shadow:0 0 16px rgba(47,107,255,.7)}
+.fl .ck{width:30px;height:30px;border-radius:50%;background:rgba(52,211,153,.2);color:var(--ok);display:grid;place-items:center;font-weight:800;flex:none}
+.fl1{left:-48px;top:150px}.fl2{right:-40px;top:300px;animation-delay:-3s}.fl3{left:-30px;top:380px;animation-delay:-1.5s}
+@keyframes fy{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+.mw{display:flex;align-items:center;gap:2px;height:22px}
+.mw i{width:3px;border-radius:2px;background:linear-gradient(#7aa8ff,#2f6bff);animation:wv 1.1s ease-in-out infinite;height:30%}
+@keyframes wv{0%,100%{height:15%}50%{height:100%}}
+
+/* ---------- marquee ---------- */
+.uses{padding:60px 0 10px;text-align:center;overflow:hidden}
+.uses p{font-size:12px;color:#7b8ab4;margin-bottom:24px;letter-spacing:.06em;font-weight:700;text-transform:uppercase}
+.mq{display:flex;width:max-content;animation:mq 28s linear infinite;-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.uses{-webkit-mask-image:none}
+.mq-wrap{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.mq{-webkit-mask-image:none}
+.mq span{display:flex;align-items:center;gap:10px;margin:0 28px;font-family:var(--fh);font-weight:500;font-size:15px;color:#6f7eaa;white-space:nowrap}
+.mq span:before{content:"✦";color:var(--blue2)}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+/* ---------- sections ---------- */
+section{padding:90px 0;position:relative}
+.rv{opacity:0;transform:translateY(34px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0s)}
+.rv.in{opacity:1;transform:none}
+.sec-h{text-align:center;max-width:720px;margin:0 auto 48px}
+.sec-h .tag{margin-bottom:22px}
+.sec-h h2{font-family:var(--fh);font-size:clamp(24px,3.6vw,40px);letter-spacing:-.035em;line-height:1.18;font-weight:500;color:#fff}
+.sec-h h2 span{background:linear-gradient(90deg,#6c9aff,#34e0c8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sec-h p{color:var(--muted);margin-top:14px;font-size:15px;font-weight:500}
+.sp{position:relative}
+.sp:before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(300px circle at var(--x,50%) var(--y,0%),rgba(100,150,255,.24),transparent 60%);opacity:0;transition:opacity .3s;pointer-events:none}
+.sp:hover:before{opacity:1}
+.sp:hover{border-color:rgba(130,170,255,.5)!important}
+.bento{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1000px;margin:0 auto}
+.bcard{border-radius:22px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.018));padding:28px 28px 0;overflow:hidden;min-height:350px;display:flex;flex-direction:column;transition:border-color .3s}
+.bcard h3{font-family:var(--fh);font-size:15px;font-weight:500;margin-bottom:8px}
+.bcard p{font-size:14px;color:var(--muted);max-width:350px;font-weight:500}
+.bvis{margin-top:auto;position:relative;height:195px}
+.v1 .box{position:absolute;left:0;right:30px;bottom:-1px;border-radius:14px 14px 0 0;border:1px solid var(--line);background:rgba(6,12,32,.92);padding:14px}
+.v1 .in{display:flex;align-items:center;gap:8px;font-size:11.5px;color:#cfdbff;border:1px solid var(--line);border-radius:9px;padding:9px 12px;background:rgba(255,255,255,.04);font-weight:600}
+.v1 .in u{width:2px;height:12px;background:#8fb0ff;animation:bk 1s steps(2) infinite}
+.v1 .in b{margin-left:auto;width:22px;height:22px;border-radius:50%;background:var(--grad);display:grid;place-items:center;font-size:11px;color:#fff}
+.v1 .opt{margin-top:8px;font-size:11.5px;color:#b9c6ea;display:grid;gap:5px;font-weight:600}
+.v1 .opt span{padding:7px 10px;border-radius:8px;transition:.4s;border:1px solid transparent}
+.v1 .opt span.on{background:rgba(47,107,255,.28);border-color:rgba(110,160,255,.4);color:#fff}
+.v2 .st{position:absolute;left:12%;right:-8%;padding:13px 16px;border-radius:12px;border:1px solid rgba(130,170,255,.32);background:linear-gradient(135deg,rgba(25,55,140,.92),rgba(8,16,44,.96));font-size:12.5px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.4);display:flex;justify-content:space-between;align-items:center;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.v2 .st small{color:#8fa3d8;font-weight:600}
+.v2 .st:nth-child(1){top:14px;transform:rotate(-4deg)}
+.v2 .st:nth-child(2){top:62px;transform:rotate(-4deg) translateX(18px)}
+.v2 .st:nth-child(3){top:110px;transform:rotate(-4deg) translateX(36px)}
+.bcard:hover .v2 .st:nth-child(1){transform:rotate(-4deg) translate(-8px,-6px)}
+.bcard:hover .v2 .st:nth-child(3){transform:rotate(-4deg) translate(52px,8px)}
+.v3 .orb{position:absolute;left:50%;bottom:-120px;width:300px;height:300px;transform:translateX(-50%);border-radius:50%;border:1px solid rgba(110,160,255,.32);display:grid;place-items:center}
+.v3 .orb:before,.v3 .orb:after{content:"";position:absolute;border-radius:50%;border:1px dashed rgba(110,160,255,.3);animation:rt 24s linear infinite}
+.v3 .orb:before{inset:34px}.v3 .orb:after{inset:72px;animation-direction:reverse;animation-duration:16s}
+@keyframes rt{to{transform:rotate(360deg)}}
+.v3 .orb i{width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#9cc0ff,#2f6bff 55%,#0b2a9a);box-shadow:0 0 60px rgba(47,107,255,.95);display:block;animation:ob 3s ease-in-out infinite}
+@keyframes ob{50%{transform:scale(1.13);box-shadow:0 0 90px rgba(80,140,255,1)}}
+.v3 .cp{position:absolute;font-size:11px;font-weight:700;padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:rgba(8,16,40,.88);color:#c6d3fa;animation:fy 5s ease-in-out infinite}
+.v4 .pl{position:absolute;left:14px;right:14px;bottom:-1px;border-radius:14px 14px 0 0;border:1px solid var(--line);background:rgba(6,12,32,.92);padding:16px}
+.v4 .row{display:flex;align-items:center;gap:12px}
+.v4 .pb{width:36px;height:36px;border-radius:50%;background:var(--grad);display:grid;place-items:center;flex:none;box-shadow:0 0 20px rgba(47,107,255,.7)}
+.v4 .pb svg{width:13px;margin-left:2px}
+.v4 .wv{flex:1;display:flex;align-items:center;gap:3px;height:38px}
+.v4 .wv i{flex:1;border-radius:3px;background:linear-gradient(#7aa8ff,#2f6bff);animation:wv 1.3s ease-in-out infinite;height:30%}
+.v4 .meta{display:flex;justify-content:space-between;font-size:11px;color:#8d9dc9;margin-top:10px;font-weight:600}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1000px;margin:0 auto;position:relative}
+.step{border-radius:22px;border:1px solid var(--line);background:var(--glass);padding:28px;transition:border-color .3s}
+.step .num{width:40px;height:40px;border-radius:50%;border:1px solid rgba(130,170,255,.45);background:rgba(47,107,255,.22);display:grid;place-items:center;font-family:var(--fh);font-weight:500;margin-bottom:18px;font-size:14px;box-shadow:0 0 22px rgba(47,107,255,.35)}
+.step h3{font-size:16px;margin-bottom:6px;font-weight:700}
+.step p{font-size:14px;color:var(--muted);font-weight:500}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1000px;margin:0 auto}
+.price{position:relative;border-radius:22px;border:1px solid var(--line);background:var(--glass);padding:30px 26px;transition:transform .3s,border-color .3s}
+.price:hover{transform:translateY(-6px)}
+.price.hot{border-color:rgba(110,160,255,.65);background:linear-gradient(180deg,rgba(47,107,255,.2),rgba(255,255,255,.03));box-shadow:0 0 70px rgba(47,107,255,.3)}
+.price .pt{position:absolute;top:-12px;left:24px;background:var(--grad);font-size:11px;font-weight:800;padding:4px 13px;border-radius:99px}
+.price h3{font-size:14px;font-weight:700;color:#c9d6ff}
+.price .amt{font-family:var(--fh);font-size:30px;font-weight:500;letter-spacing:-.04em;margin:12px 0 4px}
+.price .amt small{font-family:var(--fb);font-size:13px;color:var(--muted);font-weight:600;letter-spacing:0}
+.price .dl{color:#8fb0ff;font-size:13px;font-weight:700}
+.price ul{list-style:none;margin:20px 0 24px;display:grid;gap:10px;font-size:14px;color:#c3cfef;font-weight:500}
+.price li:before{content:"✓";color:var(--cyan);font-weight:800;margin-right:10px}
+.price .btn{width:100%}
+.faq{max-width:720px;margin:0 auto;display:grid;gap:10px}
+.faq details{border:1px solid var(--line);border-radius:16px;padding:18px 22px;background:var(--glass);transition:.25s}
+.faq details[open]{border-color:rgba(130,170,255,.45);background:rgba(47,107,255,.08)}
+.faq summary{font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:10px;font-size:15px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary:after{content:"+";color:var(--blue2);font-size:22px;line-height:1;transition:transform .3s}
+.faq details[open] summary:after{transform:rotate(45deg)}
+.faq p{color:var(--muted);margin-top:10px;font-size:14px;font-weight:500}
+.cta{position:relative;max-width:1000px;margin:0 auto;border-radius:30px;border:1px solid rgba(130,170,255,.35);padding:70px 24px;text-align:center;background:radial-gradient(520px 230px at 50% 0,rgba(47,107,255,.55),transparent),rgba(255,255,255,.025);overflow:hidden}
+.cta h2{font-family:var(--fh);font-size:clamp(22px,3.4vw,36px);letter-spacing:-.035em;font-weight:500;margin-bottom:12px;line-height:1.2}
+.cta p{color:var(--muted);margin-bottom:28px;font-size:15px;font-weight:500}
+footer{padding:36px 0 56px;color:#5f6e98;font-size:13px;text-align:center;border-top:1px solid var(--line);font-weight:500}
+
+/* ---------- auth ---------- */
+.auth{min-height:100vh;display:grid;place-items:center;padding:100px 20px 40px;position:relative}
+.auth-box{width:100%;max-width:430px;border:1px solid rgba(130,170,255,.3);background:linear-gradient(180deg,rgba(14,26,66,.72),rgba(4,8,22,.88));border-radius:26px;padding:38px 32px;backdrop-filter:blur(18px);box-shadow:0 0 80px rgba(47,107,255,.25);animation:fu .8s both}
+.auth-box h2{font-family:var(--fh);font-size:24px;letter-spacing:-.03em;font-weight:500;margin-bottom:8px}
+.auth-box .sub{color:var(--muted);margin-bottom:24px;font-size:14px;font-weight:500}
+.f{margin-bottom:14px}
+.f label{display:block;font-size:12px;font-weight:700;margin-bottom:7px;color:#aab9e6}
+.f input,.f textarea{width:100%;padding:14px 16px;border:1px solid var(--line);border-radius:13px;font:inherit;font-size:14.5px;font-weight:500;background:rgba(255,255,255,.045);color:#fff;outline:none;transition:.2s}
+.f input::placeholder,.f textarea::placeholder{color:#6b7aa6}
+.f input:focus,.f textarea:focus{border-color:var(--blue2);box-shadow:0 0 0 4px rgba(47,107,255,.22);background:rgba(255,255,255,.07)}
+.pw{position:relative}
+.pw button{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;color:var(--blue2)}
+.msg{padding:11px 14px;border-radius:12px;font-size:13.5px;font-weight:600;margin-bottom:14px}
+.msg.err{background:rgba(255,80,80,.1);color:#ff9a9a;border:1px solid rgba(255,100,100,.3)}
+.msg.warn{background:rgba(255,190,60,.1);color:#ffd27a;border:1px solid rgba(255,190,60,.3)}
+.msg.ok{background:rgba(52,211,153,.1);color:#7be6bd;border:1px solid rgba(52,211,153,.3);animation:fu .5s}
+.alt{text-align:center;margin-top:20px;font-size:13.5px;color:var(--muted);font-weight:500}
+.alt a{color:var(--blue2);font-weight:700}
+
+/* ---------- studio ---------- */
+.studio{padding:30px 0 70px;position:relative}
+.st-head{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:22px}
+.st-head h2{font-family:var(--fh);font-size:24px;letter-spacing:-.03em;font-weight:500}
+.quota{border:1px solid var(--line);background:var(--glass);border-radius:14px;padding:11px 16px;min-width:240px}
+.quota .row{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:7px;color:#b9c6ea}
+.bar{height:7px;border-radius:9px;background:rgba(255,255,255,.08);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--grad);border-radius:9px;transition:width .6s;box-shadow:0 0 12px rgba(61,123,255,.8)}
+.st-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;align-items:start}
+.card{border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.02));border-radius:22px;padding:22px;animation:fu .7s both}
+.card h3{font-size:12px;margin-bottom:12px;color:#aab9e6;font-weight:800;letter-spacing:.08em}
+textarea#txt{min-height:230px;resize:vertical;line-height:1.65;font-size:15.5px}
+.cnt{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:7px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.chip{padding:8px 15px;border-radius:99px;border:1px solid var(--line);background:rgba(255,255,255,.04);font-weight:600;font-size:13px;color:#c3cfef;transition:.2s}
+.chip:hover{border-color:var(--blue2);transform:translateY(-1px)}
+.chip.on{background:var(--grad);border-color:transparent;color:#fff;box-shadow:0 0 20px rgba(47,107,255,.55)}
+.voices{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:420px;overflow:auto;padding:3px}
+.voices::-webkit-scrollbar{width:6px}.voices::-webkit-scrollbar-thumb{background:rgba(130,170,255,.3);border-radius:9px}
+.vc{padding:11px 8px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.035);text-align:center;transition:.2s}
+.vc b{display:block;font-size:13.5px;font-weight:700}
+.vc small{color:var(--muted);font-size:11.5px;font-weight:600}
+.vc:hover{border-color:var(--blue2);transform:translateY(-2px)}
+.vc.on{border-color:rgba(120,170,255,.9);background:rgba(47,107,255,.26);box-shadow:0 0 24px rgba(47,107,255,.45)}
+.gen{margin-top:18px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.prog{font-size:13px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:10px}
+.res{margin-top:16px}
+.item{border:1px solid var(--line);border-radius:14px;padding:14px;background:rgba(255,255,255,.035);margin-bottom:10px;animation:si .6s cubic-bezier(.2,.8,.2,1)}
+.item p{font-size:13px;color:#c3cfef;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:500}
+.item audio{width:100%;height:38px}
+.item .meta{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px;color:var(--muted);font-weight:600;gap:10px;flex-wrap:wrap}
+.item a.dl{color:var(--blue2);font-weight:800}
+.empty{color:var(--muted);font-size:13px;text-align:center;padding:16px;font-weight:500}
+.user-menu{display:flex;align-items:center;gap:12px;font-size:13px;font-weight:600;color:#c3cfef}
+.badge{background:rgba(47,107,255,.25);border:1px solid rgba(110,160,255,.4);color:#cfe0ff;padding:3px 11px;border-radius:99px;font-size:11px;font-weight:800;text-transform:uppercase}
+.spin{width:16px;height:16px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.eq{display:inline-flex;align-items:center;gap:3px;height:20px}
+.eq i{width:3px;border-radius:2px;background:linear-gradient(#7aa8ff,#2f6bff);animation:wv .9s ease-in-out infinite;height:30%}
+
+@media(max-width:900px){
+  .links{display:none}
+  .dash{grid-template-columns:1fr}.d-side{display:none}
+  .fl{display:none}
+  .bento,.steps,.plans{grid-template-columns:1fr}
+  .d-two{grid-template-columns:1fr}
+  .st-grid{grid-template-columns:1fr}
+  .voices{grid-template-columns:repeat(2,1fr);max-height:320px}
+  .user-menu .em{display:none}
+  .hero{padding-top:120px}
+  .d-card strong{font-size:17px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .w,.lead,.hero-form,.proof,.dashwrap{opacity:1!important;transform:none!important;filter:none!important}
+  .rv{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<div class="aurora"><i></i><i></i><i></i></div>
+<div class="spot"></div>
+<div id="app"></div>
+
+<script>
+/* ============================================================
+   SOZLAMALAR — faqat shu blokni o'zgartiring
+   ============================================================ */
+const CONFIG = {
+  API_URL: "https://script.google.com/macros/s/AKfycbw7lAHdoR0Gpa13WwszMpqfVf-W7ubsnEEs7MNUL4OMXjPnFv14FeEyltANBvmlg90eJA/exec",                       // Apps Script "Web app URL" ni shu yerga qo'ying (SETUP.md)
+  BRAND: "OvozAI",
+  CONTACT_URL: "https://t.me/",      // Pro/Business uchun bog'lanish (Telegram havola)
+  MAX_CHUNK: 800,                    // matn shu uzunlikdagi bo'laklarga bo'linib yuboriladi
+  PLANS: [
+    {id:"free", name:"Boshlang'ich", price:"Bepul", per:"", daily:"3 000 belgi / kun",
+      feats:["30 ta ovoz","Uslub tanlash","WAV yuklab olish"], cta:"Bepul boshlash"},
+    {id:"pro", name:"Pro", price:"49 000", per:" so'm / oy", daily:"50 000 belgi / kun", hot:true,
+      feats:["Barcha ovozlar","Uzun matnlar","Tezkor navbat","Telegram yordam"], cta:"Pro olish"},
+    {id:"business", name:"Biznes", price:"199 000", per:" so'm / oy", daily:"200 000 belgi / kun",
+      feats:["Eng yuqori limit","Reklama va audiokitob uchun","Ustuvor yordam"], cta:"Bog'lanish"}
+  ]
+};
+
+const VOICES = [
+  ["Zephyr","Yorqin"],["Puck","Tetik"],["Charon","Axborotli"],["Kore","Qat'iy"],["Fenrir","Hayajonli"],["Leda","Yosh"],
+  ["Orus","Qat'iy"],["Aoede","Yengil"],["Callirrhoe","Xotirjam"],["Autonoe","Yorqin"],["Enceladus","Nafasli"],["Iapetus","Aniq"],
+  ["Umbriel","Xotirjam"],["Algieba","Silliq"],["Despina","Silliq"],["Erinome","Aniq"],["Algenib","Bo'g'iq"],["Rasalgethi","Axborotli"],
+  ["Laomedeia","Tetik"],["Achernar","Mayin"],["Alnilam","Qat'iy"],["Schedar","Teng"],["Gacrux","Yetuk"],["Pulcherrima","Dadil"],
+  ["Achird","Do'stona"],["Zubenelgenubi","Oddiy"],["Vindemiatrix","Muloyim"],["Sadachbia","Jonli"],["Sadaltager","Bilimdon"],["Sulafat","Iliq"]
+];
+const STYLES = [
+  ["Tabiiy",""],["Quvnoq","cheerful and friendly"],["Jiddiy","serious and authoritative"],["Sokin","calm and relaxed"],
+  ["Hayajonli","excited and energetic"],["Shivirlab","whispering softly"],["Diktor","like a professional news announcer"]
+];
+
+/* ============================================================
+   Yordamchi funksiyalar
+   ============================================================ */
+const $ = (s, r=document) => r.querySelector(s);
+const store = {
+  get token(){ try{return localStorage.getItem("ovoz_token")||""}catch(e){return ""} },
+  set token(v){ try{ v?localStorage.setItem("ovoz_token",v):localStorage.removeItem("ovoz_token") }catch(e){} }
+};
+let USER = null;
+let HISTORY = [];
+let PREFILL = "";
+let TIMERS = [];
+const every = (fn, ms) => { TIMERS.push(setInterval(fn, ms)); };
+const later = (fn, ms) => { TIMERS.push(setTimeout(fn, ms)); };
+const clearTimers = () => { TIMERS.forEach(t => { clearInterval(t); clearTimeout(t); }); TIMERS = []; };
+
+const ICON_MIC = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M3 10v4M7.5 6v12M12 3v18M16.5 7v10M21 10v4"/></svg>';
+const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="#fff"><path d="M6 4l14 8-14 8z"/></svg>';
+const ICON_SPARK = '<svg viewBox="0 0 24 24" fill="none" stroke="#cfdbff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>';
+const ICON_PHONE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg>';
+
+/* ---- Telefon raqam: "90 123 45 67" ko'rinishida yozish ---- */
+function maskPhone(v){
+  let d = String(v||"").replace(/\D/g,"");
+  if(d.length>9 && d.startsWith("998")) d = d.slice(3);   // +998 bilan joylangan bo'lsa
+  d = d.slice(0,9);
+  return [d.slice(0,2), d.slice(2,5), d.slice(5,7), d.slice(7,9)].filter(Boolean).join(" ");
+}
+function bindPhoneMask(inp){ if(inp) inp.addEventListener("input", () => { inp.value = maskPhone(inp.value); }); }
+function fmtPhone(p){ return String(p||"").replace(/^\+998(\d{2})(\d{3})(\d{2})(\d{2})$/, "+998 $1 $2 $3 $4"); }
+const eqBars = (n, step=0.09) => Array.from({length:n},(_,i)=>`<i style="animation-delay:-${(i*step).toFixed(2)}s"></i>`).join("");
+
+async function api(action, data={}){
+  if(!CONFIG.API_URL) return {ok:false, error:"Sayt hali serverga ulanmagan (CONFIG.API_URL bo'sh)."};
+  try{
+    const r = await fetch(CONFIG.API_URL, {
+      method:"POST",
+      headers:{"Content-Type":"text/plain;charset=utf-8"}, // preflight bo'lmasligi uchun
+      body: JSON.stringify({action, token: store.token, ...data})
+    });
+    return await r.json();
+  }catch(e){
+    return {ok:false, error:"Server bilan aloqa yo'q. Internetni tekshirib, qayta urinib ko'ring."};
+  }
+}
+
+function esc(s){ const d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+function fmt(n){ return Number(n).toLocaleString("ru-RU").replace(/ /g," "); }
+
+/* ---- Audio: base64 -> PCM -> WAV ---- */
+function b64ToBytes(b64){
+  const bin = atob(b64), u = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
+  return u;
+}
+function extractPcm(bytes, mime){
+  let rate = 24000;
+  const m = /rate=(\d+)/i.exec(mime||""); if(m) rate = +m[1];
+  const tag = i => String.fromCharCode(bytes[i],bytes[i+1],bytes[i+2],bytes[i+3]);
+  if(bytes.length>44 && tag(0)==="RIFF"){
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    let p = 12;
+    while(p+8 <= bytes.length){
+      const id = tag(p), size = dv.getUint32(p+4,true);
+      if(id==="fmt ") rate = dv.getUint32(p+12,true);
+      if(id==="data"){
+        const end = (size===0 || size===0xFFFFFFFF || p+8+size>bytes.length) ? bytes.length : p+8+size;
+        return {pcm: bytes.subarray(p+8,end), rate};
+      }
+      if(size===0xFFFFFFFF) break;
+      p += 8 + size + (size&1);
+    }
+    return {pcm: bytes.subarray(44), rate};
+  }
+  return {pcm: bytes, rate};
+}
+function buildWav(chunks, rate){
+  let total = 0; chunks.forEach(c => total += c.length);
+  total -= total % 2;
+  const out = new Uint8Array(44 + total), dv = new DataView(out.buffer);
+  const w = (o,s) => { for(let i=0;i<s.length;i++) out[o+i]=s.charCodeAt(i); };
+  w(0,"RIFF"); dv.setUint32(4,36+total,true); w(8,"WAVE"); w(12,"fmt ");
+  dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,1,true);
+  dv.setUint32(24,rate,true); dv.setUint32(28,rate*2,true); dv.setUint16(32,2,true); dv.setUint16(34,16,true);
+  w(36,"data"); dv.setUint32(40,total,true);
+  let off = 44;
+  for(const c of chunks){ const n = Math.min(c.length, 44+total-off); out.set(c.subarray(0,n), off); off += n; if(off>=44+total) break; }
+  return {blob: new Blob([out],{type:"audio/wav"}), seconds: total/2/rate};
+}
+
+/* ---- Matnni bo'laklash ---- */
+function splitText(text, max){
+  const parts = text.replace(/\r/g,"").match(/[^.!?…\n]+[.!?…]*\s*/g) || [text];
+  const out = []; let cur = "";
+  const push = () => { if(cur.trim()) out.push(cur.trim()); cur=""; };
+  for(let s of parts){
+    while(s.length > max){
+      let cut = s.lastIndexOf(" ", max); if(cut < max*0.5) cut = max;
+      if(cur) push();
+      out.push(s.slice(0,cut).trim()); s = s.slice(cut);
+    }
+    if((cur+s).length > max) push();
+    cur += s;
+  }
+  push();
+  return out;
+}
+
+/* ============================================================
+   Sahifalar
+   ============================================================ */
+function navHTML(fix){
+  const logged = !!store.token;
+  return `<div class="nav ${fix?"fix":""}"><div class="wrap">
+    <a class="logo" href="#/"><i>${ICON_MIC}</i>${CONFIG.BRAND}</a>
+    <div class="links"><a href="#/">Bosh sahifa</a><a href="#/" data-s="features">Imkoniyatlar</a><a href="#/" data-s="pricing">Tariflar</a><a href="#/" data-s="faq">Savollar</a></div>
+    <div class="nav-cta">${logged
+      ? `<a class="btn btn-p" href="#/studio">Studiya</a>`
+      : `<a class="btn btn-p" href="#/login">Kirish</a>`}</div>
+  </div></div>`;
+}
+
+function starsHTML(n){
+  let s = "";
+  for(let i=0;i<n;i++){
+    const sz = Math.random()<.2 ? 3 : 2;
+    s += `<span style="left:${(Math.random()*100).toFixed(1)}%;top:${(Math.random()*70).toFixed(1)}%;width:${sz}px;height:${sz}px;animation-delay:${(Math.random()*4).toFixed(1)}s;animation-duration:${(3+Math.random()*3).toFixed(1)}s"></span>`;
+  }
+  return `<div class="stars">${s}<div class="shoot"></div></div>`;
+}
+
+const H1_WORDS = [["Matnni",0],["jonli",1],["ovozga",1],["aylantiring",0]];
+
+function landing(){
+  const heights = [34,46,30,55,40,64,52,98,44,70,58,82,48,60];
+  const bars = heights.map((h,i)=> `<i style="height:${h}%;animation-delay:${(i*0.05).toFixed(2)}s" ${i===7?'class="hl" data-v="14"':""}></i>`).join("");
+  const wave = Array.from({length:36},(_,i)=>`<i style="animation-delay:-${(i*0.08).toFixed(2)}s"></i>`).join("");
+  const uses = ["Instagram Reels","YouTube","Podkast","Audiokitob","Reklama","Onlayn darslar","Telegram","Taqdimotlar"];
+  const mq = uses.map(u=>`<span>${u}</span>`).join("");
+  return navHTML(false) + `
+  <header class="hero" id="hero">
+    ${starsHTML(80)}<div class="beam"></div>
+    <div class="wrap">
+      <span class="tag"><span class="dot"></span> Matnni AI bilan ovozga aylantiring</span>
+      <h1>${H1_WORDS.map((w,i)=>`<span class="w ${w[1]?"hl":""}" style="--i:${i}">${w[0]}</span>`).join(" ")}</h1>
+      <p class="lead">Matnni joylang, ovoz va uslubni tanlang. Reklama, video, audiokitob va darslar uchun professional audio — bir necha soniyada.</p>
+      <form class="hero-form" id="hf">${ICON_PHONE}<span class="pre">+998</span><input id="hphone" type="tel" inputmode="numeric" placeholder="90 123 45 67" autocomplete="tel-national"><button class="btn btn-p" type="submit">Boshlash</button></form>
+      <p class="proof">Kartasiz · Kunlik bepul limit · 30 ta ovoz</p>
+
+      <div class="dashwrap" id="dw">
+        <div class="fl fl1"><span class="fi">▶</span><div><b>Kore</b><small>Qat'iy · 0:12</small></div><div class="mw">${eqBars(8,0.12)}</div></div>
+        <div class="fl fl2"><span class="ck">✓</span><div><b>Audio tayyor</b><small>Reklama matni · 0:24</small></div></div>
+        <div class="fl fl3"><span class="fi">🎙</span><div><b>Puck</b><small>Quvnoq uslub</small></div></div>
+        <div class="dash" id="dash">
+          <div class="d-side">
+            <div class="logo"><i>${ICON_MIC}</i>${CONFIG.BRAND}</div>
+            <div class="d-item on"><b></b>Studiya</div><div class="d-item"><b></b>Ovozlar</div><div class="d-item"><b></b>Tarix</div>
+            <div class="d-item"><b></b>Uslublar</div><div class="d-item"><b></b>Limit</div><div class="d-item"><b></b>Tariflar</div><div class="d-item"><b></b>Sozlamalar</div>
+          </div>
+          <div class="d-main">
+            <div class="d-top"><span class="ty"><b id="ty"></b><u></u></span><span class="gb">Yaratish</span></div>
+            <div class="d-stats">
+              <div class="d-card"><span class="mini">Batafsil</span><small>Bugungi belgilar</small><strong data-count="1240" id="c1">0</strong></div>
+              <div class="d-card"><span class="mini">Batafsil</span><small>Yaratilgan audio</small><strong data-count="21" id="c2">0</strong></div>
+              <div class="d-card"><span class="mini">Batafsil</span><small>Mavjud ovozlar</small><strong data-count="30">0</strong></div>
+            </div>
+            <div class="d-two">
+              <div class="d-panel"><h6>Audio tarixi</h6><p>Haftalik yaratilgan audiolar</p><div class="bars" id="bars">${bars}</div></div>
+              <div class="d-panel"><h6>So'nggi audiolar</h6><p>Jonli faoliyat</p><div class="act" id="act"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="uses"><p>Quyidagilar uchun ishlatiladi</p><div class="mq-wrap"><div class="mq">${mq}${mq}</div></div></div>
+
+  <section id="features"><div class="wrap">
+    <div class="sec-h rv"><span class="tag">${ICON_SPARK} Asosiy imkoniyatlar</span>
+      <h2>Matn yozing. <span>Ovoz tayyor.</span></h2></div>
+    <div class="bento">
+      <div class="bcard sp rv"><h3>Matndan ovozga</h3><p>Matnni joylang — tabiiy intonatsiya va pauzalar bilan ovoz yaratiladi.</p>
+        <div class="bvis v1"><div class="box"><div class="in">✦ <span id="v1t">Matn yozing</span><u></u><b>↑</b></div>
+          <div class="opt" id="v1o"><span class="on">Reklama roligi</span><span>Dars kirish so'zi</span></div></div></div></div>
+      <div class="bcard sp rv" style="--d:.1s"><h3>30 ta tayyor ovoz</h3><p>Yorqin, sokin, jiddiy, do'stona — loyihangizga mosini tanlang.</p>
+        <div class="bvis v2"><div class="st"><span>Kore</span><small>Qat'iy</small></div><div class="st"><span>Puck</span><small>Tetik</small></div><div class="st"><span>Sulafat</span><small>Iliq</small></div></div></div>
+      <div class="bcard sp rv" style="--d:.05s"><h3>Uslub boshqaruvi</h3><p>Quvnoq, shivirlab yoki diktor kabi — kayfiyatni bir bosishda o'zgartiring.</p>
+        <div class="bvis v3"><div class="orb"><i></i></div>
+          <span class="cp" style="left:6%;top:28px">Quvnoq</span><span class="cp" style="right:8%;top:50px;animation-delay:-2s">Sokin</span><span class="cp" style="left:18%;top:112px;animation-delay:-4s">Shivirlab</span><span class="cp" style="right:14%;top:132px;animation-delay:-1s">Diktor</span></div></div>
+      <div class="bcard sp rv" style="--d:.15s"><h3>Uzun matn — bitta audio</h3><p>Katta matnlar avtomatik bo'laklanib, bitta WAV faylga yig'iladi.</p>
+        <div class="bvis v4"><div class="pl"><div class="row"><div class="pb">${ICON_PLAY}</div><div class="wv">${wave}</div></div>
+          <div class="meta"><span>Audiokitob · Charon</span><span>⬇ WAV</span></div></div></div></div>
+    </div>
+  </div></section>
+
+  <section><div class="wrap">
+    <div class="sec-h rv"><h2>Uch qadamda <span>tayyor</span></h2></div>
+    <div class="steps">
+      <div class="step sp rv"><div class="num">1</div><h3>Ro'yxatdan o'ting</h3><p>Telefon raqam va parol — 20 soniya.</p></div>
+      <div class="step sp rv" style="--d:.12s"><div class="num">2</div><h3>Matn va ovoz tanlang</h3><p>Matnni joylang, ovoz va uslubni belgilang.</p></div>
+      <div class="step sp rv" style="--d:.24s"><div class="num">3</div><h3>Yuklab oling</h3><p>Tinglang va tayyor audioni saqlang.</p></div>
+    </div>
+  </div></section>
+
+  <section id="pricing"><div class="wrap">
+    <div class="sec-h rv"><span class="tag">${ICON_SPARK} Tariflar</span><h2>Bepul boshlang, <span>kerak bo'lsa kengaytiring</span></h2></div>
+    <div class="plans">${CONFIG.PLANS.map((p,i)=>`
+      <div class="price sp rv ${p.hot?"hot":""}" style="--d:${i*0.1}s">${p.hot?'<span class="pt">Mashhur</span>':""}
+        <h3>${esc(p.name)}</h3>
+        <div class="amt">${esc(p.price)}<small>${esc(p.per)}</small></div>
+        <div class="dl">${esc(p.daily)}</div>
+        <ul>${p.feats.map(f=>`<li>${esc(f)}</li>`).join("")}</ul>
+        ${p.id==="free"
+          ? `<a class="btn btn-p" href="#/register">${esc(p.cta)}</a>`
+          : `<a class="btn ${p.hot?"btn-p":"btn-g"}" target="_blank" rel="noopener" href="${esc(CONFIG.CONTACT_URL)}">${esc(p.cta)}</a>`}
+      </div>`).join("")}</div>
+  </div></section>
+
+  <section id="faq"><div class="wrap">
+    <div class="sec-h rv"><h2>Ko'p so'ralgan <span>savollar</span></h2></div>
+    <div class="faq rv">
+      <details><summary>Ovoz sifati qanday?</summary><p>Zamonaviy sun'iy intellekt ovozi ishlatiladi: intonatsiya va pauzalar tabiiy eshitiladi.</p></details>
+      <details><summary>Limit nima?</summary><p>Har bir tarifda kuniga belgilangan miqdorda matn (belgi) o'tkazish mumkin. Limit har kuni yangilanadi.</p></details>
+      <details><summary>Audioni tijorat maqsadida ishlatsam bo'ladimi?</summary><p>Ha, yaratilgan audioni videolar, reklama va darslarda ishlatishingiz mumkin.</p></details>
+      <details><summary>Tarifni qanday oshiraman?</summary><p>Tariflar bo'limidagi tugma orqali biz bilan bog'laning — akkauntingiz shu zahoti yangilanadi.</p></details>
+    </div>
+  </div></section>
+
+  <section style="padding-top:10px"><div class="wrap"><div class="cta rv">
+    <h2>Birinchi audioingizni hoziroq yarating</h2><p>Kartasiz, bepul boshlang.</p>
+    <a class="btn btn-p btn-lg" href="#/register">Ro'yxatdan o'tish →</a>
+  </div></div></section>
+  <footer>© ${new Date().getFullYear()} ${CONFIG.BRAND}. Barcha huquqlar himoyalangan.</footer>`;
+}
+
+function authPage(mode){
+  const reg = mode==="register";
+  return navHTML(false) + `<div class="auth"><div class="auth-box">
+    <h2>${reg?"Akkaunt yaratish":"Xush kelibsiz"}</h2>
+    <p class="sub">${reg?"Bepul boshlang — kun davomida 3 000 belgi sovg'a.":"Akkauntingizga kiring."}</p>
+    ${CONFIG.API_URL?"":'<div class="msg warn">Sayt hali serverga ulanmagan: CONFIG.API_URL ni to\'ldiring.</div>'}
+    <div id="amsg"></div>
+    <form id="af" novalidate>
+      ${reg?'<div class="f"><label>Ismingiz</label><input name="name" autocomplete="name" placeholder="Masalan, Xusniddin"></div>':""}
+      <div class="f"><label>Telefon raqam</label><div class="phf"><span>+998</span><input name="phone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="90 123 45 67" value="${esc(PREFILL)}"></div></div>
+      <div class="f"><label>Parol</label><div class="pw"><input name="password" type="password" autocomplete="${reg?"new-password":"current-password"}" placeholder="Kamida 6 belgi"><button type="button" id="tp">Ko'rsat</button></div></div>
+      <button class="btn btn-p" style="width:100%;padding:15px" id="asub">${reg?"Ro'yxatdan o'tish":"Kirish"}</button>
+    </form>
+    <p class="alt">${reg?'Akkauntingiz bormi? <a href="#/login">Kirish</a>':'Akkaunt yo\'qmi? <a href="#/register">Ro\'yxatdan o\'tish</a>'}</p>
+  </div></div>`;
+}
+
+function studioPage(){
+  return `<div class="nav fix"><div class="wrap">
+    <a class="logo" href="#/"><i>${ICON_MIC}</i>${CONFIG.BRAND}</a>
+    <div class="user-menu"><span class="em" id="uem"></span><span class="badge" id="upl"></span><button class="btn btn-g" id="lo" style="padding:8px 16px">Chiqish</button></div>
+  </div></div>
+  <div class="studio"><div class="wrap">
+    <div class="st-head"><h2>Ovoz studiyasi</h2>
+      <div class="quota"><div class="row"><span>Bugungi limit</span><span id="qt">—</span></div><div class="bar"><i id="qb" style="width:0"></i></div></div>
+    </div>
+    <div class="st-grid">
+      <div class="card">
+        <h3>1 · MATN</h3>
+        <div class="f" style="margin:0"><textarea id="txt" placeholder="Ovozga aylantirmoqchi bo'lgan matnni shu yerga yozing..."></textarea></div>
+        <div class="cnt"><span id="cc">0 belgi</span><span id="cb"></span></div>
+        <h3 style="margin-top:20px">2 · USLUB</h3>
+        <div class="chips" id="chips">${STYLES.map((s,i)=>`<button class="chip ${i===0?"on":""}" data-v="${esc(s[1])}">${s[0]}</button>`).join("")}</div>
+        <div class="f" style="margin:0"><input id="cst" placeholder="Yoki o'zingiz yozing (inglizcha): masalan, warm and slow" maxlength="120"></div>
+        <div class="gen"><button class="btn btn-p btn-lg" id="go">🎙️ Ovoz yaratish</button><span class="prog" id="pg"></span></div>
+        <div id="smsg" style="margin-top:14px"></div>
+      </div>
+      <div>
+        <div class="card"><h3>3 · OVOZ TANLANG</h3><div class="voices" id="vs">${VOICES.map((v)=>`<button class="vc ${v[0]==="Kore"?"on":""}" data-v="${v[0]}"><b>${v[0]}</b><small>${v[1]}</small></button>`).join("")}</div></div>
+        <div class="card res"><h3>NATIJALAR</h3><div id="hist"><div class="empty">Hozircha audio yo'q</div></div></div>
+      </div>
+    </div>
+  </div></div>`;
+}
+
+/* ============================================================
+   Jonlantirish effektlari
+   ============================================================ */
+function setupReveal(){
+  const els = document.querySelectorAll(".rv");
+  if(!("IntersectionObserver" in window)){ els.forEach(e=>e.classList.add("in")); return; }
+  const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } }), {threshold:.12, rootMargin:"0px 0px -40px 0px"});
+  els.forEach(e=>io.observe(e));
+}
+
+function typeLoop(el, lines){
+  let li = 0, ci = 0, del = false;
+  const step = () => {
+    if(!el.isConnected) return;
+    const full = lines[li];
+    if(!del){ ci++; el.textContent = full.slice(0,ci); if(ci>=full.length){ del=true; later(step, 1800); return; } later(step, 38+Math.random()*40); }
+    else { ci -= 2; if(ci<=0){ ci=0; del=false; li=(li+1)%lines.length; el.textContent=""; later(step, 400); return; } el.textContent = full.slice(0,ci); later(step, 16); }
+  };
+  step();
+}
+
+function countUp(el, to, ms=1400){
+  const t0 = performance.now();
+  const f = t => { const p = Math.min(1,(t-t0)/ms), e = 1-Math.pow(1-p,3); el.textContent = fmt(Math.round(to*e)); if(p<1 && el.isConnected) requestAnimationFrame(f); };
+  requestAnimationFrame(f);
+}
+
+function liveDashboard(){
+  const dash = $("#dash"); if(!dash) return;
+  typeLoop($("#ty"), ["Assalomu alaykum! Bugun yangi kursimizni boshlaymiz.","Yangi kolleksiyamizga xush kelibsiz — 30% chegirma!","Bir paytlar uzoq o'lkada kichkina qishloq bor ekan..."]);
+  document.querySelectorAll("[data-count]").forEach(el => later(()=>countUp(el, +el.dataset.count), 1500));
+  // jonli grafik
+  const bars = [...document.querySelectorAll("#bars i")];
+  every(()=>{
+    bars.forEach(b => { b.style.height = (22+Math.random()*72)+"%"; b.classList.remove("hl"); b.removeAttribute("data-v"); });
+    let mx = 0; bars.forEach((b,i)=>{ if(parseFloat(b.style.height) > parseFloat(bars[mx].style.height)) mx = i; });
+    bars[mx].classList.add("hl"); bars[mx].dataset.v = Math.round(parseFloat(bars[mx].style.height)/7);
+  }, 2200);
+  // jonli faoliyat
+  const feed = [["Reklama matni","Kore","0:24"],["Dars kirish","Puck","1:02"],["Reels ovozi","Sulafat","0:15"],["Audiokitob","Charon","3:40"],["Podkast intro","Zephyr","0:31"],["Taqdimot","Orus","0:48"],["Savdo e'loni","Fenrir","0:19"]];
+  const act = $("#act"); let fi = 0;
+  const addRow = () => {
+    const r = feed[fi++ % feed.length], d = document.createElement("div");
+    d.innerHTML = `<span>${r[0]} · ${r[1]}</span><span>${r[2]}</span>`;
+    act.prepend(d); while(act.children.length>4) act.lastChild.remove();
+  };
+  for(let i=0;i<4;i++) addRow();
+  every(()=>{ addRow(); const c2=$("#c2"), c1=$("#c1"); if(c2&&c1){ c2.textContent = fmt((+c2.textContent.replace(/\s/g,"")||21)+1); c1.textContent = fmt((+c1.textContent.replace(/\s/g,"")||1240)+Math.round(40+Math.random()*120)); } }, 3200);
+  // sichqoncha bilan 3D egilish
+  const hero = $("#hero");
+  hero.addEventListener("mousemove", e => {
+    const r = hero.getBoundingClientRect(), x = (e.clientX-r.left)/r.width-.5, y = (e.clientY-r.top)/r.height-.5;
+    dash.style.transform = `rotateX(${(3-y*5).toFixed(2)}deg) rotateY(${(x*6).toFixed(2)}deg)`;
+  });
+  hero.addEventListener("mouseleave", () => { dash.style.transform = ""; });
+  // bento: yozuv animatsiyasi
+  const t = $("#v1t"), o = $("#v1o");
+  if(t && o){
+    const ex = [["Yangi mahsulot e'loni","Reklama roligi","Dars kirish so'zi"],["Bugungi yangiliklar","Podkast intro","Reels ovozi"],["Xush kelibsiz!","Salomlashuv","Audiokitob boshi"]];
+    typeLoop(t, ex.map(e=>e[0]));
+    let k = 0; every(()=>{ k++; const sp=o.children; [...sp].forEach(s=>s.classList.remove("on")); sp[k%2].classList.add("on"); }, 1800);
+  }
+}
+
+function bindFx(){
+  setupReveal();
+  liveDashboard();
+}
+
+/* sichqoncha nuri va kartalar uchun yoritish (bir marta) */
+document.addEventListener("mousemove", e => {
+  const s = document.documentElement.style;
+  s.setProperty("--mx", e.clientX+"px"); s.setProperty("--my", e.clientY+"px");
+  const c = e.target.closest && e.target.closest(".sp");
+  if(c){ const r = c.getBoundingClientRect(); c.style.setProperty("--x",(e.clientX-r.left)+"px"); c.style.setProperty("--y",(e.clientY-r.top)+"px"); }
+});
+
+/* ============================================================
+   Hodisalar
+   ============================================================ */
+function bindNav(){
+  document.querySelectorAll("[data-s]").forEach(a=>a.addEventListener("click",e=>{
+    e.preventDefault();
+    const id = a.dataset.s;
+    if(location.hash!=="#/" && location.hash!=="") { location.hash="#/"; setTimeout(()=>scrollToId(id),80); }
+    else scrollToId(id);
+  }));
+}
+function scrollToId(id){ const el=document.getElementById(id); if(el) el.scrollIntoView({behavior:"smooth"}); }
+
+function bindLanding(){
+  const f = $("#hf"); if(!f) return;
+  bindPhoneMask($("#hphone"));
+  f.onsubmit = e => { e.preventDefault(); PREFILL = maskPhone($("#hphone").value); location.hash = "#/register"; };
+}
+
+function bindAuth(mode){
+  const form = $("#af"), msg = $("#amsg"), btn = $("#asub");
+  bindPhoneMask(form.phone);
+  $("#tp").onclick = e => { const i=form.password; i.type = i.type==="password"?"text":"password"; e.target.textContent = i.type==="password"?"Ko'rsat":"Yashir"; };
+  form.onsubmit = async ev => {
+    ev.preventDefault();
+    const d = Object.fromEntries(new FormData(form));
+    const digits = (d.phone||"").replace(/\D/g,"");
+    d.phone = "998" + digits;
+    msg.innerHTML = "";
+    const bad = t => { msg.innerHTML = `<div class="msg err">${esc(t)}</div>`; };
+    if(mode==="register" && (d.name||"").trim().length<2) return bad("Ismingizni kiriting");
+    if(digits.length!==9) return bad("Telefon raqamni to'liq kiriting (9 ta raqam, masalan: 90 123 45 67)");
+    if((d.password||"").length<6) return bad("Parol kamida 6 belgi bo'lsin");
+    btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Kuting...';
+    const r = await api(mode, d);
+    btn.disabled = false; btn.textContent = mode==="register"?"Ro'yxatdan o'tish":"Kirish";
+    if(!r.ok) return bad(r.error||"Xatolik");
+    store.token = r.token; USER = r.user; PREFILL = ""; location.hash = "#/studio";
+  };
+}
+
+async function bindStudio(){
+  let voice = "Kore", style = "";
+  const txt = $("#txt"), go = $("#go"), pg = $("#pg"), smsg = $("#smsg");
+  const setQuota = (u,l) => { $("#qt").textContent = `${fmt(u)} / ${fmt(l)}`; $("#qb").style.width = Math.min(100, u/l*100)+"%"; USER && (USER.used=u, USER.limit=l); };
+  const paintUser = () => { $("#uem").textContent = fmtPhone(USER.phone); $("#upl").textContent = USER.plan; setQuota(USER.used, USER.limit); };
+
+  $("#lo").onclick = async () => { await api("logout"); store.token=""; USER=null; HISTORY=[]; location.hash="#/"; };
+
+  if(!USER){
+    const r = await api("me");
+    if(!r.ok){ if(r.error==="auth"){ store.token=""; location.hash="#/login"; } else smsg.innerHTML=`<div class="msg err">${esc(r.error)}</div>`; return; }
+    USER = r.user;
+  }
+  paintUser();
+
+  txt.oninput = () => { $("#cc").textContent = fmt(txt.value.length)+" belgi"; const left=USER.limit-USER.used; $("#cb").textContent = txt.value.length>left ? "Limitdan oshdi" : ""; $("#cb").style.color="var(--err)"; };
+  $("#chips").onclick = e => { const b=e.target.closest(".chip"); if(!b) return; document.querySelectorAll(".chip").forEach(c=>c.classList.remove("on")); b.classList.add("on"); style=b.dataset.v; $("#cst").value=""; };
+  $("#cst").oninput = e => { if(e.target.value.trim()){ document.querySelectorAll(".chip").forEach(c=>c.classList.remove("on")); style=e.target.value.trim(); } };
+  $("#vs").onclick = e => { const b=e.target.closest(".vc"); if(!b) return; document.querySelectorAll(".vc").forEach(c=>c.classList.remove("on")); b.classList.add("on"); voice=b.dataset.v; };
+  renderHistory();
+
+  go.onclick = async () => {
+    const text = txt.value.trim();
+    smsg.innerHTML = "";
+    const bad = t => { smsg.innerHTML = `<div class="msg err">${esc(t)}</div>`; };
+    if(!text) return bad("Avval matn kiriting");
+    if(text.length > USER.limit - USER.used) return bad(`Bugungi qolgan limit: ${fmt(USER.limit-USER.used)} belgi. Matnni qisqartiring yoki tarifni oshiring.`);
+    const parts = splitText(text, CONFIG.MAX_CHUNK);
+    go.disabled = true; const old = go.innerHTML; go.innerHTML = '<span class="spin"></span> Yaratilmoqda...';
+    const eq = `<span class="eq">${eqBars(7,0.1)}</span>`;
+    const pcms = []; let rate = 24000;
+    for(let i=0;i<parts.length;i++){
+      pg.innerHTML = eq + (parts.length>1 ? `Bo'lak ${i+1} / ${parts.length}...` : "Ovoz tayyorlanmoqda...");
+      const r = await api("tts", {text: parts[i], voice, style});
+      if(!r.ok){
+        if(r.error==="auth"){ store.token=""; USER=null; location.hash="#/login"; return; }
+        if(r.error==="limit"){ setQuota(r.used, r.limit); bad(r.message); }
+        else bad(r.error||"Ovoz yaratilmadi");
+        go.disabled=false; go.innerHTML=old; pg.textContent=""; return;
+      }
+      const {pcm, rate:rt} = extractPcm(b64ToBytes(r.audio), r.mime); rate = rt;
+      if(i>0) pcms.push(new Uint8Array(Math.round(rate*0.18)*2));
+      pcms.push(pcm);
+      setQuota(r.used, r.limit);
+    }
+    const {blob, seconds} = buildWav(pcms, rate);
+    HISTORY.unshift({text, voice, url: URL.createObjectURL(blob), seconds, time: new Date()});
+    if(HISTORY.length>8){ const old=HISTORY.pop(); URL.revokeObjectURL(old.url); }
+    renderHistory();
+    go.disabled=false; go.innerHTML=old; pg.textContent="Tayyor ✓";
+    smsg.innerHTML = '<div class="msg ok">Audio tayyor — pastdagi natijalardan tinglang va yuklab oling.</div>';
+    txt.oninput();
+  };
+}
+
+function renderHistory(){
+  const el = $("#hist"); if(!el) return;
+  if(!HISTORY.length){ el.innerHTML = '<div class="empty">Hozircha audio yo\'q</div>'; return; }
+  el.innerHTML = "";
+  HISTORY.forEach((h,i)=>{
+    const d = document.createElement("div"); d.className="item";
+    const p = document.createElement("p"); p.textContent = h.text;
+    const a = document.createElement("audio"); a.controls = true; a.src = h.url;
+    const m = document.createElement("div"); m.className="meta";
+    const info = document.createElement("span"); info.textContent = `${h.voice} · ${h.seconds.toFixed(1)} s`;
+    const dl = document.createElement("a"); dl.className="dl"; dl.href=h.url; dl.download=`${CONFIG.BRAND.toLowerCase()}-${h.voice.toLowerCase()}-${i+1}.wav`; dl.textContent="⬇ WAV yuklab olish";
+    m.append(info, dl); d.append(p,a,m); el.append(d);
+  });
+}
+
+/* ============================================================
+   Router
+   ============================================================ */
+function route(){
+  clearTimers();
+  const h = (location.hash||"#/").replace(/^#/,"") || "/";
+  const app = $("#app");
+  window.scrollTo(0,0);
+  if(h==="/studio"){
+    if(!store.token){ location.hash="#/login"; return; }
+    app.innerHTML = studioPage(); bindStudio(); return;
+  }
+  if(h==="/login" || h==="/register"){
+    if(store.token){ location.hash="#/studio"; return; }
+    const mode = h.slice(1);
+    app.innerHTML = authPage(mode); bindNav(); bindAuth(mode); return;
+  }
+  app.innerHTML = landing(); bindNav(); bindLanding(); bindFx();
+}
+window.addEventListener("hashchange", route);
+route();
+</script>
+</body>
+</html>
