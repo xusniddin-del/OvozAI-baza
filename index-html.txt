@@ -678,6 +678,62 @@ body.light ::-webkit-scrollbar-track{background:transparent}
   .steps2{flex-direction:column}.dzf{flex-wrap:wrap}
 }
 
+/* ---- admin ---- */
+.annc{display:flex;align-items:center;gap:12px;margin:14px 30px 0;padding:11px 14px;border-radius:16px;border:1px solid rgba(110,160,255,.4);background:linear-gradient(90deg,rgba(47,107,255,.22),rgba(111,227,211,.08));font-size:14px;font-weight:600;animation:su .5s both}
+.annc>span:nth-child(2){flex:1}.annc .ai{width:30px;height:30px;border-radius:10px;background:var(--grad);display:grid;place-items:center;flex:none;box-shadow:0 0 16px rgba(47,107,255,.6)}.annc .ai svg{width:15px;color:#fff}
+.tiles{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:16px}
+.tile{position:relative;overflow:hidden;border:1px solid var(--ln);border-radius:20px;padding:16px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.015));display:flex;flex-direction:column;gap:2px;animation:su .5s backwards}
+.tile .ti{width:34px;height:34px;border-radius:11px;background:rgba(47,107,255,.2);border:1px solid var(--ln2);display:grid;place-items:center;color:#8fb0ff;margin-bottom:10px}.tile .ti svg{width:17px}
+.tile small{color:var(--mt);font-size:12.5px;font-weight:600}.tile b{font-family:var(--fh);font-size:26px;font-weight:500;letter-spacing:-.04em}.tile em{font-style:normal;color:var(--mt2);font-size:12px;font-weight:500}
+.tile.good .ti{color:#6fe3d3;background:rgba(52,211,153,.12)}.tile.bad{border-color:rgba(255,107,107,.4)}.tile.bad .ti{color:#ff9a9a;background:rgba(255,80,80,.14)}.tile.bad em{color:#ff9a9a}
+.chc{display:flex;flex-direction:column}
+.chh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:16px}.chh b{display:block;font-size:14.5px}.chh small{color:var(--mt);font-size:12.5px;font-weight:500}
+.chv{font-family:var(--fh);font-size:20px;letter-spacing:-.03em;white-space:nowrap}.chv small{font-family:var(--fb);font-size:12px;color:var(--mt)}
+.cg{display:flex;gap:10px;height:190px;padding-bottom:22px}
+.yax{display:flex;flex-direction:column;justify-content:space-between;font-size:11px;color:var(--mt2);font-weight:600;text-align:right;min-width:30px;margin:-6px 0}
+.plot{flex:1;position:relative;display:flex;align-items:flex-end;gap:5px}
+.gl1{position:absolute;left:0;right:0;height:1px;background:rgba(130,165,255,.1)}.gl1.base{background:rgba(130,165,255,.3)}
+.bc{flex:1;height:100%;display:flex;align-items:flex-end;position:relative;cursor:default;outline:0}
+.bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,#6aa0ff,#2358ff);box-shadow:0 0 14px rgba(61,123,255,.45);transition:filter .2s;transform-origin:bottom;animation:gr .8s cubic-bezier(.2,.8,.2,1) backwards}
+.bar.z{height:2px!important;background:rgba(130,165,255,.25);box-shadow:none}
+.bc:hover .bar,.bc:focus .bar{filter:brightness(1.35)}
+.bc em{position:absolute;bottom:-21px;left:50%;transform:translateX(-50%);font-style:normal;font-size:10.5px;color:var(--mt2);font-weight:600;white-space:nowrap}
+.tt{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translate(-50%,6px);background:#0b1430;border:1px solid var(--ln2);border-radius:10px;padding:6px 10px;white-space:nowrap;opacity:0;pointer-events:none;transition:.15s;z-index:3;box-shadow:0 10px 24px rgba(0,0,0,.5)}
+.tt b{display:block;font-size:13px}.tt small{color:var(--mt);font-size:11.5px}
+.bc:hover .tt,.bc:focus .tt{opacity:1;transform:translate(-50%,0)}
+.bc .tt{bottom:auto;top:-46px}
+.g3a{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.hb2{display:grid;gap:12px}.hb2>div{display:grid;grid-template-columns:100px 1fr 40px;align-items:center;gap:10px;font-size:13.5px;font-weight:600}
+.hb2 i{height:8px;border-radius:9px;background:rgba(255,255,255,.07);overflow:hidden}.hb2 i b{display:block;height:100%;background:var(--grad);border-radius:9px;box-shadow:0 0 10px #3d7bff;animation:gw 1s cubic-bezier(.2,.8,.2,1) backwards}
+@keyframes gw{from{width:0!important}}
+.hb2 em{font-style:normal;text-align:right;font-family:var(--fh);font-size:14px}
+.kd{display:grid;gap:10px}.kd>div{display:flex;align-items:center;gap:12px;font-size:14px;font-weight:600}.kd>div span:nth-child(2){flex:1;color:#c3cfef}.kd b{font-family:var(--fh);font-weight:500;font-size:17px}
+.tops{display:grid;gap:8px}.tops>div{display:flex;align-items:center;gap:10px}.tops>div>span:nth-child(2){flex:1;min-width:0}.tops b{display:block;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tops small{color:var(--mt);font-size:12px}
+.tops em{font-style:normal;font-family:var(--fh);font-size:14px;color:#cfe0ff}
+.uh,.ur{display:grid;grid-template-columns:minmax(0,2fr) 120px 150px 70px 100px 120px 130px;gap:12px;align-items:center}
+.uh,.lh2{font-size:11.5px;color:var(--mt2);font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:8px 12px;border-bottom:1px solid var(--ln)}
+.ur{padding:10px 12px;border-bottom:1px solid rgba(130,165,255,.08);border-radius:14px;cursor:pointer;font-size:13.5px;color:#c3cfef;font-weight:500;transition:.15s}
+.ur:hover{background:rgba(47,107,255,.09);box-shadow:0 0 0 1px rgba(110,160,255,.25) inset}
+.un{display:flex;align-items:center;gap:10px;min-width:0}.un>span:last-child{min-width:0}.un b{display:block;color:#fff;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.un small{color:var(--mt);font-size:12.5px}
+.avs{width:34px;height:34px;border-radius:50%;background:var(--grad);display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff;flex:none}
+.pbg{display:inline-block;padding:4px 10px;border-radius:99px;font-size:12px;font-weight:700;background:rgba(255,255,255,.07);color:#c3cfef;border:1px solid var(--ln)}
+.pbg.p-pro{background:rgba(47,107,255,.2);color:#cfe0ff;border-color:rgba(110,160,255,.45)}.pbg.p-business{background:rgba(124,92,255,.22);color:#ddd2ff;border-color:rgba(160,130,255,.5)}
+.uu small{display:block;font-size:12px}.uu i{display:block;height:5px;border-radius:9px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:5px}.uu i b{display:block;height:100%;background:var(--grad)}
+.sbg{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;font-size:12px;font-weight:700}.sbg svg{width:13px;height:13px}
+.sbg.ok{background:rgba(52,211,153,.12);color:#7be6bd}.sbg.bad{background:rgba(255,80,80,.14);color:#ff9a9a}
+.lh2,.lr{display:grid;grid-template-columns:120px minmax(0,1.4fr) 110px 70px minmax(0,1fr) 90px;gap:12px;align-items:center}
+.lr{padding:10px 12px;border-bottom:1px solid rgba(130,165,255,.08);border-radius:12px;font-size:13px;color:#c3cfef;font-weight:500}
+.lr:hover{background:rgba(255,255,255,.03)}.lr.er{background:rgba(255,80,80,.05)}
+.lr small{display:block;color:var(--mt2);font-size:11.5px}.lr b{display:block;color:#fff;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mdl{font-family:ui-monospace,monospace;font-size:12px;color:var(--mt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lnote{grid-column:1/-1;font-size:12px;color:#ff9a9a;font-family:ui-monospace,monospace;background:rgba(255,80,80,.08);border-radius:8px;padding:6px 10px;word-break:break-word}
+.ust{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.ust>div{border:1px solid var(--ln);border-radius:14px;padding:10px 12px;background:rgba(255,255,255,.03)}.ust small{display:block;color:var(--mt);font-size:12px}.ust b{font-size:14.5px}
+.chk{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:500;color:#c3cfef;cursor:pointer;margin-top:6px}.chk input{width:17px;height:17px;accent-color:#3d7bff}
+.sub3 code,.note code{background:rgba(255,255,255,.07);border-radius:6px;padding:1px 6px;font-size:12.5px;color:#cfe0ff}
+@media(max-width:1180px){.tiles{grid-template-columns:repeat(3,1fr)}.uh,.ur{grid-template-columns:minmax(0,2fr) 110px 140px 120px}.uh span:nth-child(4),.uh span:nth-child(5),.uh span:nth-child(6),.ur>span:nth-child(4),.ur>span:nth-child(5),.ur>span:nth-child(6){display:none}}
+@media(max-width:1020px){.g3a{grid-template-columns:1fr}.lh2,.lr{grid-template-columns:100px minmax(0,1fr) 90px}.lh2 span:nth-child(n+4),.lr>span:nth-child(4),.lr>span:nth-child(5){display:none}.lr>span:nth-child(6){grid-column:3}}
+@media(max-width:900px){.tiles{grid-template-columns:1fr 1fr}.annc{margin:12px 16px 0}.uh{display:none}.ur{grid-template-columns:minmax(0,1fr) auto}.ur>span:nth-child(2),.ur>span:nth-child(3){display:none}.ust{grid-template-columns:1fr}}
+
 @media(prefers-reduced-motion:reduce){
   *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   .w,.lead,.hero-form,.proof,.dashwrap{opacity:1!important;transform:none!important;filter:none!important}
@@ -1428,7 +1484,7 @@ function shellHTML(page){
       <a class="btn-l hide-m" href="#/app/plans">${IC.bolt} Tarif</a>
       <div class="acc"><button class="avr" id="avr" title="Hisob"><span class="avatar" id="av">·</span></button><div class="dd" id="dd"></div></div>
     </header>
-    <div id="pgv"></div>
+    <div id="annc"></div><div id="pgv"></div>
   </div></div>`;
 }
 
@@ -1438,13 +1494,16 @@ function accountMenu(){
     <div class="r"><span>Kunlik limit</span><b>${fmt(u.limit)} belgi</b></div><div class="r"><span>Qolgan</span><b>${fmt(left)}</b></div></div>
     <div class="who"><small>Akkaunt</small><b>${esc(u.name||"")}</b><span>${fmtPhone(u.phone)} · ${esc(planName(u.plan))}</span></div>
     <a href="#/app/plans">${IC.card} Tarif va to'lovlar</a><a href="#/app/ref">${IC.gift} Takliflar va mukofotlar</a>
-    <a href="#/app/assets">${IC.folder} Fayllarim</a><a href="${esc(CONFIG.CONTACT_URL)}" target="_blank" rel="noopener">${IC.chat} Yordam</a>
+    <a href="#/app/assets">${IC.folder} Fayllarim</a>${u.isAdmin?`<a href="#/app/admin">${IC.sliders} Admin panel</a>`:""}<a href="${esc(CONFIG.CONTACT_URL)}" target="_blank" rel="noopener">${IC.chat} Yordam</a>
     <hr><button id="lo">${IC.out} Chiqish</button>`;
 }
 
 function paintUser(){
   $("#av").textContent = initials(USER.name);
   setQuota(USER.used, USER.limit);
+  if(USER.isAdmin && !$("#nadm")){ const nav = document.querySelector(".sb nav");
+    if(nav) nav.insertAdjacentHTML("beforeend", `<div class="gl">Boshqaruv</div><a id="nadm" class="ni ${location.hash.indexOf("/app/admin")>=0?"on":""}" href="#/app/admin" title="Admin panel">${IC.sliders}<span>Admin panel</span></a>`); }
+  paintAnnounce();
 }
 
 function bindShell(){
@@ -2008,6 +2067,177 @@ function newBook(text, title){
     const b = {id: uid(), owner: USER.phone, title: name, author: el.querySelector("#na").value.trim(), voice, chapters: splitChapters(t), time: Date.now()};
     await dbPut("books", b); close(); location.hash = "#/app/book/" + b.id;
   };
+}
+
+/* ============================================================
+   ADMIN PANEL
+   ============================================================ */
+const aapi = (op, d={}) => api("admin", Object.assign({op}, d));
+PAGE_T.admin = "Admin panel";
+const niceMax = m => { if(m <= 4) return 4; const p = Math.pow(10, Math.floor(Math.log10(m))), s = m/p; return (s<=1?1:s<=2?2:s<=2.5?2.5:s<=5?5:10)*p; };
+const fshort = v => v >= 1e6 ? (v/1e6).toFixed(1).replace(".0","")+"M" : v >= 1000 ? (v/1000).toFixed(v>=1e4?0:1).replace(".0","")+"k" : String(Math.round(v));
+const dlab = (d, short) => { const t = today2(); if(d===t) return "Bugun"; const [y,m,dd] = d.split("-"); return short ? `${+dd}.${m}` : `${+dd}.${m}.${y}`; };
+function today2(){ const d = new Date(Date.now() + (5*60 + new Date().getTimezoneOffset())*60000); return d.toISOString().slice(0,10); }
+const fdate = s => { const d = new Date(s); return isNaN(d) ? "—" : d.toLocaleDateString("ru-RU"); };
+const fago = s => { const d = new Date(s); return isNaN(d) ? "—" : ago(d.getTime()); };
+
+function barChart(title, sub, days, vals, unit){
+  const mx = niceMax(Math.max(...vals, 0)), total = vals.reduce((a,b)=>a+b,0);
+  return `<div class="box pad chc"><div class="chh"><div><b>${title}</b><small>${sub}</small></div><span class="chv">${fmt(total)}<small> ${unit}</small></span></div>
+    <div class="cg"><div class="yax"><span>${fshort(mx)}</span><span>${fshort(mx/2)}</span><span>0</span></div>
+      <div class="plot"><i class="gl1" style="top:0"></i><i class="gl1" style="top:50%"></i><i class="gl1 base" style="top:100%"></i>
+      ${vals.map((v,i)=>`<div class="bc" tabindex="0"><div class="bar ${v?"":"z"}" style="height:${v/mx*100}%"></div>
+        <div class="tt"><b>${fmt(v)} ${unit}</b><small>${dlab(days[i])}</small></div><em>${i%2===1||i===days.length-1?dlab(days[i],true):""}</em></div>`).join("")}</div></div></div>`;
+}
+
+const ADMIN = {
+  async stats(b){
+    const r = await aapi("stats"); if(!r.ok) return b.innerHTML = `<div class="msg err">${esc(apiFail(r).error||"Xatolik")}</div>`;
+    const s = r.stats, rq = s.reqs[s.reqs.length-1], er = s.errs[s.errs.length-1];
+    const tile = (ic, label, val, note, cls="") => `<div class="tile ${cls}"><span class="ti">${ic}</span><small>${label}</small><b>${val}</b><em>${note}</em></div>`;
+    const pmax = Math.max(1, ...Object.values(s.plans));
+    b.innerHTML = `<div class="tiles">
+        ${tile(IC.users,"Jami foydalanuvchilar",fmt(s.total),`+${fmt(s.new7)} oxirgi 7 kunda`)}
+        ${tile(IC.plus,"Bugun ro'yxatdan o'tgan",fmt(s.newToday),"yangi akkaunt")}
+        ${tile(IC.bolt,"Bugun faol",fmt(s.active),`${s.total?Math.round(s.active/s.total*100):0}% foydalanuvchi`)}
+        ${tile(IC.wave,"Bugungi belgilar",fmt(s.usedToday),"limitlardan sarflangan")}
+        ${tile(IC.chat,"Bugungi so'rovlar",fmt(rq),"Gemini'ga yuborilgan")}
+        ${tile(er?IC.x:IC.check,"Bugungi xatolar",fmt(er),er?`${Math.round(er/Math.max(1,rq)*100)}% — jurnalni ko'ring`:"Xato yo'q",er?"bad":"good")}
+      </div>
+      <div class="g2b">${barChart("Yangi foydalanuvchilar","Oxirgi 14 kun",s.days,s.reg,"kishi")}${barChart("Belgilar sarfi","Muvaffaqiyatli so'rovlar, 14 kun",s.days,s.chars,"belgi")}</div>
+      <div class="g3a">
+        <div class="box pad"><div class="chh"><div><b>Tariflar bo'yicha</b><small>Foydalanuvchilar soni</small></div></div>
+          <div class="hb2">${Object.entries(s.plans).map(([p,n])=>`<div><span>${esc(planName(p))}</span><i><b style="width:${n/pmax*100}%"></b></i><em>${fmt(n)}</em></div>`).join("")}</div>
+          ${s.blocked?`<p class="note">Bloklangan: ${fmt(s.blocked)}</p>`:""}</div>
+        <div class="box pad"><div class="chh"><div><b>Bugun asboblar bo'yicha</b><small>So'rovlar soni</small></div></div>
+          <div class="kd">${[["tts","Matnni nutqqa",IC.wave],["stt","Nutqdan matnga",IC.text],["translate","Tarjima (dublyaj)",IC.trans]].map(k=>`<div><span class="pic">${k[2]}</span><span>${k[1]}</span><b>${fmt(s.kinds[k[0]]||0)}</b></div>`).join("")}</div></div>
+        <div class="box pad"><div class="chh"><div><b>Bugungi eng faol</b><small>Ishlatilgan belgilar</small></div></div>
+          ${s.top.length?`<div class="tops">${s.top.map((u,i)=>`<div><span class="cn">${i+1}</span><span><b>${esc(u.name)}</b><small>${fmtPhone(u.phone)}</small></span><em>${fmt(u.used)}</em></div>`).join("")}</div>`:`<div class="emp sm">Bugun hali faollik yo'q</div>`}</div>
+      </div>`;
+  },
+
+  async users(b){
+    const r = await aapi("users"); if(!r.ok) return b.innerHTML = `<div class="msg err">${esc(apiFail(r).error||"Xatolik")}</div>`;
+    const all = r.users; let q = "", pf = "", sf = "";
+    b.innerHTML = `<div class="frow"><div class="srch">${IC.search}<input id="uq" placeholder="Ism yoki telefon bo'yicha qidirish..."></div>
+        <label class="btn-g2">${IC.card}<select id="up"><option value="">Barcha tariflar</option>${CONFIG.PLANS.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("")}</select></label>
+        <label class="btn-g2">${IC.user}<select id="us"><option value="">Barcha holatlar</option><option value="active">Faol</option><option value="blocked">Bloklangan</option></select></label>
+        <button class="btn-l" id="csv">${IC.dl} CSV</button></div>
+      <div class="sh" id="ucnt"></div><div class="utbl" id="ul"></div>`;
+    const draw = () => {
+      const l = all.filter(u => (!pf||u.plan===pf) && (!sf||u.status===sf) && (u.name+" "+u.phone).toLowerCase().includes(q));
+      $("#ucnt").textContent = `${l.length} ta foydalanuvchi`;
+      $("#ul").innerHTML = l.length ? `<div class="uh"><span>Foydalanuvchi</span><span>Tarif</span><span>Bugun</span><span>Taklif</span><span>Ro'yxatdan</span><span>Oxirgi kirish</span><span>Holat</span></div>` +
+        l.map(u => `<div class="ur" data-id="${u.id}"><span class="un"><span class="avs">${initials(u.name)}</span><span><b>${esc(u.name)}</b><small>${fmtPhone(u.phone)}</small></span></span>
+          <span><span class="pbg p-${u.plan}">${esc(planName(u.plan))}</span></span>
+          <span class="uu"><small>${fmt(u.used)} / ${fmt(u.limit)}</small><i><b style="width:${Math.min(100,u.used/u.limit*100)}%"></b></i></span>
+          <span>${u.invited||"—"}</span><span>${fdate(u.createdAt)}</span><span>${fago(u.lastLogin)}</span>
+          <span>${u.status==="active"?`<span class="sbg ok">${IC.check} Faol</span>`:`<span class="sbg bad">${IC.x} Bloklangan</span>`}</span></div>`).join("")
+        : `<div class="emp">${IC.users}<b>Foydalanuvchi topilmadi</b><span>Filtrlarni o'zgartirib ko'ring.</span></div>`;
+    };
+    draw();
+    $("#uq").oninput = e => { q = e.target.value.trim().toLowerCase(); draw(); };
+    $("#up").onchange = e => { pf = e.target.value; draw(); };
+    $("#us").onchange = e => { sf = e.target.value; draw(); };
+    $("#csv").onclick = () => {
+      const rows = [["Ism","Telefon","Tarif","Holat","Bugun","Limit","Taklif","Ro'yxatdan","Oxirgi kirish"]].concat(all.map(u=>[u.name,u.phone,u.plan,u.status,u.used,u.limit,u.invited,u.createdAt,u.lastLogin]));
+      saveFile(new Blob(["﻿"+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n")],{type:"text/csv;charset=utf-8"}), `ovozai-foydalanuvchilar-${today2()}.csv`);
+    };
+    $("#ul").onclick = e => { const row = e.target.closest(".ur"); if(row) editUser(all.find(u=>u.id===row.dataset.id), () => ADMIN.users(b)); };
+  },
+
+  async logs(b){
+    const r = await aapi("logs", {limit:400}); if(!r.ok) return b.innerHTML = `<div class="msg err">${esc(apiFail(r).error||"Xatolik")}</div>`;
+    const all = r.logs; let f = "";
+    const KN = {tts:["Nutq",IC.wave], stt:["Matnga",IC.text], translate:["Tarjima",IC.trans]};
+    b.innerHTML = `<div class="chips4" id="lf">${[["","Hammasi"],["err","Faqat xatolar"],["tts","Nutq"],["stt","Matnga"],["translate","Tarjima"]].map(c=>`<button class="tchip ${c[0]===f?"on":""}" data-f="${c[0]}">${c[1]}</button>`).join("")}</div>
+      <p class="note">Oxirgi ${fmt(all.length)} ta yozuv. Xato bo'lsa, Google'ning javobi «Izoh» ustunida.</p><div class="ltbl" id="ll"></div>`;
+    const draw = () => {
+      const l = all.filter(x => !f || (f==="err" ? !x.ok : x.kind===f));
+      $("#ll").innerHTML = l.length ? `<div class="lh2"><span>Vaqt</span><span>Foydalanuvchi</span><span>Turi</span><span>Belgi</span><span>Model</span><span>Holat</span></div>` +
+        l.map(x => `<div class="lr ${x.ok?"":"er"}"><span>${fago(x.time)}<small>${new Date(x.time).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})}</small></span>
+          <span><b>${esc(x.name)}</b><small>${fmtPhone(x.phone)}</small></span><span class="ak">${KN[x.kind][1]}${KN[x.kind][0]}</span><span>${fmt(x.chars)}</span>
+          <span class="mdl">${esc(x.model||"—")}</span><span>${x.ok?`<span class="sbg ok">${IC.check} OK</span>`:`<span class="sbg bad" title="${esc(x.note)}">${IC.x} Xato</span>`}</span>
+          ${x.ok?"":`<span class="lnote">${esc(x.note)}</span>`}</div>`).join("")
+        : `<div class="emp">${IC.file}<b>Yozuv yo'q</b><span>${f==="err"?"Xatolar yo'q — hammasi ishlayapti.":"Hali so'rov bo'lmagan."}</span></div>`;
+    };
+    draw();
+    $("#lf").onclick = e => { const c = e.target.closest(".tchip"); if(!c) return; f = c.dataset.f; document.querySelectorAll("#lf .tchip").forEach(x=>x.classList.toggle("on", x===c)); draw(); };
+  },
+
+  async settings(b){
+    const r = await aapi("settings"); if(!r.ok) return b.innerHTML = `<div class="msg err">${esc(apiFail(r).error||"Xatolik")}</div>`;
+    const s = r.settings;
+    b.innerHTML = `<div class="g2b">
+      <div class="box pad"><div class="chh"><div><b>Kunlik limitlar</b><small>Har bir tarif uchun kuniga beriladigan belgi</small></div></div>
+        ${CONFIG.PLANS.map(p=>`<div class="lb">${esc(p.name)} <em>${p.id}</em></div><input class="inp" type="number" min="1" data-plan="${p.id}" value="${s.plans[p.id]||""}">`).join("")}
+        <p class="note">O'zgarish darhol kuchga kiradi. Tariflar sahifasidagi narx va yozuvlar index.html dagi CONFIG.PLANS dan olinadi — raqamlarni u yerda ham yangilang.</p></div>
+      <div class="box pad"><div class="chh"><div><b>Takliflar</b><small>Do'st taklif qilgani uchun bonus</small></div></div>
+        <div class="lb">Har bir do'st uchun bonus <em>belgi / kun</em></div><input class="inp" type="number" min="0" id="rb" value="${s.refBonus}">
+        <div class="lb">Bonus beriladigan takliflar soni <em>maksimum</em></div><input class="inp" type="number" min="0" id="rm" value="${s.refMax}">
+        <div class="lb" style="margin-top:26px">E'lon <em>barcha foydalanuvchilarga ko'rinadi</em></div>
+        <textarea class="ta" id="an" maxlength="300" style="min-height:110px" placeholder="Masalan: Yangi ovozlar qo'shildi! Bo'sh qoldirsangiz e'lon ko'rinmaydi.">${esc(s.announce)}</textarea></div></div>
+      <div class="mdf" style="margin-top:16px"><div class="flex1"></div><button class="btn-k lg" id="sv">${IC.check} Saqlash</button></div>
+      <div class="box pad" style="margin-top:20px"><div class="chh"><div><b>Adminlar</b><small>Kim admin panelga kira oladi</small></div></div>
+        <p class="sub3">Apps Script → Project Settings → Script Properties → <b>ADMIN_PHONES</b>. Bir nechta admin bo'lsa vergul bilan yozing: <code>+998901234567, +998911112233</code></p></div>`;
+    $("#sv").onclick = async () => {
+      const btn = $("#sv"); btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Saqlanmoqda...';
+      const plans = {}; document.querySelectorAll("[data-plan]").forEach(i => plans[i.dataset.plan] = +i.value);
+      const r2 = await aapi("save", {settings:{plans, refBonus:+$("#rb").value, refMax:+$("#rm").value, announce:$("#an").value.trim()}});
+      btn.disabled = false; btn.innerHTML = `${IC.check} Saqlash`;
+      if(!r2.ok) return toast(apiFail(r2).error || "Saqlanmadi");
+      USER.announce = r2.settings.announce; paintAnnounce(); toast("Sozlamalar saqlandi ✓"); ADMIN.settings(b);
+    };
+  }
+};
+
+function editUser(u, done){
+  if(!u) return;
+  let plan = u.plan, status = u.status;
+  const {el, close} = modal(`<div class="mdh"><div><b>${esc(u.name)}</b><small>${fmtPhone(u.phone)} · ro'yxatdan: ${fdate(u.createdAt)}</small></div><button class="ib" data-close>${IC.x}</button></div>
+    <div class="ust"><div><small>Bugun</small><b>${fmt(u.used)} / ${fmt(u.limit)}</b></div><div><small>Taklif qilgan</small><b>${u.invited}</b></div><div><small>Oxirgi kirish</small><b>${fago(u.lastLogin)}</b></div></div>
+    <div class="lb">Tarif</div><div class="seg" id="eplan">${CONFIG.PLANS.map(p=>`<button data-p="${p.id}" class="${p.id===plan?"on":""}">${esc(p.name)}</button>`).join("")}</div>
+    <div class="lb">Holat</div><div class="seg" id="estat"><button data-s="active" class="${status==="active"?"on":""}">Faol</button><button data-s="blocked" class="${status==="blocked"?"on":""}">Bloklangan</button></div>
+    <label class="chk"><input type="checkbox" id="erst"> Bugungi sarfni nolga tushirish</label>
+    <label class="chk"><input type="checkbox" id="eout"> Barcha qurilmalardan chiqarib yuborish</label>
+    <div class="mdf"><div class="flex1"></div><button class="btn-l" data-close>Bekor qilish</button><button class="btn-k" id="esv">Saqlash</button></div>`);
+  el.querySelector("#eplan").onclick = e => { const x = e.target.closest("button"); if(!x) return; plan = x.dataset.p; el.querySelectorAll("#eplan button").forEach(y=>y.classList.toggle("on", y===x)); };
+  el.querySelector("#estat").onclick = e => { const x = e.target.closest("button"); if(!x) return; status = x.dataset.s; el.querySelectorAll("#estat button").forEach(y=>y.classList.toggle("on", y===x)); };
+  el.querySelector("#esv").onclick = async () => {
+    const d = {id:u.id};
+    if(plan !== u.plan) d.plan = plan;
+    if(status !== u.status) d.status = status;
+    if(el.querySelector("#erst").checked) d.resetUsage = true;
+    if(el.querySelector("#eout").checked) d.logoutAll = true;
+    if(Object.keys(d).length === 1) return close();
+    if(status==="blocked" && u.status!=="blocked" && !confirm(`${u.name} bloklansinmi? U saytdan chiqarib yuboriladi.`)) return;
+    const r = await aapi("update", d);
+    if(!r.ok) return toast(apiFail(r).error || "Saqlanmadi");
+    close(); toast("Saqlandi ✓"); done && done();
+  };
+}
+
+PAGES.admin = async function(){
+  if(!USER.isAdmin){ $("#pgv").innerHTML = `<div class="pg"><div class="emp">${IC.user}<b>Ruxsat yo'q</b><span>Bu bo'lim faqat adminlar uchun.</span></div></div>`; return; }
+  let tab = (()=>{ try{ return sessionStorage.getItem("ovoz_atab") || "stats"; }catch(e){ return "stats"; } })();
+  const T = [["stats","Umumiy",IC.home],["users","Foydalanuvchilar",IC.users],["logs","Jurnal",IC.file],["settings","Sozlamalar",IC.sliders]];
+  $("#pgv").innerHTML = `<div class="pg"><div class="ph"><div><h1 class="t2">Admin panel</h1><p class="sub3">Foydalanuvchilar, sarf va sozlamalar — hammasi bir joyda.</p></div>
+    <button class="btn-l" id="arf">${IC.reset} Yangilash</button></div>
+    <div class="tabs4 ul" id="at">${T.map(t=>`<button data-t="${t[0]}" class="${t[0]===tab?"on":""}">${t[2]}${t[1]}</button>`).join("")}</div><div id="ab"></div></div>`;
+  const load = async () => { const b = $("#ab"); b.innerHTML = `<div class="ld"><span class="spin dk"></span> Yuklanmoqda...</div>`; await ADMIN[tab](b); };
+  $("#at").onclick = e => { const x = e.target.closest("button"); if(!x) return; tab = x.dataset.t; try{ sessionStorage.setItem("ovoz_atab", tab); }catch(e){}
+    document.querySelectorAll("#at button").forEach(y=>y.classList.toggle("on", y===x)); load(); };
+  $("#arf").onclick = load;
+  load();
+};
+
+function paintAnnounce(){
+  const box = $("#annc"); if(!box || !USER) return;
+  const t = USER.announce || "", key = "ovoz_ann_" + t.length + "_" + t.slice(0,20);
+  let hid = false; try{ hid = localStorage.getItem("ovoz_ann") === key; }catch(e){}
+  if(!t || hid){ box.innerHTML = ""; return; }
+  box.innerHTML = `<div class="annc"><span class="ai">${IC.spark}</span><span>${esc(t)}</span><button class="ib xs" id="anx" title="Yopish">${IC.x}</button></div>`;
+  $("#anx").onclick = () => { try{ localStorage.setItem("ovoz_ann", key); }catch(e){} box.innerHTML = ""; };
 }
 
 /* ---- Jonli bezak: ketma-ket paydo bo'lish va sichqoncha nuri ---- */
