@@ -516,7 +516,8 @@ kbd{font:700 10.5px var(--fb);border:1px solid var(--ln2);border-radius:6px;padd
 .stc{border:1px solid var(--ln);background:rgba(255,255,255,.04);border-radius:99px;padding:8px 14px;font-size:13.5px;font-weight:600;color:#c3cfef;transition:.2s;animation:su .5s backwards}
 .stc:hover{border-color:#5b8cff;color:#fff;transform:translateY(-2px);box-shadow:0 8px 20px rgba(47,107,255,.25)}
 .edbar{position:sticky;bottom:0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 28px;border-top:1px solid var(--ln);background:rgba(3,5,15,.82);backdrop-filter:blur(14px)}
-.cnt3{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mt);font-weight:600}.cnt3 b{color:#fff}.cnt3 b.bad{color:var(--bad)}
+.cnt3 .ovr{color:#ff9a9a}.cnt3 .ovr a{color:#8fb0ff;text-decoration:underline}
+.cnt3{flex-wrap:wrap;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mt);font-weight:600}.cnt3 b{color:#fff}.cnt3 b.bad{color:var(--bad)}
 .ring{width:16px;height:16px;border-radius:50%;position:relative}.ring:after{content:"";position:absolute;inset:3px;border-radius:50%;background:#060a1c}
 .prog2{font-size:13px;color:#b9c6ea;font-weight:600;display:flex;align-items:center;gap:8px}.prog2:empty{display:none}
 .res3{position:relative;overflow:hidden;margin:18px 0;padding:18px;border-radius:22px;border:1px solid rgba(110,160,255,.4);background:linear-gradient(160deg,rgba(47,107,255,.2),rgba(255,255,255,.03));box-shadow:0 0 50px rgba(47,107,255,.2);animation:su .5s both}
@@ -1680,7 +1681,7 @@ const PAGES = {
     const total = () => blocks.reduce((a,b)=>a+b.text.length, 0);
     const upd = () => {
       const n = total(), left = Math.max(0, USER.limit-USER.used);
-      $("#cc").innerHTML = `<span class="ring" style="background:conic-gradient(#5b8cff ${Math.min(100,n/Math.max(1,left)*100)}%,rgba(255,255,255,.12) 0)"></span><b class="${n>left?"bad":""}">${fmt(n)}</b> / ${fmt(left)} belgi qoldi`;
+      $("#cc").innerHTML = `<span class="ring" style="background:conic-gradient(#5b8cff ${Math.min(100,n/Math.max(1,left)*100)}%,rgba(255,255,255,.12) 0)"></span><b class="${n>left?"bad":""}">${fmt(n)}</b> belgi yozildi · bugun ${fmt(left)} qoldi${n>left?` <span class="ovr">· ${fmt(n-left)} belgi ortiqcha — matnni qisqartiring yoki <a href="#/app/plans">tarifni oshiring</a></span>`:""}`;
       $("#st").hidden = n > 0;
     };
     const auto = t => { t.style.height = "auto"; t.style.height = Math.max(blocks.length>1?60:240, t.scrollHeight) + "px"; };
