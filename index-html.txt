@@ -222,7 +222,7 @@ section{padding:90px 0;position:relative}
 .faq summary:after{content:"+";color:var(--blue2);font-size:22px;line-height:1;transition:transform .3s}
 .faq details[open] summary:after{transform:rotate(45deg)}
 .faq p{color:var(--muted);margin-top:10px;font-size:14px;font-weight:500}
-.studio4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;max-width:1180px;margin:0 auto}
+.studio4{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;max-width:820px;margin:0 auto}
 @media(max-width:1000px){.studio4{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.studio4{grid-template-columns:1fr}}
 .sc4{display:flex;flex-direction:column;gap:10px;padding:24px;border-radius:24px;border:1px solid rgba(140,170,255,.2);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));color:inherit;text-decoration:none;transition:.25s}
 .sc4:hover{transform:translateY(-4px);border-color:rgba(140,170,255,.45);box-shadow:0 20px 50px rgba(0,0,0,.35)}
@@ -946,13 +946,13 @@ const CONFIG = {
   MAX_CHUNK: 800,                    // matn shu uzunlikdagi bo'laklarga bo'linib yuboriladi
   PLANS: [
     {id:"free", name:"Bepul", price:"Bepul", per:"", daily:"1 000 belgi / kun",
-      feats:["30 ta ovoz","Uslub tanlash","2 ta rasm va 1 ta sayt / kun"], cta:"Bepul boshlash"},
+      feats:["30 ta ovoz","Uslub tanlash","1 ta sayt / kun"], cta:"Bepul boshlash"},
     {id:"pro", name:"Pro", price:"49 000", per:" so'm / oy", daily:"10 000 belgi / kun", hot:true,
-      feats:["Barcha ovozlar","Ko'p ovozli dialog","15 rasm va 5 sayt / kun","Android ilova (APK)"], cta:"Pro olish"},
+      feats:["Barcha ovozlar","Ko'p ovozli dialog","5 ta sayt / kun","Android ilova (APK)"], cta:"Pro olish"},
     {id:"max", name:"Max", price:"99 000", per:" so'm / oy", daily:"30 000 belgi / kun",
-      feats:["AI video — 2 ta / kun","40 rasm va 15 sayt / kun","Claude AI konnektori","Ustuvor yordam"], cta:"Max olish"},
+      feats:["15 ta sayt va 3 APK / kun","Claude AI konnektori","Audiokitob va dublyaj","Ustuvor yordam"], cta:"Max olish"},
     {id:"business", name:"Biznes", price:"199 000", per:" so'm / oy", daily:"80 000 belgi / kun",
-      feats:["AI video — 6 ta / kun","100 rasm va 40 sayt / kun","Claude AI konnektori","Shaxsiy yordam"], cta:"Biznes olish"}
+      feats:["40 ta sayt va 10 APK / kun","Claude AI konnektori","Eng yuqori limit","Shaxsiy yordam"], cta:"Biznes olish"}
   ]
 };
 
@@ -1168,11 +1168,9 @@ function landing(){
 
   <section id="studio"><div class="wrap">
     <div class="sec-h rv"><span class="tag">${ICON_SPARK} Yangi · AI studiya</span>
-      <h2>Ovozdan ham <span>ko'proq</span></h2><p class="sec-p">Rasm, video, sayt va mobil ilova — hammasi bitta joyda, o'zbek tilida.</p></div>
+      <h2>Ovozdan ham <span>ko'proq</span></h2><p class="sec-p">Sayt va mobil ilova — so'z bilan tasvirlang, AI yasab beradi.</p></div>
     <div class="studio4">
-      ${[["img","Rasm yaratish va tahrirlash","Matndan rasm chizing yoki suratingizni yuklab, fonni almashtiring, yorqinlashtiring, uslubini o'zgartiring.","linear-gradient(135deg,#831843,#ec4899)",'<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>'],
-         ["vid","Video yaratish","Sahnani tasvirlang yoki rasm bering — AI reklama va reels uchun qisqa video yaratadi.","linear-gradient(135deg,#7f1d1d,#ef4444)",'<rect x="3" y="5" width="14" height="14" rx="3"/><path d="M17 10l4-2.5v9L17 14"/>'],
-         ["site","Sayt yaratish","Biznesingizni so'z bilan tasvirlang — tayyor sayt, bir tugma bilan internetga joylanadi.","linear-gradient(135deg,#134e4a,#14b8a6)",'<path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/>'],
+      ${[["site","Sayt yaratish","Biznesingizni so'z bilan tasvirlang — tayyor sayt, bir tugma bilan internetga joylanadi.","linear-gradient(135deg,#134e4a,#14b8a6)",'<path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/>'],
          ["app","Mobil ilova (APK)","Ilova g'oyasini yozing — telefonda sinab ko'ring va Android ilova faylini yuklab oling.","linear-gradient(135deg,#1e1b4b,#6366f1)",'<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>']]
         .map((c,i)=>`<a class="sc4 sp rv" style="--d:${i*.08}s" href="${store.token?"#/app/"+(c[0]==="img"?"image":c[0]==="vid"?"video":c[0]):"#/register"}"><span class="si4" style="background:${c[3]}"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${c[4]}</svg></span><h3>${c[1]}</h3><p>${c[2]}</p><span class="go4">Sinab ko'rish →</span></a>`).join("")}
     </div>
@@ -1884,8 +1882,6 @@ const APP_NAV = [
   {id:"dub", t:"Dublyaj", ic:IC.trans},
   {id:"books", t:"Audiokitoblar", ic:IC.book},
   {g:"AI studiya"},
-  {id:"image", t:"Rasm yaratish", ic:IC.img},
-  {id:"video", t:"Video yaratish", ic:IC.film},
   {id:"site", t:"Sayt yaratish", ic:IC.code},
   {id:"app", t:"Mobil ilova (APK)", ic:IC.phone},
   {g:"Hisob"},
@@ -1959,7 +1955,7 @@ async function palette(){
   const assets = USER ? await listAssets() : [];
   const acts = [["tts","Nutq yaratish","Matnni nutqqa",IC.wave],["stt","Matnga o'girish","Nutqdan matnga",IC.text],["dub","Dublyaj qilish","Audioni boshqa tilga",IC.trans],
     ["books","Audiokitob yaratish","Uzun matndan kitob",IC.book],["voices","Ovozlar kutubxonasi","30 ta ovoz",IC.grid],["assets","Fayllarim","Saqlangan fayllar",IC.folder],["plans","Tarif va to'lovlar","Limit va tariflar",IC.card],["connect","Claude'ga ulash","AI konnektori",IC.link],
-    ["image","Rasm yaratish","Rasm va tahrirlash",IC.img],["video","Video yaratish","Qisqa AI video",IC.film],["site","Sayt yaratish","Tayyor web sayt",IC.code],["app","Mobil ilova","Android APK",IC.phone]];
+    ["site","Sayt yaratish","Tayyor web sayt",IC.code],["app","Mobil ilova","Android APK",IC.phone]];
   const {el, close} = modal(`<div class="srch big2">${IC.search}<input id="pq" placeholder="Amal, ovoz yoki fayl qidirish..."></div><div class="pl4" id="pr"></div>`, "pal");
   const draw = () => {
     const q = el.querySelector("#pq").value.toLowerCase();
@@ -2057,8 +2053,6 @@ const TOOLS = [
   ["stt","Nutqdan matnga","Audio va videoni matnga o'giring",IC.text,"linear-gradient(135deg,#064e3b,#10b981 55%,#a7f3d0)"],
   ["dub","Dublyaj","Audioni boshqa tilga ovozlang",IC.trans,"linear-gradient(135deg,#7c2d12,#f97316 55%,#fed7aa)"],
   ["books","Audiokitoblar","Uzun matndan boblarga bo'lingan kitob",IC.book,"linear-gradient(135deg,#4c1d95,#a855f7 55%,#e9d5ff)"],
-  ["image","Rasm yaratish","Matndan rasm, suratni tahrirlash",IC.img,"linear-gradient(135deg,#831843,#ec4899 55%,#fbcfe8)"],
-  ["video","Video yaratish","Matn yoki rasmdan qisqa video",IC.film,"linear-gradient(135deg,#7f1d1d,#ef4444 55%,#fecaca)"],
   ["site","Sayt yaratish","Tavsif bering — tayyor sayt",IC.code,"linear-gradient(135deg,#134e4a,#14b8a6 55%,#99f6e4)"],
   ["app","Mobil ilova","Android ilova (APK) yaratish",IC.phone,"linear-gradient(135deg,#1e1b4b,#6366f1 55%,#c7d2fe)"],
   ["voices","Ovozlar","30 ta ovozni tinglang va tanlang",IC.grid,"linear-gradient(135deg,#0f172a,#475569 55%,#cbd5e1)"]
@@ -2458,104 +2452,6 @@ const PAGES = {
 
 
   /* ======== AI STUDIYA ======== */
-  async image(){
-    let mode = "new", pics = [], aspect = "1:1", busy = false;
-    const IDEAS = {new:["Kofe do'koni uchun reklama surati, iliq yorug'lik","Minimalist logotip: ko'k rangda, nutq pufagi","Marg'ilon atlasi naqshli zamonaviy fon","Bolalar kursi uchun quvnoq afisha, multfilm uslubi"],
-      edit:["Fonni olib tashla, oq fon qil","Rasmni yorqinroq va tiniqroq qil","Mahsulotni stol ustiga, studiya yorug'ida qo'y","Rasmga qishki, qorli kayfiyat ber"]};
-    const S = () => (USER.svc||{}).img || {used:0,limit:0};
-    $("#pgv").innerHTML = `<div class="pg">
-      <div class="ph"><div><h1 class="t2">Rasm yaratish va tahrirlash</h1><p class="sub3">Matndan rasm yarating yoki suratingizni yuklab, nimani o'zgartirishni yozing.</p></div>
-        <span class="quota2">${IC.img} Bugun: <b id="qi">${S().used} / ${S().limit}</b></span></div>
-      <div class="st2"><div class="box stp">
-        <div class="seg" id="md"><button class="on" data-m="new">${IC.spark} Yaratish</button><button data-m="edit">${IC.edit} Tahrirlash</button></div>
-        <div id="upw" hidden><div class="lb3" style="margin-bottom:8px">Rasm(lar) — 3 tagacha</div><div class="thumbs" id="th"></div><input type="file" id="fi" accept="image/*" multiple hidden></div>
-        <div class="lb3">Tavsif</div>
-        <textarea class="ta" id="pr" maxlength="2000" placeholder="Masalan: Kofe do'koni uchun reklama surati, stol ustida bug'lanib turgan kapuchino, iliq yorug'lik"></textarea>
-        <div class="chips5" id="ideas"></div>
-        <div id="asw"><div class="lb3" style="margin-bottom:8px">O'lcham</div><div class="seg sm" id="as">${["1:1","4:5","9:16","16:9","3:4"].map(x=>`<button data-a="${x}" class="${x===aspect?"on":""}">${x}</button>`).join("")}</div></div>
-        <button class="btn-k lg wide" id="go">${IC.spark} Rasm yaratish</button>
-        <small class="muted">Rasm yaratish 10–30 soniya oladi. Har bir rasm kunlik limitdan 1 ta oladi.</small>
-      </div>
-      <div class="box stage" id="stg"><div class="ph2">${IC.img}<b>Natija shu yerda chiqadi</b><span>Tavsif yozing va «Rasm yaratish»ni bosing</span></div></div></div>
-      <div class="lh"><h3 class="h3">Mening rasmlarim</h3></div><div class="gal" id="gal"></div></div>`;
-    const drawIdeas = () => { $("#ideas").innerHTML = IDEAS[mode].map(x=>`<button>${esc(x)}</button>`).join(""); };
-    const drawThumbs = () => { $("#th").innerHTML = pics.map((p,i)=>`<span style="background-image:url(data:${p.mime};base64,${p.data})"><button data-rm="${i}" aria-label="Olib tashlash">✕</button></span>`).join("") + (pics.length<3?`<label for="fi" title="Rasm qo'shish">${IC.plus}</label>`:""); };
-    const gal = async () => { const l = (await listAssets()).filter(a=>a.kind==="img").slice(0,24); if(!$("#gal")) return;
-      $("#gal").innerHTML = l.length ? l.map(a=>`<button data-id="${a.id}" style="background-image:url(${a.thumb||""})"><span>${esc(a.title)}</span></button>`).join("") : `<div class="emp sm" style="grid-column:1/-1">Hozircha rasm yo'q</div>`;
-      $("#gal").onclick = e => { const b = e.target.closest("[data-id]"); if(b){ const a = l.find(x=>x.id===b.dataset.id); if(a) viewMedia(a); } }; };
-    drawIdeas(); drawThumbs(); gal();
-    $("#md").onclick = e => { const b = e.target.closest("button"); if(!b) return; mode = b.dataset.m;
-      document.querySelectorAll("#md button").forEach(x=>x.classList.toggle("on",x===b)); $("#upw").hidden = mode!=="edit"; $("#asw").hidden = mode==="edit";
-      $("#go").innerHTML = mode==="edit" ? `${IC.edit} O'zgartirish` : `${IC.spark} Rasm yaratish`; drawIdeas(); };
-    $("#ideas").onclick = e => { const b = e.target.closest("button"); if(b){ $("#pr").value = b.textContent; $("#pr").focus(); } };
-    $("#as").onclick = e => { const b = e.target.closest("button"); if(!b) return; aspect = b.dataset.a; document.querySelectorAll("#as button").forEach(x=>x.classList.toggle("on",x===b)); };
-    $("#th").onclick = e => { const b = e.target.closest("[data-rm]"); if(b){ pics.splice(+b.dataset.rm,1); drawThumbs(); } };
-    $("#fi").onchange = async () => { for(const f of [...$("#fi").files].slice(0, 3-pics.length)){ pics.push(await shrinkImage(f)); } $("#fi").value=""; drawThumbs(); };
-    const show = (blob, title) => { const u = URL.createObjectURL(blob);
-      $("#stg").innerHTML = `<div style="width:100%;text-align:center"><img src="${u}" alt="${esc(title)}" style="margin:auto"><div class="acts2">
-        <button class="btn-k" id="dl">${IC.dl} Yuklab olish</button><button class="btn-l" id="ed">${IC.edit} Shu rasmni tahrirlash</button></div></div>`;
-      $("#dl").onclick = () => saveFile(blob, slug(title)+".png");
-      $("#ed").onclick = async () => { pics = [await shrinkImage(blob)]; $("#md button[data-m=edit]").click(); drawThumbs(); $("#pr").value=""; $("#pr").focus(); }; };
-    $("#go").onclick = async () => {
-      if(busy) return; const prompt = $("#pr").value.trim();
-      if(!prompt) return toast("Tavsif yozing"); if(mode==="edit" && !pics.length) return toast("Avval rasm yuklang");
-      busy = true; const go = $("#go"); go.disabled = true;
-      $("#stg").innerHTML = `<div class="genw"><span class="ring2"></span>${mode==="edit"?"Rasm o'zgartirilmoqda...":"Rasm chizilmoqda..."}<small>10–30 soniya</small></div>`;
-      const r = await api("image", {prompt, images: mode==="edit" ? pics : [], aspect});
-      busy = false; if(!$("#go")) return; go.disabled = false;
-      if(!r.ok){ const f = apiFail(r); $("#stg").innerHTML = `<div class="ph2">${IC.x}<b>${esc(f.error||"Xatolik")}</b>${r.upgrade?`<a class="btn-k" href="#/app/plans">${IC.bolt} Tarifni oshirish</a>`:""}</div>`; return; }
-      const blob = b64ToBlob(r.data, r.mime); const title = prompt.slice(0,40);
-      USER.svc = USER.svc || {}; USER.svc.img = {used:r.used, limit:r.limit}; $("#qi").textContent = `${r.used} / ${r.limit}`;
-      show(blob, title);
-      await saveAsset({kind:"img", title, blob, mime:r.mime, sub: mode==="edit"?"Tahrirlangan":"Yaratilgan", thumb: await thumbOf(blob)}); gal();
-    };
-  },
-
-  async video(){
-    let pic = null, aspect = "9:16", res = "720p", busy = false;
-    const S = () => (USER.svc||{}).vid || {used:0,limit:0};
-    if(!S().limit){ $("#pgv").innerHTML = `<div class="pg"><h1 class="t2">Video yaratish</h1><div class="box lockc">${IC.film}<b>Video yaratish Max va Biznes tariflarida</b><span class="muted">Matn yoki rasmdan 8 soniyagacha bo'lgan AI video — reklama, reels va taqdimotlar uchun.</span><a class="btn-k" href="#/app/plans">${IC.bolt} Tarifni oshirish</a></div></div>`; return; }
-    $("#pgv").innerHTML = `<div class="pg">
-      <div class="ph"><div><h1 class="t2">Video yaratish</h1><p class="sub3">Sahnani tasvirlab bering — AI qisqa video yaratadi. Rasm qo'shsangiz, o'sha rasm jonlanadi.</p></div>
-        <span class="quota2">${IC.film} Bugun: <b id="qv">${S().used} / ${S().limit}</b></span></div>
-      <div class="st2"><div class="box stp">
-        <div class="lb3">Sahna tavsifi</div>
-        <textarea class="ta" id="pr" maxlength="2000" placeholder="Masalan: Kofe do'koni, barista kapuchino ustiga yurak chizyapti, sekin kamera harakati, iliq yorug'lik"></textarea>
-        <div class="chips5" id="ideas">${["Mahsulot aylanib turadi, studiya fonida","Shahar ustidan dron bilan uchib o'tish","Bolalar kulib, rang-barang sinfxonada","Logotip yorug'lik bilan paydo bo'ladi"].map(x=>`<button>${esc(x)}</button>`).join("")}</div>
-        <div class="lb3">Boshlang'ich rasm (ixtiyoriy)</div><div class="thumbs" id="th"></div><input type="file" id="fi" accept="image/*" hidden>
-        <div style="display:flex;gap:10px;flex-wrap:wrap"><div class="seg sm" id="as"><button data-a="9:16" class="on">9:16 telefon</button><button data-a="16:9">16:9 ekran</button></div>
-          <div class="seg sm" id="rs"><button data-r="360p">360p</button><button data-r="720p" class="on">720p</button><button data-r="1080p">1080p</button></div></div>
-        <button class="btn-k lg wide" id="go">${IC.film} Video yaratish</button>
-        <small class="muted">Video 1–3 daqiqada tayyor bo'ladi — sahifani yopmang. Har bir video kunlik limitdan 1 ta oladi.</small>
-      </div>
-      <div class="box stage" id="stg"><div class="ph2">${IC.film}<b>Video shu yerda chiqadi</b><span>Tavsif yozing va «Video yaratish»ni bosing</span></div></div></div>
-      <div class="lh"><h3 class="h3">Mening videolarim</h3></div><div class="gal" id="gal"></div></div>`;
-    const drawThumb = () => { $("#th").innerHTML = pic ? `<span style="background-image:url(data:${pic.mime};base64,${pic.data})"><button data-rm aria-label="Olib tashlash">✕</button></span>` : `<label for="fi" title="Rasm qo'shish">${IC.plus}</label>`; };
-    const gal = async () => { const l = (await listAssets()).filter(a=>a.kind==="vid").slice(0,24); if(!$("#gal")) return;
-      $("#gal").innerHTML = l.length ? l.map(a=>`<button data-id="${a.id}" style="background-image:url(${a.thumb||""})"><span>${IC.play} ${esc(a.title)}</span></button>`).join("") : `<div class="emp sm" style="grid-column:1/-1">Hozircha video yo'q</div>`;
-      $("#gal").onclick = e => { const b = e.target.closest("[data-id]"); if(b){ const a = l.find(x=>x.id===b.dataset.id); if(a) viewMedia(a); } }; };
-    drawThumb(); gal();
-    $("#ideas").onclick = e => { const b = e.target.closest("button"); if(b) $("#pr").value = b.textContent; };
-    $("#th").onclick = e => { if(e.target.closest("[data-rm]")){ pic = null; drawThumb(); } };
-    $("#fi").onchange = async () => { const f = $("#fi").files[0]; if(f){ pic = await shrinkImage(f); drawThumb(); } $("#fi").value=""; };
-    $("#as").onclick = e => { const b = e.target.closest("button"); if(!b) return; aspect = b.dataset.a; document.querySelectorAll("#as button").forEach(x=>x.classList.toggle("on",x===b)); };
-    $("#rs").onclick = e => { const b = e.target.closest("button"); if(!b) return; res = b.dataset.r; document.querySelectorAll("#rs button").forEach(x=>x.classList.toggle("on",x===b)); };
-    $("#go").onclick = async () => {
-      if(busy) return; const prompt = $("#pr").value.trim(); if(!prompt) return toast("Sahnani tasvirlab bering");
-      busy = true; const go = $("#go"); go.disabled = true; const t0 = Date.now();
-      $("#stg").innerHTML = `<div class="genw"><span class="ring2"></span>Video yaratilmoqda...<small id="tm">0:00 · odatda 1–3 daqiqa</small></div>`;
-      const tick = setInterval(() => { const s = Math.round((Date.now()-t0)/1000); if($("#tm")) $("#tm").textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")} · odatda 1–3 daqiqa`; }, 1000);
-      const r = await studioRun("vid", {prompt, aspect, resolution: res, image: pic});
-      clearInterval(tick); busy = false; if(!$("#go")) return; go.disabled = false;
-      if(!r.ok){ $("#stg").innerHTML = `<div class="ph2">${IC.x}<b>${esc(r.error||"Xatolik")}</b>${r.upgrade?`<a class="btn-k" href="#/app/plans">${IC.bolt} Tarifni oshirish</a>`:""}</div>`; return; }
-      const blob = b64ToBlob(r.data, r.mime||"video/mp4"), u = URL.createObjectURL(blob), title = prompt.slice(0,40);
-      if(r.used!=null){ USER.svc.vid = {used:r.used, limit:r.limit}; $("#qv").textContent = `${r.used} / ${r.limit}`; }
-      $("#stg").innerHTML = `<div style="width:100%;text-align:center"><video src="${u}" controls autoplay loop playsinline style="margin:auto"></video><div class="acts2"><button class="btn-k" id="dl">${IC.dl} Yuklab olish (.mp4)</button><a class="btn-l" href="#/app/tts">${IC.wave} Ovoz qo'shish uchun matn yozish</a></div></div>`;
-      $("#dl").onclick = () => saveFile(blob, slug(title)+".mp4");
-      await saveAsset({kind:"vid", title, blob, mime:r.mime||"video/mp4", sub: aspect+" · "+res, thumb: await videoThumb(u)}); gal();
-    };
-  },
-
   site(){ builderPage("site"); },
   app(){ builderPage("app"); },
   async connect(){
@@ -2848,12 +2744,12 @@ const ADMIN = {
         <div class="lb" style="margin-top:26px">E'lon <em>barcha foydalanuvchilarga ko'rinadi</em></div>
         <textarea class="ta" id="an" maxlength="300" style="min-height:110px" placeholder="Masalan: Yangi ovozlar qo'shildi! Bo'sh qoldirsangiz e'lon ko'rinmaydi.">${esc(s.announce)}</textarea></div></div>
       <div class="mdf" style="margin-top:16px"><div class="flex1"></div><button class="btn-k lg" id="sv">${IC.check} Saqlash</button></div>
-      <div class="box pad" style="margin-top:20px"><div class="chh"><div><b>AI studiya — kunlik limitlar</b><small>Rasm, video, sayt va APK — tarif bo'yicha kuniga necha dona (0 = yopiq)</small></div>
-        <button class="btn-l" id="prb">${IC.check} Google'ni tekshirish</button></div>
-        <div class="tbl" style="margin-top:10px"><div class="th" style="grid-template-columns:1.2fr repeat(4,1fr)"><span>Tarif</span><span>Rasm</span><span>Video</span><span>Sayt</span><span>APK</span></div>
-          ${CONFIG.PLANS.map(p=>`<div class="ar" style="grid-template-columns:1.2fr repeat(4,1fr)"><b>${esc(p.name)}</b>${["img","vid","site","app"].map(k=>`<input class="inp" style="margin:0" type="number" min="0" data-svc="${p.id}.${k}" value="${((s.svc||{})[p.id]||{})[k]??0}">`).join("")}</div>`).join("")}</div>
+      <div class="box pad" style="margin-top:20px"><div class="chh"><div><b>AI studiya — kunlik limitlar</b><small>Sayt va APK — tarif bo'yicha kuniga necha dona (0 = yopiq)</small></div>
+        <button class="btn-l" id="prb">${IC.check} Sozlamani tekshirish</button></div>
+        <div class="tbl" style="margin-top:10px"><div class="th" style="grid-template-columns:1.2fr repeat(2,1fr)"><span>Tarif</span><span>Sayt</span><span>APK</span></div>
+          ${CONFIG.PLANS.map(p=>`<div class="ar" style="grid-template-columns:1.2fr repeat(2,1fr)"><b>${esc(p.name)}</b>${["site","app"].map(k=>`<input class="inp" style="margin:0" type="number" min="0" data-svc="${p.id}.${k}" value="${((s.svc||{})[p.id]||{})[k]??0}">`).join("")}</div>`).join("")}</div>
         <div id="prr" style="margin-top:12px"></div>
-        <p class="note">Rasm va video Google'da pullik: AI Studio'da billing yoqilgan bo'lishi kerak. Video va sayt Cloudflare Worker orqali ishlaydi — Worker'da GEMINI_API_KEY maxfiy o'zgaruvchisi bo'lishi shart.</p></div>
+        <p class="note">Sayt yaratish Cloudflare Worker orqali ishlaydi — Worker'da GEMINI_API_KEY maxfiy o'zgaruvchisi bo'lishi shart.</p></div>
       <div class="box pad" style="margin-top:20px"><div class="chh"><div><b>Claude konnektori</b><small>Claude saytdagi ovozlar bilan audio yaratadi (video va reklamalar uchun)</small></div>
         <span class="sbg ${r.gh?"ok":"bad"}">${r.gh?IC.check+" Tayyor":IC.x+" GITHUB_TOKEN yo'q"}</span></div>
         <div class="lb">Cloudflare Worker manzili <em>masalan https://gapir-mcp.ismingiz.workers.dev</em></div>
@@ -2872,12 +2768,11 @@ const ADMIN = {
     $("#cfw").oninput = mcpUrl; mcpUrl();
     $("#prb").onclick = async () => {
       const b = $("#prb"); b.disabled = true; b.innerHTML = '<span class="spin"></span> Tekshirilmoqda...';
-      const p = await aapi("probe"); b.disabled = false; b.innerHTML = `${IC.check} Google'ni tekshirish`;
+      const p = await aapi("probe"); b.disabled = false; b.innerHTML = `${IC.check} Sozlamani tekshirish`;
       if(!p.ok) return $("#prr").innerHTML = `<div class="msg err">${esc(apiFail(p).error||"Xatolik")}</div>`;
       const row = (ok, t, d) => `<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--ln)"><span class="sbg ${ok?"ok":"bad"}">${ok?IC.check:IC.x}</span><div><b>${t}</b><br><small class="muted">${d}</small></div></div>`;
       const im = p.image;
-      $("#prr").innerHTML = row(im && im.ok, "Rasm yaratish", im ? (im.ok ? `Ishlayapti (${esc(im.model)})` : esc(im.message) + (im.raw ? `<br><code style="font-size:11px">${esc(im.raw.slice(0,160))}</code>` : "")) : "Rasm modeli topilmadi")
-        + row((p.videoModels||[]).length > 0, "Video modeli", (p.videoModels||[]).length ? "Mavjud: " + esc(p.videoModels.join(", ")) + " — billing bo'lsa ishlaydi" : "Kalitga video modeli ko'rinmayapti")
+      $("#prr").innerHTML = ""
         + row(p.worker, "Cloudflare Worker", p.worker ? "Manzil saqlangan. Worker'da GEMINI_API_KEY borligini tekshiring." : "Pastda Worker manzilini yozib saqlang")
         + row(p.github, "GitHub (sayt joylash va APK)", p.github ? "GITHUB_TOKEN bor" : "Script Properties'ga GITHUB_TOKEN qo'shing");
     };
@@ -3089,7 +2984,7 @@ const Gapi = (() => {
 
   const GO = {plans:["Tariflar","#/app/plans"], tts:["Ovoz yaratish","#/app/tts"], voices:["Ovozlar","#/app/voices"], stt:["Nutqdan matnga","#/app/stt"],
     dub:["Dublyaj","#/app/dub"], books:["Audiokitob","#/app/books"], connect:["Claude'ga ulash","#/app/connect"], ref:["Takliflar","#/app/ref"],
-    assets:["Fayllarim","#/app/assets"], image:["Rasm yaratish","#/app/image"], video:["Video yaratish","#/app/video"], site:["Sayt yaratish","#/app/site"], app:["Mobil ilova","#/app/app"], register:["Ro'yxatdan o'tish","#/register"], login:["Kirish","#/login"], reset:["Parolni tiklash","#/reset"]};
+    assets:["Fayllarim","#/app/assets"], site:["Sayt yaratish","#/app/site"], app:["Mobil ilova","#/app/app"], register:["Ro'yxatdan o'tish","#/register"], login:["Kirish","#/login"], reset:["Parolni tiklash","#/reset"]};
   function splitActs(t){ const acts = []; t = String(t).replace(/\[\[go:([a-z]+)\]\]/g, (m, k) => { if(GO[k] && !acts.includes(k)) acts.push(k); return ""; }).trim(); return {t, acts}; }
   function addActs(acts){
     if(!acts.length) return;
@@ -3121,8 +3016,6 @@ const Gapi = (() => {
     if(has("uzun matn","katta matn","qancha belgi","nechta belgi")) return "Uzun matnni bemalol joylang — sayt uni o'zi bo'laklarga bo'lib, bitta audioga yig'adi. Faqat kunlik limitingiz yetishi kerak. Juda uzun matnlar uchun «Audiokitob» qulayroq. [[go:tts]] [[go:books]]";
     if(has("fayllar yoq","fayllarim yoq","yoqoldi","ochib ketdi","boshqa telefon")) return "«Fayllarim» shu brauzerning o'zida saqlanadi: brauzer tozalansa yoki boshqa qurilmadan kirsangiz, ko'rinmaydi 😕 Muhim audiolarni yaratgan zahoti ⬇️ tugmasi bilan yuklab oling. [[go:assets]]";
     if(has("telegram","bot","tasdiq")) return "Telegram tasdiqlash: botda /start bosing va pastdagi «📱 Raqamni yuborish» tugmasini bosing (raqamni qo'lda yozmang). Keyin saytga qayting — sahifa o'zi davom etadi. [[go:register]]";
-    if(has("rasm","surat","foto","logotip","rasim")) return "Ha! «Rasm yaratish» bo'limida matndan rasm chizasiz yoki suratingizni yuklab, nimani o'zgartirishni yozasiz (fon, yorug'lik, uslub) 🎨 [[go:image]]";
-    if(has("video","rolik","reels")) return "«Video yaratish» bo'limida sahnani tasvirlaysiz yoki rasm berasiz — AI 1–3 daqiqada qisqa video yaratadi (9:16 yoki 16:9). Bu imkoniyat Max va Biznes tariflarida 🎬 [[go:video]] [[go:plans]]";
     if(has("apk","android","ilova yarat","mobil ilova","telefon ilova","dastur yarat")) return "«Mobil ilova» bo'limida ilova g'oyasini yozasiz — AI yasaydi, telefon ramkasida sinab ko'rasiz va «APK yaratish» bilan Android faylini yuklab olasiz (3–6 daqiqa) 📱 [[go:app]]";
     if(has("sayt yarat","sayt qil","sayt kerak","sayt yasa","web sayt","landing")) return "«Sayt yaratish» bo'limida biznesingizni tasvirlaysiz — AI tayyor sayt yasaydi. Ko'rib chiqasiz, o'zgartirasiz va «Internetga joylash» bilan havola olasiz 🌐 [[go:site]]";
     if(has("claud","клод","konnektor","ulash","ulasa","ulab","chatgpt")) return "Ha, ulasa bo'ladi! 🤖 Gapir AI'ni Claude AI'ga ulaysiz:\n1) Kabinet → «Claude'ga ulash» bo'limidan shaxsiy manzilingizni nusxalang.\n2) claude.ai → Settings → Connectors → Add custom connector → nomi «Gapir AI», URL — o'sha manzil → Add → Connect.\n3) Claude'ga «reklama audiosi tayyorla» deng — u matnni yozib, Gapir AI ovozida audio yaratadi.\nBu imkoniyat Max va Biznes tariflarida bor. [[go:connect]]";

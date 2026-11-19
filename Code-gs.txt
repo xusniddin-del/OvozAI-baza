@@ -27,8 +27,8 @@ const CFG = {
   YEAR_DISCOUNT: 20,                        // yillik to'lovda chegirma, %
   TC_API: 'https://api.tezcheck.uz/api/merchant/v1',
   // AI studiya: kunlik limitlar (dona) — admin paneldan o'zgartiriladi
-  SVC: { free: { img: 2, vid: 0, site: 1, app: 0 }, pro: { img: 15, vid: 0, site: 5, app: 1 },
-         max: { img: 40, vid: 2, site: 15, app: 3 }, business: { img: 100, vid: 6, site: 40, app: 10 } },
+  SVC: { free: { img: 0, vid: 0, site: 1, app: 0 }, pro: { img: 0, vid: 0, site: 5, app: 1 },
+         max: { img: 0, vid: 0, site: 15, app: 3 }, business: { img: 0, vid: 0, site: 40, app: 10 } },   // rasm va video o'chirilgan
   IMAGE_MODELS: ['gemini-3.1-flash-image', 'gemini-3.1-flash-image-preview', 'gemini-3-pro-image-preview'],
   VIDEO_MODEL: 'gemini-omni-1.1-flash',
   REF_BONUS: 1000, // har bir taklif qilingan do'st uchun kunlik limitga qo'shiladigan belgi
@@ -624,7 +624,7 @@ function set_() {
     discount: s.discount != null ? Number(s.discount) : CFG.YEAR_DISCOUNT,
     mcpPlans: Array.isArray(s.mcpPlans) ? s.mcpPlans : ['max', 'business'],   // Claude konnektori qaysi tariflarda bor
     mcpBase: String(s.mcpBase || ''),                                        // Cloudflare Worker manzili
-    svc: (function () { const o = {}; Object.keys(CFG.SVC).forEach(function (p) { o[p] = Object.assign({}, CFG.SVC[p], (s.svc || {})[p] || {}); }); return o; })()
+    svc: (function () { const o = {}; Object.keys(CFG.SVC).forEach(function (p) { o[p] = Object.assign({}, CFG.SVC[p], (s.svc || {})[p] || {}, { img: 0, vid: 0 }); }); return o; })()
   };
 }
 
@@ -927,7 +927,7 @@ function chat_(req) {
     "5) Audiokitoblar: uzun matn yoki .txt fayl boblarga bo'linadi va har bir bob ovozlanadi.",
     "6) Fayllarim: yaratilgan barcha audio va matnlar shu brauzerda saqlanadi, yuklab olish mumkin.",
     "7) Claude'ga ulash (YANGI): Gapir AI'ni Claude AI chatiga konnektor qilib ulash mumkin. Kabinet → 'Claude'ga ulash' bo'limida shaxsiy manzil olinadi; claude.ai → Settings → Connectors → Add custom connector → nomi 'Gapir AI', URL — o'sha manzil → Add → Connect. Keyin Claude'ga 'reklama audiosi tayyorla' desang, u matnni yozib, Gapir AI ovozida audio yaratadi. Bu Max va Biznes tariflarida bor, belgilar kunlik limitdan yechiladi. Manzilni hech kimga berma.",
-    "AI STUDIYA (yangi): a) Rasm yaratish — matndan rasm chizish yoki surat yuklab tahrirlash (fonni olib tashlash, yorqinlik, uslub). b) Video yaratish — sahna tavsifi yoki rasmdan qisqa AI video (9:16 yoki 16:9; 1–3 daqiqada tayyor). c) Sayt yaratish — tavsifdan tayyor bir sahifali sayt, ko'rib chiqish, o'zgartirish, HTML yuklab olish va 'Internetga joylash' tugmasi bilan havola olish. d) Mobil ilova — tavsifdan telefon ilovasi, telefon ramkasida sinash va 'APK yaratish' bilan Android ilova faylini yuklab olish (3–6 daqiqa; o'rnatishda telefon 'noma'lum manbalar'ga ruxsat so'rashi mumkin). Kunlik limitlar (dona): " + Object.keys(S.svc).map(function (p) { const v = S.svc[p]; return (names[p] || p) + ' — rasm ' + v.img + ', video ' + v.vid + ', sayt ' + v.site + ', APK ' + v.app; }).join('; ') + ". Limitlar har kuni yarim tunda yangilanadi. iPhone uchun APK yo'q (sayt havolasi ishlatiladi).",
+    "AI STUDIYA (yangi): a) Sayt yaratish — tavsifdan tayyor bir sahifali sayt, ko'rib chiqish, o'zgartirish, HTML yuklab olish va 'Internetga joylash' tugmasi bilan havola olish. b) Mobil ilova — tavsifdan telefon ilovasi, telefon ramkasida sinash va 'APK yaratish' bilan Android ilova faylini yuklab olish (3–6 daqiqa; o'rnatishda telefon 'noma'lum manbalar'ga ruxsat so'rashi mumkin). Kunlik limitlar (dona): " + Object.keys(S.svc).map(function (p) { const v = S.svc[p]; return (names[p] || p) + ' — sayt ' + v.site + ', APK ' + v.app; }).join('; ') + ". Limitlar har kuni yarim tunda yangilanadi. iPhone uchun APK yo'q (sayt havolasi ishlatiladi). Rasm va video yaratish YO'Q — so'rasa, hozircha mavjud emasligini ayt.",
     "8) Takliflar: do'st taklif qilsang, har biri uchun kunlik limitga +" + S.refBonus + " belgi (" + S.refMax + " tagacha).",
     "9) Ro'yxatdan o'tish: saytda 'Ro'yxatdan o'tish' → ism → 'Telegram orqali tasdiqlash' → @Gapir_aibot botida 'Raqamni yuborish' → saytga qaytib parol qo'yish. Parolni unutsang — kirish sahifasida 'Parolni unutdingizmi?' orqali bot bilan tiklanadi.",
     "10) Tariflar (oylik): " + tariffs + ". Yillik to'lovda " + S.discount + "% chegirma. Limit har kuni yarim tunda (Toshkent vaqti) yangilanadi.",
@@ -936,7 +936,7 @@ function chat_(req) {
     "13) Texnik cheklovlar: bir so'rovda " + CFG.MAX_CHARS_PER_REQUEST + " belgigacha yuboriladi, lekin uzun matnni sayt o'zi bo'laklarga bo'lib, bitta audioga yig'adi. Audio faqat WAV formatda (24 kHz) chiqadi; MP3 kerak bo'lsa, istalgan bepul konvertor bilan o'giriladi. 'Nutqdan matnga' va 'Dublyaj' uchun fayl 13 MB gacha. Namuna tinglash ham limitdan ~70 belgi oladi. 'Fayllarim' faqat shu brauzerda saqlanadi: brauzer tozalansa yoki boshqa qurilmadan kirilsa ko'rinmaydi — muhim audiolarni darhol yuklab olib qo'yish kerak.",
     "14) Xatolar va yechimi: 'So'rovlar ko'p' — server band, 1 daqiqadan keyin qayta urinish. 'Bugungi limit tugadi' — limit yarim tunda yangilanadi yoki tarifni oshirish/do'st taklif qilish. 'Ovoz yaratilmadi' — matnni qisqartirib yoki boshqa ovoz bilan qayta urinish. 'To'lov topilmadi yoki bekor qilindi' — to'lov sahifasida to'lov tugallanmagan; pul yechilgan bo'lsa, 1–2 daqiqada tarif o'zi yoqiladi, 'Tarif va to'lovlar' sahifasini yangilash kerak, yoqilmasa admin bilan bog'lanish. 'Telegram tasdiqlash ishlamayapti' — botda /start bosib, 'Raqamni yuborish' tugmasidan foydalanish (raqamni qo'lda yozish emas). Kirish xatosi — raqam +998 bilan to'g'ri yozilganini tekshirish yoki parolni tiklash.",
     "15) Pulni qaytarish va boshqa qoidalar hali e'lon qilinmagan — bunday savollarda admin bilan bog'lanishni ayt, o'zingdan qoida to'qima.",
-    "TUGMALAR: javob oxiriga kerakli bo'lsa bitta yoki ikkita tugma qo'sh, aynan shu shaklda: [[go:plans]] (Tariflar), [[go:tts]] (Ovoz yaratish), [[go:voices]] (Ovozlar), [[go:stt]] (Nutqdan matnga), [[go:dub]] (Dublyaj), [[go:books]] (Audiokitob), [[go:connect]] (Claude'ga ulash), [[go:ref]] (Takliflar), [[go:assets]] (Fayllarim), [[go:image]] (Rasm), [[go:video]] (Video), [[go:site]] (Sayt yaratish), [[go:app]] (Mobil ilova), [[go:register]] (Ro'yxatdan o'tish), [[go:login]] (Kirish), [[go:reset]] (Parolni tiklash). Boshqa shakl ishlatma.",
+    "TUGMALAR: javob oxiriga kerakli bo'lsa bitta yoki ikkita tugma qo'sh, aynan shu shaklda: [[go:plans]] (Tariflar), [[go:tts]] (Ovoz yaratish), [[go:voices]] (Ovozlar), [[go:stt]] (Nutqdan matnga), [[go:dub]] (Dublyaj), [[go:books]] (Audiokitob), [[go:connect]] (Claude'ga ulash), [[go:ref]] (Takliflar), [[go:assets]] (Fayllarim), [[go:site]] (Sayt yaratish), [[go:app]] (Mobil ilova), [[go:register]] (Ro'yxatdan o'tish), [[go:login]] (Kirish), [[go:reset]] (Parolni tiklash). Boshqa shakl ishlatma.",
     "=== ===",
     facts ? 'Saytdagi tariflar (sahifadan): ' + facts : '',
     auth ? userFacts_(auth.user, names) : "Foydalanuvchi hali tizimga kirmagan — shaxsiy limit yoki to'lov haqida so'rasa, avval kirishni so'ra; kerak bo'lsa bepul ro'yxatdan o'tishni taklif qil.",
@@ -969,7 +969,7 @@ function userFacts_(u, names) {
     '; bugun ' + p.used + ' / ' + p.limit + ' belgi ishlatilgan, ' + left + ' belgi qoldi' +
     (p.bonus ? ' (taklif bonusi +' + p.bonus + ')' : '') + '; taklif qilgan do\'stlari: ' + (p.invited || 0) +
     '; Claude konnektori: ' + (p.mcp ? 'mavjud' : 'tarifida yo\'q') +
-    '; AI studiya bugun: ' + ['img', 'vid', 'site', 'app'].map(function (k) { const v = p.svc[k]; return SVC_NAMES[k] + ' ' + v.used + '/' + v.limit; }).join(', ') +
+    '; AI studiya bugun: ' + ['site', 'app'].map(function (k) { const v = p.svc[k]; return SVC_NAMES[k] + ' ' + v.used + '/' + v.limit; }).join(', ') +
     '; oxirgi to\'lovlari: ' + (pays.length ? pays.join(' | ') : "yo'q") + '.';
 }
 
@@ -1308,7 +1308,7 @@ function mcpCleanup_() {
 const SVC_NAMES = { img: 'rasm', vid: 'video', site: 'sayt', app: 'ilova (APK)' };
 
 function svcState_(u) {
-  const S = set_(), lim = isAdmin_(u) ? { img: 9999, vid: 9999, site: 9999, app: 9999 } : (S.svc[u.plan] || S.svc.free);
+  const S = set_(), lim = isAdmin_(u) ? { img: 0, vid: 0, site: 9999, app: 9999 } : (S.svc[u.plan] || S.svc.free);
   let used = {};
   try { const j = JSON.parse(String(u.svc || '{}')); if (j.day === today_()) used = j; } catch (e) {}
   const out = {};
