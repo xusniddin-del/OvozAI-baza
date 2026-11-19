@@ -1148,7 +1148,11 @@ let CFG_P = null;
 function loadBot(){
   if(!CFG_P) CFG_P = api("cfg").then(r => {
     if(r.ok){ BOT = r.bot || ""; try{ sessionStorage.setItem("ovoz_bot", BOT); sessionStorage.setItem("ovoz_cfg", JSON.stringify(r)); }catch(e){}
-      if(applyCfg(r) && document.body.dataset.page==="site" && $(".plans")) route(); }
+      if(applyCfg(r)){   // narx o'zgargan bo'lsa — ochiq sahifani yangilaydi
+        const pg = document.body.dataset.page;
+        if(pg==="site" && $(".plans")) route();
+        else if(pg==="plans" && USER && $("#plg")) PAGES.plans();
+      } }
     else CFG_P = null;
     return BOT;
   });
@@ -2438,7 +2442,7 @@ const ADMIN = {
       <div class="box pad"><div class="chh"><div><b>Kunlik limitlar</b><small>Har bir tarif uchun kuniga beriladigan belgi</small></div></div>
         ${CONFIG.PLANS.map(p=>`<div class="lb">${esc(p.name)} <em>${p.id}</em></div><input class="inp" type="number" min="1" data-plan="${p.id}" value="${s.plans[p.id]||""}">`).join("")}
         <p class="note">O'zgarish darhol kuchga kiradi.</p>
-        <div class="chh" style="margin-top:22px"><div><b>Narxlar</b><small>Oylik narx, so'm — to'lov shu narxda olinadi</small></div></div>
+        <div class="chh" style="margin-top:22px"><div><b>Narxlar</b><small>Oylik narx, so'm (kamida 1 000) — to'lov shu narxda olinadi</small></div></div>
         ${CONFIG.PLANS.filter(p=>p.id!=="free").map(p=>`<div class="lb">${esc(p.name)} <em>so'm / oy</em></div><input class="inp" type="number" min="1000" step="1000" data-price="${p.id}" value="${(s.prices||{})[p.id]||""}">`).join("")}
         <div class="lb">Yillik to'lov chegirmasi <em>%</em></div><input class="inp" type="number" min="0" max="90" id="dc" value="${s.discount!=null?s.discount:20}"></div>
       <div class="box pad"><div class="chh"><div><b>Takliflar</b><small>Do'st taklif qilgani uchun bonus</small></div></div>
@@ -2453,6 +2457,8 @@ const ADMIN = {
       const btn = $("#sv"); btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Saqlanmoqda...';
       const plans = {}; document.querySelectorAll("[data-plan]").forEach(i => plans[i.dataset.plan] = +i.value);
       const prices = {}; document.querySelectorAll("[data-price]").forEach(i => prices[i.dataset.price] = +i.value);
+      if(Object.values(prices).some(v => !(v >= 1000))){ btn.disabled = false; btn.innerHTML = `${IC.check} Saqlash`;
+        return toast("Narx kamida 1 000 so'm bo'lishi kerak — TezCheck undan kam to'lov qabul qilmaydi"); }
       const r2 = await aapi("save", {settings:{plans, prices, discount:+$("#dc").value, refBonus:+$("#rb").value, refMax:+$("#rm").value, announce:$("#an").value.trim()}});
       btn.disabled = false; btn.innerHTML = `${IC.check} Saqlash`;
       if(!r2.ok) return toast(apiFail(r2).error || "Saqlanmadi");
