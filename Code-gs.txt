@@ -11,6 +11,7 @@ const CFG = {
   MODEL: 'gemini-3.8-flash-tts',
   FALLBACK_MODEL: 'gemini-3.1-flash-tts-preview',
   TEXT_MODELS: ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-2.5-flash'], // nutqdan matnga va tarjima uchun
+  CHAT_MODELS: ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-2.5-flash-lite', 'gemini-3.6-flash'], // Gapi: eng tez modellar birinchi
   MAX_AUDIO_B64: 18000000, // ~13 MB audio
   MAX_TRANSLATE: 5000,
   TZ: 'Asia/Tashkent',
@@ -338,13 +339,15 @@ function callText_(parts, sys, history, opt) {
   const cache = CacheService.getScriptCache(), tag = opt.chat ? 'c' : 'm';
   let lastErr = '', userError = '', model = '';
   // Yaqinda band bo'lgan modellarni oxiriga suradi — har safar ularni kutib o'tirmaslik uchun
-  const models = CFG.TEXT_MODELS.filter(function (m) { return !cache.get('busy' + tag + m); })
-    .concat(CFG.TEXT_MODELS.filter(function (m) { return cache.get('busy' + tag + m); }));
+  const LIST = opt.chat ? CFG.CHAT_MODELS : CFG.TEXT_MODELS, tries = [];
+  const models = LIST.filter(function (m) { return !cache.get('busy' + tag + m); })
+    .concat(LIST.filter(function (m) { return cache.get('busy' + tag + m); }));
   for (let i = 0; i < models.length; i++) {
     model = models[i];
-    const gen = sys ? { maxOutputTokens: opt.chat ? 450 : 600, temperature: 0.7 } : {};
-    // Chatda "o'ylash"ni kamaytiradi — javob tezroq keladi
-    const fast = opt.chat && !cache.get('nofast' + model);
+    const gen = sys ? { maxOutputTokens: opt.chat ? 450 : 600 } : {};
+    if (sys && /^gemini-2\./.test(model)) gen.temperature = 0.7;   // Gemini 3.x da temperature eskirgan
+    // Chatda "o'ylash"ni o'chiradi (lite modellarda u odatda minimal) — javob tezroq keladi
+    const fast = opt.chat && !/lite/.test(model) && !cache.get('nofast' + model);
     if (fast) gen.thinkingConfig = /^gemini-2\./.test(model) ? { thinkingBudget: 0 } : { thinkingLevel: 'low' };
     const body = { contents: (history || []).concat([{ role: 'user', parts: parts }]) };
     if (sys) body.systemInstruction = { parts: [{ text: sys }] };
@@ -364,6 +367,7 @@ function callText_(parts, sys, history, opt) {
       continue;
     }
     lastErr = code + ': ' + raw.slice(0, 300);
+    tries.push(model.replace('gemini-', '') + ' ' + code);
     if (code === 400 && fast && /thinking/i.test(raw)) {    // model bu sozlamani bilmasa — usiz qayta urinadi
       cache.put('nofast' + model, '1', 21600); i--; continue;
     }
@@ -373,7 +377,7 @@ function callText_(parts, sys, history, opt) {
     }
     if (code === 401 || code === 403) { userError = "Server API kaliti bilan muammo. Admin bilan bog'laning."; break; }
   }
-  return { ok: false, error: lastErr, userError: userError, model: model };
+  return { ok: false, error: (tries.length ? '[' + tries.join(', ') + '] ' : '') + lastErr, userError: userError, model: model };
 }
 
 /** Bajarilgan ish uchun kvotani yechadi (natija uzunligi oldindan noma'lum bo'lganda) */

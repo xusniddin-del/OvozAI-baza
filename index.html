@@ -2652,22 +2652,45 @@ const Gapi = (() => {
     try{ return CONFIG.PLANS.map(p => `${p.name}: ${p.price}${p.per} — ${p.daily}`).join("; "); }catch(e){ return ""; }
   }
 
+  /* Ko'p beriladigan savollarga darhol javob — serverni kutmaydi */
+  function quick(t){
+    const s = " " + t.toLowerCase().replace(/[‘’ʻʼ`']/g, "").replace(/[^a-zа-яё0-9 ]/gi, " ").replace(/\s+/g, " ") + " ";
+    const has = (...w) => w.some(x => s.includes(x));
+    const pr = CONFIG.PLANS.map(p => `• ${p.name}: ${p.price}${p.per} — ${p.daily}`).join("\n");
+    if(has("parol","unut")) return "Parolni unutgan bo'lsangiz: Kirish sahifasida «Parolni unutdingizmi?» ni bosing → Telegram botda raqamingizni tasdiqlang → yangi parol qo'ying. 1 daqiqa ham ketmaydi 🔑";
+    if(has("royxat","registr","akkaunt","hisob och","qanday kir","kira olmay","kirish")) return "Ro'yxatdan o'tish juda oson 👇\n1) Yuqoridagi «Boshlash» yoki «Ro'yxatdan o'tish» tugmasini bosing.\n2) Ismingizni yozing va «Telegram orqali tasdiqlash»ni bosing.\n3) Botda «Raqamni yuborish» tugmasini bosing — raqamingiz tasdiqlanadi.\n4) Saytga qaytib parol qo'ying. Tamom! Har kuni bepul belgilar beriladi 🎉";
+    if(has("tarif","narx","qancha","pul","tolov","pro ","biznes","obuna","sotib")) return `Tariflarimiz:\n${pr}\n\nYillik to'lasangiz ${CONFIG.YEAR_DISCOUNT}% chegirma. To'lov Click, Payme, Uzum yoki karta orqali — kabinetdagi «Tarif va to'lovlar» bo'limida, tarif darhol yoqiladi ✅`;
+    if(has("limit","belgi","bepul")) return `Bepul tarifda har kuni ${(CONFIG.PLANS[0]||{}).daily||"3 000 belgi"} beriladi, limit har kuni yarim tunda yangilanadi. Do'st taklif qilsangiz, har biri uchun qo'shimcha belgi olasiz 🎁`;
+    if(has("ozbek","til","rus","ingliz")) return "Ha! O'zbek, rus, ingliz va boshqa ko'p tillarda gapiradi 🇺🇿 Matnni qaysi tilda yozsangiz, o'sha tilda o'qiydi. 30 ta ovoz va uslublar (quvnoq, jiddiy, diktor...) bor.";
+    if(has("qanday ishla","nima qila","imkoniyat","nimalar bor")) return "Juda oddiy: 1) Matnni yozasiz yoki joylaysiz, 2) ovoz va uslubni tanlaysiz, 3) «Yaratish»ni bosasiz — bir necha soniyada tayyor audio, uni yuklab olasiz 🎧 Yana: nutqni matnga aylantirish, dublyaj (tarjima + ovoz) va audiokitob yaratish bor.";
+    if(has("yuklab","wav","mp3","saqla")) return "Tayyor audioni pleer yonidagi ⬇️ tugmasi bilan WAV formatda yuklab olasiz. Hammasi «Fayllarim» bo'limida ham saqlanadi.";
+    if(/^ (salom|assalomu? alaykum|assalom|hi|hello|privet|qalay|qalesiz) ?(gapi)? $/.test(s)) return "Va alaykum assalom! 😊 Men Gapi. Ro'yxatdan o'tish, tariflar yoki ovoz yaratish haqida so'rang — darhol javob beraman.";
+    return "";
+  }
+
+  function reply(w){
+    const m = addMsg("a", ""); setMood("talk");
+    let i = 0;
+    const tick = () => { i = Math.min(w.length, i + 3); m.textContent = w.slice(0, i); log.scrollTop = log.scrollHeight;
+      if(i < w.length) setTimeout(tick, 12); else setMood("happy", 2200); };
+    tick();
+  }
+
   async function send(t){
     t = (t || inp.value).trim(); if(!t || busy) return;
     inp.value = ""; addMsg("u", t);
+    const q = quick(t);
+    if(q){ busy = true; setMood("laugh"); await new Promise(r => setTimeout(r, 350)); busy = false;
+      hist.push({r:"u", t}, {r:"a", t:q}); hist = hist.slice(-12); reply(q); return; }
     busy = true; setMood("dance"); notes();
     const nt = setInterval(notes, 900);
     const typing = addMsg("a", ""); typing.classList.add("typing"); typing.innerHTML = "<i></i><i></i><i></i>";
-    const r = await api("chat", {cid, text: t, history: hist.slice(-8), facts: facts()});
+    const r = await Promise.race([api("chat", {cid, text: t, history: hist.slice(-8), facts: facts()}),
+      new Promise(res => setTimeout(() => res({ok:false, error:"Javob kechikyapti 😅 Savolni qisqaroq yozing yoki birozdan keyin qayta so'rang."}), 25000))]);
     clearInterval(nt); busy = false; typing.remove();
     if(!r.ok){ addMsg("a", r.error || "Hozir javob bera olmayman 😔"); setMood("sad", 2600); return; }
     hist.push({r:"u", t}, {r:"a", t:r.text}); hist = hist.slice(-12);
-    const m = addMsg("a", "");
-    setMood("talk");
-    let i = 0; const w = r.text;
-    const tick = () => { i = Math.min(w.length, i + 2); m.textContent = w.slice(0, i); log.scrollTop = log.scrollHeight;
-      if(i < w.length) setTimeout(tick, 14); else setMood("happy", 2200); };
-    tick();
+    reply(r.text);
   }
 
   function toggle(v){
