@@ -752,6 +752,34 @@ body.light ::-webkit-scrollbar-track{background:transparent}
 .logo i svg,.lg2 i svg{width:21px!important;height:21px!important}
 .logo .aip,.lg2 .aip{font-style:normal;font-family:var(--fh);font-size:.52em;font-weight:600;color:#fff;background:var(--grad);border-radius:99px;padding:2px 6px;margin-left:5px;vertical-align:.55em;letter-spacing:0;box-shadow:0 0 12px rgba(47,107,255,.55)}
 
+/* hero maketi — haqiqiy kabinetga o'xshash */
+.d-side{display:flex;flex-direction:column;gap:2px}
+.d-item svg{width:13px;height:13px;flex:none}
+.d-gl{font-size:9px;font-weight:800;letter-spacing:.1em;color:#6b7aa6;padding:12px 10px 4px}
+.d-lim{margin-top:auto;border:1px solid rgba(110,160,255,.3);border-radius:12px;padding:10px;background:linear-gradient(160deg,rgba(47,107,255,.2),rgba(255,255,255,.03))}
+.d-lim b{display:block;font-size:11px}.d-lim small{display:block;font-size:10px;color:#a9b7df;margin:2px 0 7px}
+.d-lim i{display:block;height:4px;border-radius:9px;background:rgba(255,255,255,.1);overflow:hidden}.d-lim em{display:block;height:100%;background:var(--grad);transition:width 1s}
+.d-hello{text-align:center;padding:10px 0 2px}.d-hello small{display:block;font-size:11px;color:#b9c6ea;font-weight:600}
+.d-hello b{display:block;font-family:var(--fh);font-weight:500;font-size:22px;letter-spacing:-.04em;margin-top:2px;background:linear-gradient(90deg,#fff,#a9c4ff,#6fe3d3,#fff);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sf 8s linear infinite}
+.d-top{border-radius:99px!important;max-width:560px;width:100%;margin:0 auto}
+.d-top .gb{width:30px;height:30px;padding:0!important;border-radius:50%!important;display:grid;place-items:center}.d-top .gb svg{width:14px;height:14px}
+.d-tools{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.d-tool{display:flex;gap:9px;align-items:center;padding:6px;border-radius:14px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));min-width:0}
+.d-tool>span{width:42px;height:42px;border-radius:10px;display:grid;place-items:center;flex:none;background-size:200% 200%!important;animation:bgm 8s ease infinite}
+.d-tool>span svg{width:18px;height:18px;color:#fff}
+.d-tool div{min-width:0}.d-tool b{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.d-tool small{display:block;font-size:9.5px;color:#8d9dc9;white-space:nowrap}
+.d-ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.d-ph h6{margin:0}.d-ph span{font-size:10px;color:#8fb0ff;font-weight:700}
+.act div{align-items:center}
+.act .dp{width:24px;height:24px;border-radius:50%;background:rgba(47,107,255,.25);border:1px solid rgba(110,160,255,.4);display:grid;place-items:center;flex:none}
+.act .dp svg{width:9px;height:9px;color:#dbe5ff}
+.act .dn{flex:1;min-width:0;display:block!important}.act .dn:before{display:none!important}
+.act .dn b{display:block;font-size:11px;color:#fff}.act .dn small{display:block;font-size:9.5px;color:#7f8fba}
+.act .dw{display:flex!important;align-items:center;gap:2px;height:18px;width:90px}.act .dw:before{display:none!important}
+.act .dw i{flex:1;border-radius:2px;background:linear-gradient(#7aa8ff,#2f6bff);animation:wv 1.1s ease-in-out infinite;height:30%}
+.act .dd2{color:#6f7fa9;width:30px;text-align:right}
+.act div span:first-child:before{display:none}
+@media(max-width:900px){.d-tools{grid-template-columns:1fr 1fr}.act .dw{display:none!important}}
+
 /* ================= GAPI ================= */
 .gapi{position:fixed;right:22px;bottom:22px;z-index:90;width:76px;height:76px;padding:0;border-radius:26px;cursor:pointer;filter:drop-shadow(0 10px 24px rgba(27,69,230,.55));animation:gpf 3.6s ease-in-out infinite;transition:transform .25s}
 .gapi svg{width:100%;height:100%;overflow:visible}
@@ -1005,20 +1033,21 @@ function landing(){
         <div class="dash" id="dash">
           <div class="d-side">
             <div class="logo"><i>${ICON_MIC}</i>${BRAND_MARK}</div>
-            <div class="d-item on"><b></b>Studiya</div><div class="d-item"><b></b>Ovozlar</div><div class="d-item"><b></b>Tarix</div>
-            <div class="d-item"><b></b>Uslublar</div><div class="d-item"><b></b>Limit</div><div class="d-item"><b></b>Tariflar</div><div class="d-item"><b></b>Sozlamalar</div>
+            <div class="d-item on">${IC.home}Bosh sahifa</div><div class="d-item">${IC.grid}Ovozlar</div><div class="d-item">${IC.folder}Fayllar</div>
+            <div class="d-gl">ASBOBLAR</div>
+            <div class="d-item">${IC.wave}Matnni nutqqa</div><div class="d-item">${IC.text}Nutqdan matnga</div><div class="d-item">${IC.trans}Dublyaj</div><div class="d-item">${IC.book}Audiokitoblar</div>
+            <div class="d-lim"><b>Bugungi limit</b><small><span id="dlim">2 760</span> belgi qoldi</small><i><em id="dlb"></em></i></div>
           </div>
           <div class="d-main">
-            <div class="d-top"><span class="ty"><b id="ty"></b><u></u></span><span class="gb">Yaratish</span></div>
-            <div class="d-stats">
-              <div class="d-card"><span class="mini">Batafsil</span><small>Bugungi belgilar</small><strong data-count="1240" id="c1">0</strong></div>
-              <div class="d-card"><span class="mini">Batafsil</span><small>Yaratilgan audio</small><strong data-count="21" id="c2">0</strong></div>
-              <div class="d-card"><span class="mini">Batafsil</span><small>Mavjud ovozlar</small><strong data-count="30">0</strong></div>
+            <div class="d-hello"><small>Xayrli kun, Dilnoza 👋</small><b>Nima yaratmoqchisiz?</b></div>
+            <div class="d-top"><span class="ty"><b id="ty"></b><u></u></span><span class="gb">${IC.up}</span></div>
+            <div class="d-tools">
+              <div class="d-tool"><span style="background:linear-gradient(135deg,#1e3a8a,#3b82f6 55%,#93c5fd)">${IC.wave}</span><div><b>Matnni nutqqa</b><small>30 ta tabiiy ovoz</small></div></div>
+              <div class="d-tool"><span style="background:linear-gradient(135deg,#064e3b,#10b981 55%,#a7f3d0)">${IC.text}</span><div><b>Nutqdan matnga</b><small>Audio → matn</small></div></div>
+              <div class="d-tool"><span style="background:linear-gradient(135deg,#7c2d12,#f97316 55%,#fed7aa)">${IC.trans}</span><div><b>Dublyaj</b><small>Boshqa tilga</small></div></div>
+              <div class="d-tool"><span style="background:linear-gradient(135deg,#4c1d95,#a855f7 55%,#e9d5ff)">${IC.book}</span><div><b>Audiokitob</b><small>Boblarga bo'lib</small></div></div>
             </div>
-            <div class="d-two">
-              <div class="d-panel"><h6>Audio tarixi</h6><p>Haftalik yaratilgan audiolar</p><div class="bars" id="bars">${bars}</div></div>
-              <div class="d-panel"><h6>So'nggi audiolar</h6><p>Jonli faoliyat</p><div class="act" id="act"></div></div>
-            </div>
+            <div class="d-panel"><div class="d-ph"><h6>So'nggi audiolar</h6><span>Hammasi ›</span></div><div class="act" id="act"></div></div>
           </div>
         </div>
       </div>
@@ -1145,24 +1174,19 @@ function countUp(el, to, ms=1400){
 function liveDashboard(){
   const dash = $("#dash"); if(!dash) return;
   typeLoop($("#ty"), ["Assalomu alaykum! Bugun yangi kursimizni boshlaymiz.","Yangi kolleksiyamizga xush kelibsiz — 30% chegirma!","Bir paytlar uzoq o'lkada kichkina qishloq bor ekan..."]);
-  document.querySelectorAll("[data-count]").forEach(el => later(()=>countUp(el, +el.dataset.count), 1500));
-  // jonli grafik
-  const bars = [...document.querySelectorAll("#bars i")];
-  every(()=>{
-    bars.forEach(b => { b.style.height = (22+Math.random()*72)+"%"; b.classList.remove("hl"); b.removeAttribute("data-v"); });
-    let mx = 0; bars.forEach((b,i)=>{ if(parseFloat(b.style.height) > parseFloat(bars[mx].style.height)) mx = i; });
-    bars[mx].classList.add("hl"); bars[mx].dataset.v = Math.round(parseFloat(bars[mx].style.height)/7);
-  }, 2200);
   // jonli faoliyat
   const feed = [["Reklama matni","Kore","0:24"],["Dars kirish","Puck","1:02"],["Reels ovozi","Sulafat","0:15"],["Audiokitob","Charon","3:40"],["Podkast intro","Zephyr","0:31"],["Taqdimot","Orus","0:48"],["Savdo e'loni","Fenrir","0:19"]];
   const act = $("#act"); let fi = 0;
   const addRow = () => {
     const r = feed[fi++ % feed.length], d = document.createElement("div");
-    d.innerHTML = `<span>${r[0]} · ${r[1]}</span><span>${r[2]}</span>`;
+    d.innerHTML = `<span class="dp">${IC.play}</span><span class="dn"><b>${r[0]}</b><small>${r[1]} · hozirgina</small></span><span class="dw">${eqBars(10,.09)}</span><span class="dd2">${r[2]}</span>`;
     act.prepend(d); while(act.children.length>4) act.lastChild.remove();
   };
   for(let i=0;i<4;i++) addRow();
-  every(()=>{ addRow(); const c2=$("#c2"), c1=$("#c1"); if(c2&&c1){ c2.textContent = fmt((+c2.textContent.replace(/\s/g,"")||21)+1); c1.textContent = fmt((+c1.textContent.replace(/\s/g,"")||1240)+Math.round(40+Math.random()*120)); } }, 3200);
+  let left = 2760;
+  const paintLim = () => { const l = $("#dlim"), b = $("#dlb"); if(l) l.textContent = fmt(left); if(b) b.style.width = (100 - left/30) + "%"; };
+  paintLim();
+  every(()=>{ addRow(); left = Math.max(400, left - Math.round(40+Math.random()*90)); if(left <= 400) left = 2760; paintLim(); }, 3200);
   // sichqoncha bilan 3D egilish
   const hero = $("#hero");
   hero.addEventListener("mousemove", e => {
