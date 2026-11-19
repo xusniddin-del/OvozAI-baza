@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OvozAI — Matnni tabiiy ovozga aylantiring</title>
+<title>Gapir AI — Matnni tabiiy ovozga aylantiring</title>
 <meta name="description" content="Matnni bir necha soniyada tabiiy o'zbekcha ovozga aylantiring. 30 ta ovoz, uslub tanlash, WAV yuklab olish.">
 <meta name="theme-color" content="#03050f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20120%20120%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%231b45e6%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%237fb2ff%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2228%22%20fill%3D%22url%28%23g%29%22/%3E%3Cg%20transform%3D%22translate%2812%2010%29%20scale%28.8%29%22%3E%3Crect%20x%3D%2216%22%20y%3D%2220%22%20width%3D%2288%22%20height%3D%2266%22%20rx%3D%2222%22%20fill%3D%22%23fff%22/%3E%3Cpath%20d%3D%22M34%2080%20L28%20104%20L56%2084%20Z%22%20fill%3D%22%23fff%22/%3E%3Crect%20x%3D%2232.5%22%20y%3D%2247.0%22%20width%3D%227%22%20height%3D%2212%22%20rx%3D%223.5%22%20fill%3D%22%232358ff%22/%3E%3Crect%20x%3D%2244.5%22%20y%3D%2240.0%22%20width%3D%227%22%20height%3D%2226%22%20rx%3D%223.5%22%20fill%3D%22%232358ff%22/%3E%3Crect%20x%3D%2256.5%22%20y%3D%2234.0%22%20width%3D%227%22%20height%3D%2238%22%20rx%3D%223.5%22%20fill%3D%22%232358ff%22/%3E%3Crect%20x%3D%2268.5%22%20y%3D%2240.0%22%20width%3D%227%22%20height%3D%2226%22%20rx%3D%223.5%22%20fill%3D%22%232358ff%22/%3E%3Crect%20x%3D%2280.5%22%20y%3D%2247.0%22%20width%3D%227%22%20height%3D%2212%22%20rx%3D%223.5%22%20fill%3D%22%232358ff%22/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@400;500;600&display=swap" rel="stylesheet">
@@ -748,6 +749,8 @@ body.light ::-webkit-scrollbar-track{background:transparent}
 .tgs{display:flex;align-items:center;justify-content:center;gap:10px;font-size:13.5px;color:#9fbaff;font-weight:600}
 .lnk2{color:var(--muted);font-size:13px;font-weight:600;text-decoration:underline}
 .msg.err a{color:#fff;text-decoration:underline}
+.logo i svg,.lg2 i svg{width:21px!important;height:21px!important}
+.logo .aip,.lg2 .aip{font-style:normal;font-family:var(--fh);font-size:.52em;font-weight:600;color:#fff;background:var(--grad);border-radius:99px;padding:2px 6px;margin-left:5px;vertical-align:.55em;letter-spacing:0;box-shadow:0 0 12px rgba(47,107,255,.55)}
 
 @media(prefers-reduced-motion:reduce){
   *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -767,7 +770,7 @@ body.light ::-webkit-scrollbar-track{background:transparent}
    ============================================================ */
 const CONFIG = {
   API_URL: "https://script.google.com/macros/s/AKfycbw7lAHdoR0Gpa13WwszMpqfVf-W7ubsnEEs7MNUL4OMXjPnFv14FeEyltANBvmlg90eJA/exec",                       // Apps Script "Web app URL" ni shu yerga qo'ying (SETUP.md)
-  BRAND: "OvozAI",
+  BRAND: "Gapir AI",
   CONTACT_URL: "https://t.me/",      // Pro/Business uchun bog'lanish (Telegram havola)
   MAX_CHUNK: 800,                    // matn shu uzunlikdagi bo'laklarga bo'linib yuboriladi
   PLANS: [
@@ -808,7 +811,8 @@ const every = (fn, ms) => { TIMERS.push(setInterval(fn, ms)); };
 const later = (fn, ms) => { TIMERS.push(setTimeout(fn, ms)); };
 const clearTimers = () => { TIMERS.forEach(t => { clearInterval(t); clearTimeout(t); }); TIMERS = []; };
 
-const ICON_MIC = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M3 10v4M7.5 6v12M12 3v18M16.5 7v10M21 10v4"/></svg>';
+const ICON_MIC = '<svg viewBox="0 0 120 120"><rect x="16" y="20" width="88" height="66" rx="22" fill="#fff"/><path d="M34 80 L28 104 L56 84 Z" fill="#fff"/><rect x="32.5" y="47.0" width="7" height="12" rx="3.5" fill="#2358ff"/><rect x="44.5" y="40.0" width="7" height="26" rx="3.5" fill="#2358ff"/><rect x="56.5" y="34.0" width="7" height="38" rx="3.5" fill="#2358ff"/><rect x="68.5" y="40.0" width="7" height="26" rx="3.5" fill="#2358ff"/><rect x="80.5" y="47.0" width="7" height="12" rx="3.5" fill="#2358ff"/></svg>';
+const BRAND_MARK = 'Gapir<em class="aip">AI</em>';
 const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="#fff"><path d="M6 4l14 8-14 8z"/></svg>';
 const ICON_SPARK = '<svg viewBox="0 0 24 24" fill="none" stroke="#cfdbff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>';
 const ICON_PHONE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg>';
@@ -906,7 +910,7 @@ function splitText(text, max){
 function navHTML(fix){
   const logged = !!store.token;
   return `<div class="nav ${fix?"fix":""}"><div class="wrap">
-    <a class="logo" href="#/"><i>${ICON_MIC}</i>${CONFIG.BRAND}</a>
+    <a class="logo" href="#/"><i>${ICON_MIC}</i>${BRAND_MARK}</a>
     <div class="links"><a href="#/">Bosh sahifa</a><a href="#/" data-s="features">Imkoniyatlar</a><a href="#/" data-s="pricing">Tariflar</a><a href="#/" data-s="faq">Savollar</a></div>
     <div class="nav-cta">${logged
       ? `<a class="btn btn-p" href="#/app">Kabinet</a>`
@@ -947,7 +951,7 @@ function landing(){
         <div class="fl fl3"><span class="fi">🎙</span><div><b>Puck</b><small>Quvnoq uslub</small></div></div>
         <div class="dash" id="dash">
           <div class="d-side">
-            <div class="logo"><i>${ICON_MIC}</i>${CONFIG.BRAND}</div>
+            <div class="logo"><i>${ICON_MIC}</i>${BRAND_MARK}</div>
             <div class="d-item on"><b></b>Studiya</div><div class="d-item"><b></b>Ovozlar</div><div class="d-item"><b></b>Tarix</div>
             <div class="d-item"><b></b>Uslublar</div><div class="d-item"><b></b>Limit</div><div class="d-item"><b></b>Tariflar</div><div class="d-item"><b></b>Sozlamalar</div>
           </div>
@@ -1533,7 +1537,7 @@ function shellHTML(page){
     : `<b>${PAGE_T[page]}</b>`;
   return `<div class="shell ${col?"col":""}" id="shell">
   <aside class="sb" id="sb">
-    <a class="lg2" href="#/app/home"><i>${ICON_MIC}</i><span>${CONFIG.BRAND}</span></a>
+    <a class="lg2" href="#/app/home"><i>${ICON_MIC}</i><span>${BRAND_MARK}</span></a>
     <nav>${APP_NAV.map(n => n.g ? `<div class="gl">${n.g}</div>`
       : `<a class="ni ${n.id===page||(page==="book"&&n.id==="books")?"on":""}" href="#/app/${n.id}" title="${n.t}">${n.ic}<span>${n.t}</span></a>`).join("")}</nav>
     <div class="qcard" id="qcard"><span class="qi">${IC.bolt}</span><b>Bugungi limit</b><small><span id="qleft">—</span> belgi qoldi. Ko'proq kerakmi?</small>
