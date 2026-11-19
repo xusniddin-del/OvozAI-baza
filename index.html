@@ -2183,11 +2183,12 @@ const PAGES = {
         <a class="btn-l" target="_blank" rel="noopener" href="${esc(CONFIG.CONTACT_URL)}">Sotuv bo'limi bilan bog'lanish</a></div>
       <div class="plg2" id="plg"></div>
       <p class="secure">${IC.check} To'lov TezCheck orqali xavfsiz amalga oshiriladi — Click, Payme, Uzum va karta bilan. Tarif to'lovdan so'ng avtomatik yoqiladi.</p></div>`;
-    const draw = () => { $("#plg").innerHTML = CONFIG.PLANS.map((p,i) => { const n = num(p), yt = Math.round(n*12*(100-OFF)/100/1000)*1000, d = Math.round(yt/12), cur = p.id===u.plan;
+    const draw = () => { $("#plg").innerHTML = CONFIG.PLANS.map((p,i) => { const n = num(p), d = Math.round(n*(100-OFF)/100/1000)*1000, yt = d*12, cur = p.id===u.plan, lower = i < CONFIG.PLANS.findIndex(x => x.id===u.plan);
       return `<div class="pc2 ${p.hot?"hot":""} ${cur?"cur":""}"><div class="pt3"><b>${esc(p.name)}</b>${p.hot&&n?`<span class="off">${yearly?OFF+"% chegirma":"Mashhur"}</span>`:""}</div>
         <div class="pr2">${n ? (yearly ? `<s>${fmt(n)}</s> ${fmt(d)}` : fmt(n)) : esc(p.price)}${n?`<small> so'm/oy</small>`:""}</div>
         <small class="muted">${n ? (yearly ? `Yiliga ${fmt(yt)} so'm to'lanadi` : "Har oy to'lanadi") : "Doimiy bepul"}</small>
         ${cur ? (n ? `<button class="btn-l wide" data-buy="${p.id}">${IC.card} Muddatni uzaytirish</button>` : `<button class="btn-l wide" disabled>Joriy tarif</button>`)
+              : lower ? `<button class="btn-l wide" disabled>Sizda yuqoriroq tarif</button>`
               : n ? `<button class="${p.hot?"btn-k":"btn-l"} wide" data-buy="${p.id}">Tarifni oshirish</button>` : `<button class="btn-l wide" disabled>Bepul</button>`}
         <ul><li>${IC.check}<b>${esc(p.daily)}</b></li>${p.feats.map(f=>`<li>${IC.check}${esc(f)}</li>`).join("")}${i?`<li class="mut">${IC.plus}${esc(CONFIG.PLANS[i-1].name)} tarifidagi hammasi</li>`:""}</ul></div>`; }).join(""); };
     draw();
@@ -2285,7 +2286,7 @@ function payModal(planId, months){
   const p = CONFIG.PLANS.find(x => x.id===planId); if(!p) return;
   if(!PAY_ON){ window.open(CONFIG.CONTACT_URL, "_blank"); return; }
   const OFF = CONFIG.YEAR_DISCOUNT, m = Number(String(p.price).replace(/\D/g,"")) || 0;
-  const sum = k => k===12 ? Math.round(m*12*(100-OFF)/100/1000)*1000 : m;
+  const sum = k => k===12 ? Math.round(m*(100-OFF)/100/1000)*1000*12 : m;
   const {el, close} = modal(`<div class="mdh"><div><b>${esc(p.name)} tarifi</b><small>${esc(p.daily)}</small></div><button class="ib" data-close>${IC.x}</button></div>
     <div class="pyo" id="pyo">
       <button data-m="1"><small>1 oy</small><b>${fmt(sum(1))} so'm</b></button>

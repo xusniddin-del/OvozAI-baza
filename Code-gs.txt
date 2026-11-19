@@ -924,8 +924,8 @@ function tcCall_(path, body, idem) {
 function priceOf_(plan, months) {
   const S = set_(), m = Number(S.prices[plan]) || 0;
   if (!m) return 0;
-  const raw = months === 12 ? m * 12 * (100 - S.discount) / 100 : m;
-  return Math.round(raw / 1000) * 1000;
+  // Yillik: chegirmali oylik narx 1 000 so'mga yaxlitlanadi va 12 ga ko'paytiriladi (39 000 × 12)
+  return months === 12 ? Math.round(m * (100 - S.discount) / 100 / 1000) * 1000 * 12 : Math.round(m / 1000) * 1000;
 }
 
 function payCreate_(req) {
