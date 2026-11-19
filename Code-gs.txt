@@ -38,11 +38,13 @@ const LOG_HEADERS = ['time','userId','chars','model','ok','note'];
 
 /* ============ Kirish nuqtalari ============ */
 
-function doGet() {
+function doGet(e) {
+  if (e && e.parameter && e.parameter.mcp != null) return json_({ jsonrpc: '2.0', id: null, error: { code: -32000, message: 'Gapir AI MCP: faqat POST so\'rovlar qabul qilinadi' } });
   return json_({ ok: true, service: 'Gapir AI', time: new Date().toISOString() });
 }
 
 function doPost(e) {
+  if (e && e.parameter && e.parameter.mcp != null) return mcp_(e);   // Claude konnektori
   try {
     const req = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     if (req.update_id != null) {   // Telegram: HtmlService 302 emas, to'g'ridan-to'g'ri 200 qaytaradi
@@ -641,7 +643,7 @@ function admin_(req) {
     case 'users':    return adminUsers_();
     case 'update':   return adminUpdate_(req);
     case 'logs':     return adminLogs_(req);
-    case 'settings': return { ok: true, settings: set_() };
+    case 'settings': return { ok: true, settings: set_(), mcp: mcpKey_(), gh: !!ghToken_() };
     case 'save':     return adminSave_(req);
     case 'payments': return adminPayments_();
     default:         return { ok: false, error: "Noma'lum admin amal" };
@@ -1050,5 +1052,129 @@ function adminPayments_() {
       createdAt: String(r[6]), paidAt: String(r[7]), env: r[8] };
   });
   return { ok: true, payments: list, total: total, enabled: !!tcKey_() };
+}
+
+/* ============================================================
+   CLAUDE KONNEKTORI (MCP) — Claude saytdagi ovozlar bilan audio yaratadi
+   Manzil: <Web app URL>?mcp=<MCP_KEY> (admin panel → Sozlamalar'da tayyor ko'rinadi)
+   Audio GitHub'ga yoziladi: Script Properties → GITHUB_TOKEN (repo: Contents — Read and write)
+   ============================================================ */
+const VOICE_META = {
+  Zephyr:'Yorqin', Puck:'Tetik', Charon:'Axborotli', Kore:"Qat'iy", Fenrir:'Hayajonli', Leda:'Yosh', Orus:"Qat'iy", Aoede:'Yengil',
+  Callirrhoe:'Xotirjam', Autonoe:'Yorqin', Enceladus:'Nafasli', Iapetus:'Aniq', Umbriel:'Xotirjam', Algieba:'Silliq', Despina:'Silliq',
+  Erinome:'Aniq', Algenib:"Bo'g'iq", Rasalgethi:'Axborotli', Laomedeia:'Tetik', Achernar:'Mayin', Alnilam:"Qat'iy", Schedar:'Teng',
+  Gacrux:'Yetuk', Pulcherrima:'Dadil', Achird:"Do'stona", Zubenelgenubi:'Oddiy', Vindemiatrix:'Muloyim', Sadachbia:'Jonli',
+  Sadaltager:'Bilimdon', Sulafat:'Iliq'
+};
+const VOICE_FEMALE = ['Zephyr','Kore','Leda','Aoede','Callirrhoe','Autonoe','Despina','Erinome','Laomedeia','Achernar','Gacrux','Pulcherrima','Vindemiatrix','Sulafat'];
+const STYLE_MAP = { 'Tabiiy': '', 'Quvnoq': 'cheerful and friendly', 'Jiddiy': 'serious and authoritative', 'Sokin': 'calm and relaxed',
+  'Hayajonli': 'excited and energetic', 'Shivirlab': 'whispering softly', 'Diktor': 'like a professional news announcer' };
+
+function mcpKey_() {
+  const p = PropertiesService.getScriptProperties();
+  let k = p.getProperty('MCP_KEY');
+  if (!k) { k = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().slice(0, 8); p.setProperty('MCP_KEY', k); }
+  return k;
+}
+function ghToken_() { return String(PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN') || '').trim(); }
+function ghRepo_() { return String(PropertiesService.getScriptProperties().getProperty('GITHUB_REPO') || 'xusniddin-del/OvozAI-baza').trim(); }
+
+const MCP_TOOLS = [
+  { name: 'list_voices',
+    description: "Gapir AI'dagi barcha ovozlar (nomi, jinsi, ohangi) va nutq uslublari ro'yxati. Video yoki reklama uchun ovoz tanlashdan oldin chaqiring.",
+    inputSchema: { type: 'object', properties: {} } },
+  { name: 'generate_speech',
+    description: "Matnni Gapir AI ovozida audioga aylantiradi (o'zbek, rus, ingliz va boshqa tillar). WAV fayl GitHub'ga yoziladi va yuklab olish havolasi qaytadi. Bir chaqiruvda 1200 belgigacha — uzun matnni bo'laklarga bo'ling.",
+    inputSchema: { type: 'object', required: ['text', 'voice'], properties: {
+      text: { type: 'string', description: "O'qiladigan matn, 1200 belgigacha" },
+      voice: { type: 'string', description: 'Ovoz nomi, masalan Kore, Puck, Charon (list_voices dan)' },
+      style: { type: 'string', description: "Uslub: Tabiiy, Quvnoq, Jiddiy, Sokin, Hayajonli, Shivirlab, Diktor — yoki inglizcha erkin ko'rsatma (masalan 'warm and inspiring')" },
+      name: { type: 'string', description: "Fayl nomi uchun qisqa so'z (ixtiyoriy), masalan reklama-1" } } } }
+];
+
+function mcp_(e) {
+  let body = null;
+  try { body = JSON.parse((e.postData && e.postData.contents) || 'null'); } catch (x) {}
+  if (String(e.parameter.mcp) !== mcpKey_()) return json_({ jsonrpc: '2.0', id: body && body.id != null ? body.id : null, error: { code: -32001, message: 'Kalit noto\'g\'ri' } });
+  if (!body) return json_({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Parse error' } });
+  if (Array.isArray(body)) {
+    const out = body.map(mcpOne_).filter(function (x) { return x; });
+    return out.length ? json_(out) : ContentService.createTextOutput('');
+  }
+  const r = mcpOne_(body);
+  return r ? json_(r) : ContentService.createTextOutput('');
+}
+
+function mcpOne_(m) {
+  if (!m || m.id == null) return null;                  // bildirishnomalar (notifications) — javob kerak emas
+  const ok = function (result) { return { jsonrpc: '2.0', id: m.id, result: result }; };
+  const params = m.params || {};
+  try {
+    switch (m.method) {
+      case 'initialize':
+        return ok({ protocolVersion: params.protocolVersion || '2025-06-18', capabilities: { tools: {} },
+          serverInfo: { name: 'gapir-ai', title: 'Gapir AI', version: '1.0.0' },
+          instructions: "Gapir AI — o'zbekcha matnni ovozga aylantirish. Avval list_voices bilan ovoz tanlang, keyin generate_speech bilan audio yarating. Natijadagi raw_url dan WAV faylni yuklab oling." });
+      case 'ping': return ok({});
+      case 'tools/list': return ok({ tools: MCP_TOOLS });
+      case 'tools/call': return ok(mcpCall_(params.name, params.arguments || {}));
+      case 'resources/list': return ok({ resources: [] });
+      case 'prompts/list': return ok({ prompts: [] });
+      default: return { jsonrpc: '2.0', id: m.id, error: { code: -32601, message: 'Method not found: ' + m.method } };
+    }
+  } catch (err) {
+    return ok({ isError: true, content: [{ type: 'text', text: 'Xato: ' + (err && err.message || err) }] });
+  }
+}
+
+function mcpText_(t, isErr) { const r = { content: [{ type: 'text', text: t }] }; if (isErr) r.isError = true; return r; }
+
+function mcpCall_(name, a) {
+  if (name === 'list_voices') {
+    const list = VOICES.map(function (v) { return v + ' — ' + (VOICE_FEMALE.indexOf(v) >= 0 ? 'ayol' : 'erkak') + ', ' + VOICE_META[v]; });
+    return mcpText_('Ovozlar (' + list.length + '):\n' + list.join('\n') + '\n\nUslublar: ' + Object.keys(STYLE_MAP).join(', ') +
+      " (yoki inglizcha erkin ko'rsatma).\nMaslahat: reklama — Puck, Fenrir, Pulcherrima; hikoya — Charon, Achernar, Sulafat; ta'lim — Kore, Iapetus, Schedar.");
+  }
+  if (name !== 'generate_speech') return mcpText_("Noma'lum asbob: " + name, true);
+  const text = String(a.text || '').trim();
+  if (!text) return mcpText_('text bo\'sh', true);
+  if (text.length > CFG.MAX_CHARS_PER_REQUEST) return mcpText_('Matn ' + text.length + ' belgi — bir chaqiruvda ' + CFG.MAX_CHARS_PER_REQUEST + ' gacha. Bo\'laklarga bo\'ling.', true);
+  const voice = VOICES.filter(function (v) { return v.toLowerCase() === String(a.voice || '').toLowerCase(); })[0];
+  if (!voice) return mcpText_("Bunday ovoz yo'q: " + a.voice + '. list_voices ni chaqiring.', true);
+  const st = String(a.style || '').trim();
+  const style = STYLE_MAP.hasOwnProperty(st) ? STYLE_MAP[st] : st.slice(0, 160);
+  if (!ghToken_()) return mcpText_("Sozlanmagan: Script Properties'ga GITHUB_TOKEN qo'shing (repo Contents: Read and write).", true);
+  const key = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  const res = callGemini_(text, voice, style, key);
+  if (!res.ok) { log_('mcp', text.length, res.model || '', false, 'mcp: ' + res.error); return mcpText_('Ovoz yaratilmadi: ' + (res.userError || res.error), true); }
+  const wav = toWav_(res.audio, res.mime);
+  const slug = String(a.name || voice).toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'audio';
+  const path = 'mcp-audio/' + Utilities.formatDate(new Date(), CFG.TZ, 'yyyyMMdd-HHmmss') + '-' + slug + '.wav';
+  const gh = UrlFetchApp.fetch('https://api.github.com/repos/' + ghRepo_() + '/contents/' + path, {
+    method: 'put', contentType: 'application/json', muteHttpExceptions: true,
+    headers: { Authorization: 'Bearer ' + ghToken_(), Accept: 'application/vnd.github+json' },
+    payload: JSON.stringify({ message: 'Gapir AI audio: ' + slug, content: wav.b64 })
+  });
+  if (gh.getResponseCode() >= 300) {
+    log_('mcp', text.length, res.model, false, 'mcp github ' + gh.getResponseCode() + ' ' + gh.getContentText().slice(0, 150));
+    return mcpText_('Audio tayyor, lekin GitHub\'ga yozilmadi (' + gh.getResponseCode() + '). GITHUB_TOKEN ruxsatlarini tekshiring.', true);
+  }
+  log_('mcp', text.length, res.model, true, 'mcp ' + voice);
+  return mcpText_(JSON.stringify({ ok: true, voice: voice, style: st || 'Tabiiy', seconds: Math.round(wav.seconds * 10) / 10,
+    path: path, repo: ghRepo_(), raw_url: 'https://raw.githubusercontent.com/' + ghRepo_() + '/main/' + path }, null, 1));
+}
+
+/** Gemini qaytargan PCM (L16) ni WAV ga o'giradi */
+function toWav_(b64, mime) {
+  const pcm = Utilities.base64Decode(b64);
+  if (/wav/i.test(mime || '')) return { b64: b64, seconds: (pcm.length - 44) / 48000 };
+  const rate = Number((/rate=(\d+)/.exec(mime || '') || [])[1]) || 24000;
+  const n = pcm.length, h = [];
+  const s = function (str) { for (let i = 0; i < str.length; i++) h.push(str.charCodeAt(i)); };
+  const u32 = function (v) { h.push(v & 255, (v >> 8) & 255, (v >> 16) & 255, (v >> 24) & 255); };
+  const u16 = function (v) { h.push(v & 255, (v >> 8) & 255); };
+  s('RIFF'); u32(36 + n); s('WAVE'); s('fmt '); u32(16); u16(1); u16(1); u32(rate); u32(rate * 2); u16(2); u16(16); s('data'); u32(n);
+  const head = h.map(function (b) { return b > 127 ? b - 256 : b; });
+  return { b64: Utilities.base64Encode(head.concat(Array.isArray(pcm) ? pcm : Array.prototype.slice.call(pcm))), seconds: n / 2 / rate };
 }
 

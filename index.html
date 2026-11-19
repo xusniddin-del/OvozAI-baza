@@ -2455,8 +2455,14 @@ const ADMIN = {
         <div class="lb" style="margin-top:26px">E'lon <em>barcha foydalanuvchilarga ko'rinadi</em></div>
         <textarea class="ta" id="an" maxlength="300" style="min-height:110px" placeholder="Masalan: Yangi ovozlar qo'shildi! Bo'sh qoldirsangiz e'lon ko'rinmaydi.">${esc(s.announce)}</textarea></div></div>
       <div class="mdf" style="margin-top:16px"><div class="flex1"></div><button class="btn-k lg" id="sv">${IC.check} Saqlash</button></div>
+      <div class="box pad" style="margin-top:20px"><div class="chh"><div><b>Claude konnektori</b><small>Claude saytdagi ovozlar bilan audio yaratadi (video va reklamalar uchun)</small></div>
+        <span class="sbg ${r.gh?"ok":"bad"}">${r.gh?IC.check+" Tayyor":IC.x+" GITHUB_TOKEN yo'q"}</span></div>
+        <div class="lb">Konnektor manzili <em>maxfiy — hech kimga bermang</em></div>
+        <div class="mdf"><input class="inp" id="mcpu" readonly style="flex:1;min-width:0;font-size:12.5px" value="${esc(CONFIG.API_URL + "?mcp=" + (r.mcp||""))}"><button class="btn-l" id="mcpc">${IC.copy} Nusxa</button></div>
+        <p class="sub3">Claude → Settings → Connectors → <b>Add custom connector</b> → nomi «Gapir AI», URL — shu manzil. Audio fayllar GitHub'dagi <code>mcp-audio</code> papkasiga yoziladi.</p></div>
       <div class="box pad" style="margin-top:20px"><div class="chh"><div><b>Adminlar</b><small>Kim admin panelga kira oladi</small></div></div>
         <p class="sub3">Apps Script → Project Settings → Script Properties → <b>ADMIN_PHONES</b>. Bir nechta admin bo'lsa vergul bilan yozing: <code>+998901234567, +998911112233</code></p></div>`;
+    $("#mcpc").onclick = async () => { try{ await navigator.clipboard.writeText($("#mcpu").value); toast("Nusxa olindi ✓"); }catch(e){ $("#mcpu").select(); } };
     $("#sv").onclick = async () => {
       const btn = $("#sv"); btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Saqlanmoqda...';
       const plans = {}; document.querySelectorAll("[data-plan]").forEach(i => plans[i.dataset.plan] = +i.value);
