@@ -26,13 +26,18 @@ const CFG = {
   PRICES: { pro: 49000, max: 99000, business: 199000 }, // so'm / oy (admin paneldan o'zgartiriladi)
   YEAR_DISCOUNT: 20,                        // yillik to'lovda chegirma, %
   TC_API: 'https://api.tezcheck.uz/api/merchant/v1',
+  // AI studiya: kunlik limitlar (dona) — admin paneldan o'zgartiriladi
+  SVC: { free: { img: 2, vid: 0, site: 1, app: 0 }, pro: { img: 15, vid: 0, site: 5, app: 1 },
+         max: { img: 40, vid: 2, site: 15, app: 3 }, business: { img: 100, vid: 6, site: 40, app: 10 } },
+  IMAGE_MODELS: ['gemini-3.1-flash-image', 'gemini-3.1-flash-image-preview', 'gemini-3-pro-image-preview'],
+  VIDEO_MODEL: 'gemini-omni-1.1-flash',
   REF_BONUS: 1000, // har bir taklif qilingan do'st uchun kunlik limitga qo'shiladigan belgi
   REF_MAX: 10      // bonus beriladigan takliflar soni chegarasi
 };
 
 const VOICES = ['Zephyr','Puck','Charon','Kore','Fenrir','Leda','Orus','Aoede','Callirrhoe','Autonoe','Enceladus','Iapetus','Umbriel','Algieba','Despina','Erinome','Algenib','Rasalgethi','Laomedeia','Achernar','Alnilam','Schedar','Gacrux','Pulcherrima','Achird','Zubenelgenubi','Vindemiatrix','Sadachbia','Sadaltager','Sulafat'];
 
-const USER_HEADERS = ['id','name','phone','salt','hash','plan','usedToday','day','createdAt','status','lastLogin','ref','referredBy','tgId','planUntil','mcpKey'];
+const USER_HEADERS = ['id','name','phone','salt','hash','plan','usedToday','day','createdAt','status','lastLogin','ref','referredBy','tgId','planUntil','mcpKey','svc'];
 const SESSION_HEADERS = ['tokenHash','userId','expires'];
 const LOG_HEADERS = ['time','userId','chars','model','ok','note'];
 
@@ -57,6 +62,13 @@ function doPost(e) {
       case 'pay_create': return json_(payCreate_(req));
       case 'pay_check':  return json_(payCheck_(req));
       case 'mcp_key':    return json_(mcpUserKey_(req));
+      case 'image':      return json_(image_(req));
+      case 'ticket':     return json_(ticket_(req));
+      case 'svc_refund': return json_(svcRefundTicket_(req));
+      case 'ticket_use': return json_(ticketUse_(req));
+      case 'site_publish': return json_(sitePublish_(req));
+      case 'app_build':  return json_(appBuild_(req));
+      case 'app_status': return json_(appStatus_(req));
       case 'vcheck':   return json_(vcheck_(req));
       case 'reset':    return json_(reset_(req));
       case 'chat':     return json_(chat_(req));
@@ -464,7 +476,8 @@ function publicUser_(u) {
   return { name: u.name, phone: u.phone, plan: u.plan, used: used, limit: limitFor_(u),
            ref: u.ref || '', invited: invited, bonus: bonus, refBonus: S.refBonus, refMax: S.refMax,
            isAdmin: isAdmin_(u), announce: S.announce, planUntil: u.plan !== 'free' ? u.planUntil : '',
-           mcp: S.mcpPlans.indexOf(u.plan) >= 0 || isAdmin_(u), mcpPlans: S.mcpPlans };
+           mcp: S.mcpPlans.indexOf(u.plan) >= 0 || isAdmin_(u), mcpPlans: S.mcpPlans,
+           svc: svcState_(u), worker: S.mcpBase };
 }
 
 /* ============ Takliflar (referral) ============ */
@@ -610,7 +623,8 @@ function set_() {
     prices: Object.assign({}, CFG.PRICES, s.prices || {}),
     discount: s.discount != null ? Number(s.discount) : CFG.YEAR_DISCOUNT,
     mcpPlans: Array.isArray(s.mcpPlans) ? s.mcpPlans : ['max', 'business'],   // Claude konnektori qaysi tariflarda bor
-    mcpBase: String(s.mcpBase || '')                                         // Cloudflare Worker manzili
+    mcpBase: String(s.mcpBase || ''),                                        // Cloudflare Worker manzili
+    svc: (function () { const o = {}; Object.keys(CFG.SVC).forEach(function (p) { o[p] = Object.assign({}, CFG.SVC[p], (s.svc || {})[p] || {}); }); return o; })()
   };
 }
 
@@ -652,6 +666,7 @@ function admin_(req) {
     case 'settings': return { ok: true, settings: set_(), mcp: mcpKey_(), gh: !!ghToken_() };
     case 'save':     return adminSave_(req);
     case 'payments': return adminPayments_();
+    case 'probe':    return adminProbe_();
     default:         return { ok: false, error: "Noma'lum admin amal" };
   }
 }
@@ -730,7 +745,7 @@ function adminLogs_(req) {
   const logs = lg.getRange(from, 1, last - from + 1, LOG_HEADERS.length).getValues().reverse().map(function (r) {
     const note = String(r[5] || ''), ok = r[4] === true || r[4] === 'TRUE', u = map[r[1]] || {};
     return { time: String(r[0]), name: u.name || (r[1] === 'gapi' ? 'Gapi yordamchi' : '—'), phone: u.phone || '', chars: Number(r[2]) || 0, model: String(r[3] || ''), ok: ok,
-      kind: note.indexOf('stt') === 0 ? 'stt' : note.indexOf('translate') === 0 ? 'translate' : note.indexOf('chat') === 0 ? 'chat' : note.indexOf('mcp') === 0 ? 'mcp' : 'tts',
+      kind: note.indexOf('stt') === 0 ? 'stt' : note.indexOf('translate') === 0 ? 'translate' : note.indexOf('chat') === 0 ? 'chat' : note.indexOf('mcp') === 0 ? 'mcp' : /^(img|vid|site|app)/.test(note) ? note.slice(0, note.search(/[ :]|$/)) : 'tts',
       note: ok ? '' : note.replace(/^(stt|translate)\s*/, '').slice(0, 200) };
   });
   return { ok: true, logs: logs };
@@ -748,6 +763,8 @@ function adminSave_(req) {
     announce: String(s.announce || '').slice(0, 300),
     prices: {}, discount: Math.max(0, Math.min(90, Math.round(Number(s.discount) || 0))),
     mcpPlans: (Array.isArray(s.mcpPlans) ? s.mcpPlans : []).filter(function (p) { return CFG.PLANS.hasOwnProperty(p); }),
+    svc: (function () { const o = {}; Object.keys(CFG.SVC).forEach(function (p) { o[p] = {}; ['img', 'vid', 'site', 'app'].forEach(function (k) {
+      const v = Math.round(Number(((s.svc || {})[p] || {})[k])); o[p][k] = v >= 0 && v <= 10000 ? v : CFG.SVC[p][k]; }); }); return o; })(),
     mcpBase: /^https:\/\/[\w.-]+(\/[\w.-]*)*$/.test(String(s.mcpBase || '').trim().replace(/\/+$/, '')) ? String(s.mcpBase).trim().replace(/\/+$/, '') : '' };
   Object.keys(CFG.PRICES).forEach(function (p) {
     const v = Math.round(Number((s.prices || {})[p]));
@@ -910,6 +927,7 @@ function chat_(req) {
     "5) Audiokitoblar: uzun matn yoki .txt fayl boblarga bo'linadi va har bir bob ovozlanadi.",
     "6) Fayllarim: yaratilgan barcha audio va matnlar shu brauzerda saqlanadi, yuklab olish mumkin.",
     "7) Claude'ga ulash (YANGI): Gapir AI'ni Claude AI chatiga konnektor qilib ulash mumkin. Kabinet → 'Claude'ga ulash' bo'limida shaxsiy manzil olinadi; claude.ai → Settings → Connectors → Add custom connector → nomi 'Gapir AI', URL — o'sha manzil → Add → Connect. Keyin Claude'ga 'reklama audiosi tayyorla' desang, u matnni yozib, Gapir AI ovozida audio yaratadi. Bu Max va Biznes tariflarida bor, belgilar kunlik limitdan yechiladi. Manzilni hech kimga berma.",
+    "AI STUDIYA (yangi): a) Rasm yaratish — matndan rasm chizish yoki surat yuklab tahrirlash (fonni olib tashlash, yorqinlik, uslub). b) Video yaratish — sahna tavsifi yoki rasmdan qisqa AI video (9:16 yoki 16:9; 1–3 daqiqada tayyor). c) Sayt yaratish — tavsifdan tayyor bir sahifali sayt, ko'rib chiqish, o'zgartirish, HTML yuklab olish va 'Internetga joylash' tugmasi bilan havola olish. d) Mobil ilova — tavsifdan telefon ilovasi, telefon ramkasida sinash va 'APK yaratish' bilan Android ilova faylini yuklab olish (3–6 daqiqa; o'rnatishda telefon 'noma'lum manbalar'ga ruxsat so'rashi mumkin). Kunlik limitlar (dona): " + Object.keys(S.svc).map(function (p) { const v = S.svc[p]; return (names[p] || p) + ' — rasm ' + v.img + ', video ' + v.vid + ', sayt ' + v.site + ', APK ' + v.app; }).join('; ') + ". Limitlar har kuni yarim tunda yangilanadi. iPhone uchun APK yo'q (sayt havolasi ishlatiladi).",
     "8) Takliflar: do'st taklif qilsang, har biri uchun kunlik limitga +" + S.refBonus + " belgi (" + S.refMax + " tagacha).",
     "9) Ro'yxatdan o'tish: saytda 'Ro'yxatdan o'tish' → ism → 'Telegram orqali tasdiqlash' → @Gapir_aibot botida 'Raqamni yuborish' → saytga qaytib parol qo'yish. Parolni unutsang — kirish sahifasida 'Parolni unutdingizmi?' orqali bot bilan tiklanadi.",
     "10) Tariflar (oylik): " + tariffs + ". Yillik to'lovda " + S.discount + "% chegirma. Limit har kuni yarim tunda (Toshkent vaqti) yangilanadi.",
@@ -918,7 +936,7 @@ function chat_(req) {
     "13) Texnik cheklovlar: bir so'rovda " + CFG.MAX_CHARS_PER_REQUEST + " belgigacha yuboriladi, lekin uzun matnni sayt o'zi bo'laklarga bo'lib, bitta audioga yig'adi. Audio faqat WAV formatda (24 kHz) chiqadi; MP3 kerak bo'lsa, istalgan bepul konvertor bilan o'giriladi. 'Nutqdan matnga' va 'Dublyaj' uchun fayl 13 MB gacha. Namuna tinglash ham limitdan ~70 belgi oladi. 'Fayllarim' faqat shu brauzerda saqlanadi: brauzer tozalansa yoki boshqa qurilmadan kirilsa ko'rinmaydi — muhim audiolarni darhol yuklab olib qo'yish kerak.",
     "14) Xatolar va yechimi: 'So'rovlar ko'p' — server band, 1 daqiqadan keyin qayta urinish. 'Bugungi limit tugadi' — limit yarim tunda yangilanadi yoki tarifni oshirish/do'st taklif qilish. 'Ovoz yaratilmadi' — matnni qisqartirib yoki boshqa ovoz bilan qayta urinish. 'To'lov topilmadi yoki bekor qilindi' — to'lov sahifasida to'lov tugallanmagan; pul yechilgan bo'lsa, 1–2 daqiqada tarif o'zi yoqiladi, 'Tarif va to'lovlar' sahifasini yangilash kerak, yoqilmasa admin bilan bog'lanish. 'Telegram tasdiqlash ishlamayapti' — botda /start bosib, 'Raqamni yuborish' tugmasidan foydalanish (raqamni qo'lda yozish emas). Kirish xatosi — raqam +998 bilan to'g'ri yozilganini tekshirish yoki parolni tiklash.",
     "15) Pulni qaytarish va boshqa qoidalar hali e'lon qilinmagan — bunday savollarda admin bilan bog'lanishni ayt, o'zingdan qoida to'qima.",
-    "TUGMALAR: javob oxiriga kerakli bo'lsa bitta yoki ikkita tugma qo'sh, aynan shu shaklda: [[go:plans]] (Tariflar), [[go:tts]] (Ovoz yaratish), [[go:voices]] (Ovozlar), [[go:stt]] (Nutqdan matnga), [[go:dub]] (Dublyaj), [[go:books]] (Audiokitob), [[go:connect]] (Claude'ga ulash), [[go:ref]] (Takliflar), [[go:assets]] (Fayllarim), [[go:register]] (Ro'yxatdan o'tish), [[go:login]] (Kirish), [[go:reset]] (Parolni tiklash). Boshqa shakl ishlatma.",
+    "TUGMALAR: javob oxiriga kerakli bo'lsa bitta yoki ikkita tugma qo'sh, aynan shu shaklda: [[go:plans]] (Tariflar), [[go:tts]] (Ovoz yaratish), [[go:voices]] (Ovozlar), [[go:stt]] (Nutqdan matnga), [[go:dub]] (Dublyaj), [[go:books]] (Audiokitob), [[go:connect]] (Claude'ga ulash), [[go:ref]] (Takliflar), [[go:assets]] (Fayllarim), [[go:image]] (Rasm), [[go:video]] (Video), [[go:site]] (Sayt yaratish), [[go:app]] (Mobil ilova), [[go:register]] (Ro'yxatdan o'tish), [[go:login]] (Kirish), [[go:reset]] (Parolni tiklash). Boshqa shakl ishlatma.",
     "=== ===",
     facts ? 'Saytdagi tariflar (sahifadan): ' + facts : '',
     auth ? userFacts_(auth.user, names) : "Foydalanuvchi hali tizimga kirmagan — shaxsiy limit yoki to'lov haqida so'rasa, avval kirishni so'ra; kerak bo'lsa bepul ro'yxatdan o'tishni taklif qil.",
@@ -951,6 +969,7 @@ function userFacts_(u, names) {
     '; bugun ' + p.used + ' / ' + p.limit + ' belgi ishlatilgan, ' + left + ' belgi qoldi' +
     (p.bonus ? ' (taklif bonusi +' + p.bonus + ')' : '') + '; taklif qilgan do\'stlari: ' + (p.invited || 0) +
     '; Claude konnektori: ' + (p.mcp ? 'mavjud' : 'tarifida yo\'q') +
+    '; AI studiya bugun: ' + ['img', 'vid', 'site', 'app'].map(function (k) { const v = p.svc[k]; return SVC_NAMES[k] + ' ' + v.used + '/' + v.limit; }).join(', ') +
     '; oxirgi to\'lovlari: ' + (pays.length ? pays.join(' | ') : "yo'q") + '.';
 }
 
@@ -1280,5 +1299,251 @@ function mcpCleanup_() {
     UrlFetchApp.fetch('https://api.github.com/repos/' + ghRepo_() + '/contents/' + f.path, { method: 'delete', headers: H, contentType: 'application/json',
       payload: JSON.stringify({ message: 'Eski audio: ' + f.name, sha: f.sha }), muteHttpExceptions: true });
   });
+}
+
+/* ============================================================
+   AI STUDIYA — rasm, video, sayt va APK
+   Script Properties: GAPIR_SECRET (Worker bilan umumiy maxfiy so'z) — avtomatik yaratiladi
+   ============================================================ */
+const SVC_NAMES = { img: 'rasm', vid: 'video', site: 'sayt', app: 'ilova (APK)' };
+
+function svcState_(u) {
+  const S = set_(), lim = isAdmin_(u) ? { img: 9999, vid: 9999, site: 9999, app: 9999 } : (S.svc[u.plan] || S.svc.free);
+  let used = {};
+  try { const j = JSON.parse(String(u.svc || '{}')); if (j.day === today_()) used = j; } catch (e) {}
+  const out = {};
+  ['img', 'vid', 'site', 'app'].forEach(function (k) { out[k] = { used: Number(used[k]) || 0, limit: Number(lim[k]) || 0 }; });
+  return out;
+}
+
+/** Xizmat limitidan 1 dona band qiladi */
+function svcReserve_(row, kind) {
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    const u = readUser_(row), st = svcState_(u)[kind];
+    if (!st) return { ok: false, error: "Noma'lum xizmat" };
+    if (st.limit <= 0) return { ok: false, error: SVC_NAMES[kind].charAt(0).toUpperCase() + SVC_NAMES[kind].slice(1) + " sizning tarifingizda yo'q. Tarifni oshiring.", upgrade: true };
+    if (st.used >= st.limit) return { ok: false, error: 'Bugungi ' + SVC_NAMES[kind] + ' limiti tugadi (' + st.used + '/' + st.limit + '). Ertaga yangilanadi yoki tarifni oshiring.', upgrade: true };
+    let j = {}; try { j = JSON.parse(String(u.svc || '{}')); } catch (e) {}
+    if (j.day !== today_()) j = { day: today_() };
+    j[kind] = (Number(j[kind]) || 0) + 1;
+    sheet_('Users', USER_HEADERS).getRange(row, USER_HEADERS.indexOf('svc') + 1).setNumberFormat('@').setValue(JSON.stringify(j));
+    return { ok: true, used: j[kind], limit: st.limit };
+  } finally { lock.releaseLock(); }
+}
+function svcRefund_(row, kind) {
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    const u = readUser_(row); let j = {}; try { j = JSON.parse(String(u.svc || '{}')); } catch (e) {}
+    if (j.day !== today_() || !j[kind]) return;
+    j[kind] = Math.max(0, Number(j[kind]) - 1);
+    sheet_('Users', USER_HEADERS).getRange(row, USER_HEADERS.indexOf('svc') + 1).setValue(JSON.stringify(j));
+  } finally { lock.releaseLock(); }
+}
+
+function geminiErr_(code, raw) {
+  if (code === 429 && /limit: ?0|free_tier|billing/i.test(raw)) return "Bu xizmat uchun Google'da to'lov (billing) yoqilmagan. Admin bilan bog'laning.";
+  if (code === 429 || code === 503) return "Hozir so'rovlar ko'p. Bir daqiqadan keyin urinib ko'ring.";
+  if (code === 400 && /safety|blocked|prohibit/i.test(raw)) return "Bu so'rov xavfsizlik qoidalariga to'g'ri kelmadi. Boshqacha yozib ko'ring.";
+  if (code === 401 || code === 403) return "Server API kaliti bilan muammo. Admin bilan bog'laning.";
+  if (code === 404) return "Model topilmadi. Admin bilan bog'laning.";
+  return "Xatolik yuz berdi (" + code + "). Qayta urinib ko'ring.";
+}
+
+/** Rasm yaratish yoki tahrirlash (Nano Banana) */
+function image_(req) {
+  const auth = auth_(req.token);
+  if (!auth) return { ok: false, error: 'auth' };
+  const prompt = String(req.prompt || '').trim().slice(0, 2000);
+  if (!prompt) return { ok: false, error: "Nima chizish yoki o'zgartirishni yozing" };
+  const imgs = (Array.isArray(req.images) ? req.images : []).slice(0, 3).filter(function (i) { return i && i.data && String(i.data).length < 9000000; });
+  const r = svcReserve_(auth.row, 'img');
+  if (!r.ok) return r;
+  const key = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  const parts = imgs.map(function (i) { return { inline_data: { mime_type: String(i.mime || 'image/png'), data: String(i.data) } }; });
+  parts.push({ text: prompt });
+  const aspect = /^(1:1|16:9|9:16|4:3|3:4|4:5|5:4|3:2|2:3|21:9)$/.test(String(req.aspect)) ? String(req.aspect) : null;
+  let lastErr = '', code = 0, raw = '';
+  for (let i = 0; i < CFG.IMAGE_MODELS.length; i++) {
+    const model = CFG.IMAGE_MODELS[i];
+    const gen = { responseModalities: ['TEXT', 'IMAGE'] };
+    if (aspect && !imgs.length) gen.imageConfig = { aspectRatio: aspect };
+    const resp = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent', {
+      method: 'post', contentType: 'application/json', headers: { 'x-goog-api-key': key }, muteHttpExceptions: true,
+      payload: JSON.stringify({ contents: [{ role: 'user', parts: parts }], generationConfig: gen })
+    });
+    code = resp.getResponseCode(); raw = resp.getContentText();
+    if (code === 200) {
+      try {
+        const ps = ((((JSON.parse(raw).candidates || [])[0] || {}).content || {}).parts) || [];
+        const im = ps.filter(function (p) { return (p.inlineData || p.inline_data) && !p.thought; }).pop();
+        const txt = ps.filter(function (p) { return p.text && !p.thought; }).map(function (p) { return p.text; }).join(' ').trim();
+        if (im) {
+          const d = im.inlineData || im.inline_data;
+          log_(auth.user.id, 0, model, true, 'img ' + (imgs.length ? 'edit' : 'new'));
+          return { ok: true, mime: d.mimeType || d.mime_type || 'image/png', data: d.data, note: txt.slice(0, 300), used: r.used, limit: r.limit };
+        }
+        lastErr = txt ? 'Rasm o\'rniga matn qaytdi: ' + txt.slice(0, 200) : "Bo'sh javob";
+      } catch (e) { lastErr = 'JSON xato'; }
+      continue;
+    }
+    lastErr = code + ': ' + raw.slice(0, 200);
+    if (code === 404 || code === 429 || code === 503) continue;
+    break;
+  }
+  svcRefund_(auth.row, 'img');
+  log_(auth.user.id, 0, 'image', false, 'img: ' + lastErr);
+  return { ok: false, error: code === 200 ? "Rasm chiqmadi — so'rovni aniqroq yozib ko'ring." : geminiErr_(code, raw) };
+}
+
+/* ---- Worker uchun imzoli chipta (video va sayt — 60 soniyadan uzoq ishlar) ---- */
+function gapirSecret_() {
+  const p = PropertiesService.getScriptProperties();
+  let s = p.getProperty('GAPIR_SECRET');
+  if (!s) { s = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, ''); p.setProperty('GAPIR_SECRET', s); }
+  return s;
+}
+function b64url_(bytes) { return Utilities.base64EncodeWebSafe(bytes).replace(/=+$/, ''); }
+function signTicket_(obj) {
+  const body = b64url_(Utilities.newBlob(JSON.stringify(obj)).getBytes());
+  const sig = b64url_(Utilities.computeHmacSha256Signature(body, gapirSecret_()));
+  return body + '.' + sig;
+}
+function readTicket_(t) {
+  const parts = String(t || '').split('.');
+  if (parts.length !== 2) return null;
+  if (b64url_(Utilities.computeHmacSha256Signature(parts[0], gapirSecret_())) !== parts[1]) return null;
+  try { return JSON.parse(Utilities.newBlob(Utilities.base64DecodeWebSafe(parts[0] + '==='.slice((parts[0].length + 3) % 4))).getDataAsString()); } catch (e) { return null; }
+}
+function ticket_(req) {
+  const auth = auth_(req.token);
+  if (!auth) return { ok: false, error: 'auth' };
+  const kind = req.kind === 'vid' ? 'vid' : 'site';
+  const S = set_();
+  if (!S.mcpBase) return { ok: false, error: "Xizmat hali sozlanmagan (Worker manzili yo'q). Admin bilan bog'laning." };
+  const r = svcReserve_(auth.row, kind);
+  if (!r.ok) return r;
+  const n = Utilities.getUuid();
+  CacheService.getScriptCache().put('tk_' + n, 'new', 1800);
+  log_(auth.user.id, 0, kind === 'vid' ? CFG.VIDEO_MODEL : 'site', true, kind + ' start');
+  return { ok: true, worker: S.mcpBase, ticket: signTicket_({ u: auth.user.id, k: kind, n: n, e: Date.now() + 20 * 60000 }), used: r.used, limit: r.limit };
+}
+/** Worker chiptani ishlatadi: bir chipta — bitta ish */
+function ticketUse_(req) {
+  const t = readTicket_(req.ticket);
+  if (!t || t.e < Date.now()) return { ok: false, error: "Chipta eskirgan. Sahifani yangilab qayta urinib ko'ring." };
+  const c = CacheService.getScriptCache();
+  if (c.get('tk_' + t.n) !== 'new') return { ok: false, error: 'Chipta allaqachon ishlatilgan' };
+  c.put('tk_' + t.n, 'used', 1800);
+  return { ok: true, kind: t.k, user: t.u };
+}
+/** Worker ish bajara olmasa — limitni qaytaradi (bir chipta bir marta) */
+function svcRefundTicket_(req) {
+  const t = readTicket_(req.ticket);
+  if (!t) return { ok: false, error: 'bad ticket' };
+  const c = CacheService.getScriptCache();
+  if (c.get('tk_' + t.n) !== 'used') return { ok: true, already: true };
+  c.put('tk_' + t.n, 'done', 1800);
+  const row = findRow_('Users', USER_HEADERS, 'id', String(t.u));
+  if (row) svcRefund_(row, t.k);
+  log_(String(t.u), 0, t.k === 'vid' ? CFG.VIDEO_MODEL : 'site', false, t.k + ': ' + String(req.reason || '').slice(0, 200));
+  return { ok: true };
+}
+
+/* ---- GitHub: sayt joylash va APK yig'ish ---- */
+function ghPut_(path, content, msg) {
+  const H = { Authorization: 'Bearer ' + ghToken_(), Accept: 'application/vnd.github+json' };
+  const url = 'https://api.github.com/repos/' + ghRepo_() + '/contents/' + path;
+  let sha = null;
+  const g = UrlFetchApp.fetch(url, { headers: H, muteHttpExceptions: true });
+  if (g.getResponseCode() === 200) sha = JSON.parse(g.getContentText()).sha;
+  const body = { message: msg, content: Utilities.base64Encode(content, Utilities.Charset.UTF_8) };
+  if (sha) body.sha = sha;
+  const r = UrlFetchApp.fetch(url, { method: 'put', headers: H, contentType: 'application/json', payload: JSON.stringify(body), muteHttpExceptions: true });
+  return r.getResponseCode() < 300;
+}
+function slug_(s) {
+  const t = String(s || '').toLowerCase().replace(/[ʻʼ‘’'`]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30);
+  return t || 'sayt';
+}
+function cleanHtml_(h) {
+  h = String(h || '');
+  if (h.length < 50 || h.length > 1500000 || !/<html|<body|<div/i.test(h)) return '';
+  return h;
+}
+function sitePublish_(req) {
+  const auth = auth_(req.token);
+  if (!auth) return { ok: false, error: 'auth' };
+  if (!ghToken_()) return { ok: false, error: "Joylash sozlanmagan (GITHUB_TOKEN yo'q). Admin bilan bog'laning." };
+  const html = cleanHtml_(req.html);
+  if (!html) return { ok: false, error: 'Sayt kodi topilmadi' };
+  const id = slug_(req.name) + '-' + String(auth.user.id).slice(0, 4) + Utilities.getUuid().slice(0, 4);
+  const name = String(req.site || '').replace(/[^a-z0-9-]/g, '').slice(0, 50) || id;
+  if (!ghPut_('sites/' + name + '/index.html', html, 'Gapir AI sayt: ' + name)) return { ok: false, error: "GitHub'ga yozib bo'lmadi" };
+  log_(auth.user.id, 0, 'github', true, 'site publish ' + name);
+  return { ok: true, site: name, url: CFG.SITE_URL + 'sites/' + name + '/' };
+}
+function appBuild_(req) {
+  const auth = auth_(req.token);
+  if (!auth) return { ok: false, error: 'auth' };
+  if (!ghToken_()) return { ok: false, error: "APK yig'ish sozlanmagan (GITHUB_TOKEN yo'q). Admin bilan bog'laning." };
+  const html = cleanHtml_(req.html);
+  if (!html) return { ok: false, error: 'Ilova kodi topilmadi' };
+  const r = svcReserve_(auth.row, 'app');
+  if (!r.ok) return r;
+  const name = String(req.name || 'Mening ilovam').replace(/[<>"&\\]/g, '').trim().slice(0, 30) || 'Mening ilovam';
+  const id = 'a' + Utilities.formatDate(new Date(), CFG.TZ, 'yyMMddHHmmss') + Utilities.getUuid().slice(0, 4);
+  const okHtml = ghPut_('apps/' + id + '/index.html', html, 'Gapir AI ilova: ' + id);
+  const okMeta = okHtml && ghPut_('apps/' + id + '/meta.json', JSON.stringify({ name: name, user: auth.user.id, created: new Date().toISOString() }), 'meta ' + id);
+  if (!okMeta) { svcRefund_(auth.row, 'app'); return { ok: false, error: "GitHub'ga yozib bo'lmadi" }; }
+  // meta.json yozilishi GitHub Actions'dagi "Build APK" ishini avtomatik boshlaydi
+  log_(auth.user.id, 0, 'github', true, 'app build ' + id);
+  return { ok: true, id: id, used: r.used, limit: r.limit };
+}
+function appStatus_(req) {
+  const auth = auth_(req.token);
+  if (!auth) return { ok: false, error: 'auth' };
+  const id = String(req.id || '').replace(/[^a-z0-9]/g, '');
+  if (!id) return { ok: false, error: 'id' };
+  const H = { Authorization: 'Bearer ' + ghToken_(), Accept: 'application/vnd.github+json' };
+  const r = UrlFetchApp.fetch('https://api.github.com/repos/' + ghRepo_() + '/releases/tags/app-' + id, { headers: H, muteHttpExceptions: true });
+  if (r.getResponseCode() === 200) {
+    const a = (JSON.parse(r.getContentText()).assets || []).filter(function (x) { return /\.apk$/.test(x.name); })[0];
+    if (a) return { ok: true, state: 'done', url: a.browser_download_url, size: a.size };
+  }
+  // yig'ish xato bilan tugaganmi?
+  const runs = UrlFetchApp.fetch('https://api.github.com/repos/' + ghRepo_() + '/actions/runs?event=repository_dispatch&per_page=10', { headers: H, muteHttpExceptions: true });
+  if (runs.getResponseCode() === 200) {
+    const run = (JSON.parse(runs.getContentText()).workflow_runs || []).filter(function (w) { return String(w.display_title || w.name || '').indexOf(id) >= 0; })[0];
+    if (run && run.status === 'completed' && run.conclusion !== 'success') return { ok: true, state: 'failed' };
+  }
+  return { ok: true, state: 'building' };
+}
+
+/** Admin: Google hisobida qaysi xizmatlar ochiqligini tekshiradi */
+function adminProbe_() {
+  const key = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  const out = { ok: true, models: {}, image: null, github: !!ghToken_(), worker: !!set_().mcpBase, secret: gapirSecret_().slice(0, 6) + '…' };
+  const lr = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': key }, muteHttpExceptions: true });
+  if (lr.getResponseCode() === 200) {
+    const names = (JSON.parse(lr.getContentText()).models || []).map(function (m) { return String(m.name).replace('models/', ''); });
+    CFG.IMAGE_MODELS.concat([CFG.VIDEO_MODEL]).forEach(function (m) { out.models[m] = names.indexOf(m) >= 0; });
+    out.videoModels = names.filter(function (n) { return /omni|veo/.test(n); });
+    out.imageModels = names.filter(function (n) { return /image/.test(n); });
+  } else out.listError = lr.getResponseCode();
+  // haqiqiy kichik rasm sinovi (pullik bo'lsa ~0,04$)
+  for (let i = 0; i < CFG.IMAGE_MODELS.length; i++) {
+    const m = CFG.IMAGE_MODELS[i];
+    if (out.imageModels && out.imageModels.length && out.models[m] === false) continue;
+    const r = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + m + ':generateContent', {
+      method: 'post', contentType: 'application/json', headers: { 'x-goog-api-key': key }, muteHttpExceptions: true,
+      payload: JSON.stringify({ contents: [{ parts: [{ text: 'A small plain blue circle on white background' }] }], generationConfig: { responseModalities: ['TEXT', 'IMAGE'] } })
+    });
+    const c = r.getResponseCode();
+    if (c === 404) continue;
+    out.image = { model: m, code: c, ok: c === 200, message: c === 200 ? 'Ishlayapti' : geminiErr_(c, r.getContentText()), raw: c === 200 ? '' : r.getContentText().slice(0, 300) };
+    break;
+  }
+  return out;
 }
 

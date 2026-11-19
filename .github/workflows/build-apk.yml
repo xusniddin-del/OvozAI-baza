@@ -1,5 +1,5 @@
 name: Build APK
-run-name: APK ${{ github.event.client_payload.id || inputs.id || 'push' }}
+run-name: APK ${{ github.event.client_payload.id || inputs.id || github.event.head_commit.message }}
 
 on:
   push:
