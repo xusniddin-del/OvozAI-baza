@@ -914,13 +914,17 @@ function chat_(req) {
     "9) Ro'yxatdan o'tish: saytda 'Ro'yxatdan o'tish' → ism → 'Telegram orqali tasdiqlash' → @Gapir_aibot botida 'Raqamni yuborish' → saytga qaytib parol qo'yish. Parolni unutsang — kirish sahifasida 'Parolni unutdingizmi?' orqali bot bilan tiklanadi.",
     "10) Tariflar (oylik): " + tariffs + ". Yillik to'lovda " + S.discount + "% chegirma. Limit har kuni yarim tunda (Toshkent vaqti) yangilanadi.",
     "11) To'lov: kabinet → 'Tarif va to'lovlar' → tarifni tanlash → 1 oy yoki 1 yil → TezCheck sahifasida Click, Payme, Uzum yoki karta bilan to'lov. Tarif to'lovdan keyin avtomatik darhol yoqiladi va tugash sanasi ko'rinadi.",
-    "12) Ovozni klonlash (o'z ovozingizni nusxalash) hozircha yo'q. Audio tijorat maqsadida (reklama, video, dars) ishlatilishi mumkin.",
+    "12) Ovozni klonlash (o'z ovozingizni nusxalash) hozircha yo'q. Audio tijorat maqsadida (reklama, video, dars) ishlatilishi mumkin. Mobil ilova, MP3 eksport va dasturchilar uchun API hozircha yo'q (Claude konnektoridan tashqari).",
+    "13) Texnik cheklovlar: bir so'rovda " + CFG.MAX_CHARS_PER_REQUEST + " belgigacha yuboriladi, lekin uzun matnni sayt o'zi bo'laklarga bo'lib, bitta audioga yig'adi. Audio faqat WAV formatda (24 kHz) chiqadi; MP3 kerak bo'lsa, istalgan bepul konvertor bilan o'giriladi. 'Nutqdan matnga' va 'Dublyaj' uchun fayl 13 MB gacha. Namuna tinglash ham limitdan ~70 belgi oladi. 'Fayllarim' faqat shu brauzerda saqlanadi: brauzer tozalansa yoki boshqa qurilmadan kirilsa ko'rinmaydi — muhim audiolarni darhol yuklab olib qo'yish kerak.",
+    "14) Xatolar va yechimi: 'So'rovlar ko'p' — server band, 1 daqiqadan keyin qayta urinish. 'Bugungi limit tugadi' — limit yarim tunda yangilanadi yoki tarifni oshirish/do'st taklif qilish. 'Ovoz yaratilmadi' — matnni qisqartirib yoki boshqa ovoz bilan qayta urinish. 'To'lov topilmadi yoki bekor qilindi' — to'lov sahifasida to'lov tugallanmagan; pul yechilgan bo'lsa, 1–2 daqiqada tarif o'zi yoqiladi, 'Tarif va to'lovlar' sahifasini yangilash kerak, yoqilmasa admin bilan bog'lanish. 'Telegram tasdiqlash ishlamayapti' — botda /start bosib, 'Raqamni yuborish' tugmasidan foydalanish (raqamni qo'lda yozish emas). Kirish xatosi — raqam +998 bilan to'g'ri yozilganini tekshirish yoki parolni tiklash.",
+    "15) Pulni qaytarish va boshqa qoidalar hali e'lon qilinmagan — bunday savollarda admin bilan bog'lanishni ayt, o'zingdan qoida to'qima.",
+    "TUGMALAR: javob oxiriga kerakli bo'lsa bitta yoki ikkita tugma qo'sh, aynan shu shaklda: [[go:plans]] (Tariflar), [[go:tts]] (Ovoz yaratish), [[go:voices]] (Ovozlar), [[go:stt]] (Nutqdan matnga), [[go:dub]] (Dublyaj), [[go:books]] (Audiokitob), [[go:connect]] (Claude'ga ulash), [[go:ref]] (Takliflar), [[go:assets]] (Fayllarim), [[go:register]] (Ro'yxatdan o'tish), [[go:login]] (Kirish), [[go:reset]] (Parolni tiklash). Boshqa shakl ishlatma.",
     "=== ===",
     facts ? 'Saytdagi tariflar (sahifadan): ' + facts : '',
-    auth ? ('Foydalanuvchi kirgan: ismi ' + auth.user.name + ', tarifi ' + (names[auth.user.plan] || auth.user.plan) + '.') : "Foydalanuvchi hali ro'yxatdan o'tmagan — kerak bo'lsa bepul ro'yxatdan o'tishni taklif qil.",
+    auth ? userFacts_(auth.user, names) : "Foydalanuvchi hali tizimga kirmagan — shaxsiy limit yoki to'lov haqida so'rasa, avval kirishni so'ra; kerak bo'lsa bepul ro'yxatdan o'tishni taklif qil.",
     "Faqat Gapir AI, ovoz, audio, matn va saytdan foydalanish haqida yordam ber. Boshqa mavzularda muloyimlik bilan saytga qaytar. Yuqorida yo'q narx, bonus yoki imkoniyatni o'ylab topma; bilmasang, 'Yordam' bo'limi orqali admin bilan bog'lanishni ayt. Hech qachon 'tushunmadim' deb qo'yma — savolni yuqoridagi ma'lumotlarga bog'lab javob ber."
   ].filter(String).join('\n');
-  const hist = (Array.isArray(req.history) ? req.history : []).slice(-8).map(function (m) {
+  const hist = (Array.isArray(req.history) ? req.history : []).slice(-12).map(function (m) {
     return { role: m.r === 'u' ? 'user' : 'model', parts: [{ text: String(m.t || '').slice(0, 600) }] };
   });
   while (hist.length && hist[0].role !== 'user') hist.shift();   // Gemini: suhbat foydalanuvchidan boshlanadi
@@ -930,6 +934,24 @@ function chat_(req) {
     return { ok: false, error: r.userError || "Hozir javob bera olmayman, birozdan keyin urinib ko'ring." };
   }
   return { ok: true, text: r.text.slice(0, 1500) };
+}
+
+/** Gapi uchun: kirgan foydalanuvchining hisobi haqida aniq ma'lumot */
+function userFacts_(u, names) {
+  const p = publicUser_(u), left = Math.max(0, p.limit - p.used);
+  let pays = [];
+  try {
+    const sh = sheet_('Payments', PAY_HEADERS), last = sh.getLastRow();
+    if (last >= 2) pays = sh.getRange(Math.max(2, last - 199), 1, Math.min(200, last - 1), PAY_HEADERS.length).getValues()
+      .filter(function (r) { return String(r[1]) === String(u.id) && r[5] === 'paid'; }).slice(-3)
+      .map(function (r) { return (names[r[2]] || r[2]) + ' ' + (Number(r[3]) === 12 ? '1 yil' : '1 oy') + ', ' + r[4] + " so'm, " + String(r[7]).slice(0, 10); });
+  } catch (e) {}
+  return 'FOYDALANUVCHI HISOBI (aniq ma\'lumot, so\'ralsa ayt): ismi ' + p.name + '; tarifi ' + (names[p.plan] || p.plan) +
+    (p.planUntil ? ' (' + String(p.planUntil).slice(0, 10) + ' gacha amal qiladi)' : (p.plan === 'free' ? '' : ' (muddatsiz, admin bergan)')) +
+    '; bugun ' + p.used + ' / ' + p.limit + ' belgi ishlatilgan, ' + left + ' belgi qoldi' +
+    (p.bonus ? ' (taklif bonusi +' + p.bonus + ')' : '') + '; taklif qilgan do\'stlari: ' + (p.invited || 0) +
+    '; Claude konnektori: ' + (p.mcp ? 'mavjud' : 'tarifida yo\'q') +
+    '; oxirgi to\'lovlari: ' + (pays.length ? pays.join(' | ') : "yo'q") + '.';
 }
 
 /* ============================================================

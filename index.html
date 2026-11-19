@@ -866,6 +866,7 @@ body.light ::-webkit-scrollbar-track{background:transparent}
 .gp-av{width:42px;height:42px;flex:none}.gp-av svg{width:100%;height:100%}
 .gp-x{width:32px;height:32px;border-radius:10px;color:#a9b7df;font-size:14px}.gp-x:hover{background:rgba(255,255,255,.08);color:#fff}
 .gp-log{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.gp-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:-2px}.gp-acts a{padding:7px 12px;border-radius:99px;background:rgba(47,107,255,.22);border:1px solid rgba(130,170,255,.4);color:#dbe6ff;font-size:12.5px;font-weight:700;text-decoration:none}.gp-acts a:hover{background:rgba(47,107,255,.4)}
 .gp-m{max-width:85%;padding:10px 13px;border-radius:16px;font-size:14px;line-height:1.5;font-weight:500;white-space:pre-wrap;word-wrap:break-word;animation:su .3s both}
 .gp-m.a{align-self:flex-start;background:rgba(255,255,255,.07);border:1px solid rgba(130,165,255,.15);border-bottom-left-radius:5px}
 .gp-m.u{align-self:flex-end;background:var(--grad);color:#fff;border-bottom-right-radius:5px}
@@ -2691,7 +2692,8 @@ window.addEventListener("hashchange", route);
 const Gapi = (() => {
   const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const cid = (() => { try{ let c = localStorage.getItem("gapi_cid"); if(!c){ c = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem("gapi_cid", c); } return c; }catch(e){ return "anon" + Date.now(); } })();
-  let el, svg, eyes, panel, log, inp, open = false, busy = false, mood = "smile", moodT = 0, hist = [];
+  let el, svg, eyes, panel, log, inp, open = false, busy = false, mood = "smile", moodT = 0, hist = (() => { try{ return JSON.parse(localStorage.getItem("gapi_hist")||"[]").slice(-16); }catch(e){ return []; } })();
+  const saveHist = () => { hist = hist.slice(-16); try{ localStorage.setItem("gapi_hist", JSON.stringify(hist)); }catch(e){} };
   const MOUTH = {
     smile: '<path d="M53 73 Q60 79 67 73" fill="none" stroke="#e5486b" stroke-width="3.2" stroke-linecap="round"/>',
     laugh: '<path d="M52 71 Q60 83 68 71 Z" fill="#e5486b"/><path d="M55.5 76 Q60 79.5 64.5 76" fill="#ff9db1"/>',
@@ -2776,6 +2778,18 @@ const Gapi = (() => {
     d.textContent = t; log.append(d); log.scrollTop = log.scrollHeight; return d;
   }
 
+  const GO = {plans:["Tariflar","#/app/plans"], tts:["Ovoz yaratish","#/app/tts"], voices:["Ovozlar","#/app/voices"], stt:["Nutqdan matnga","#/app/stt"],
+    dub:["Dublyaj","#/app/dub"], books:["Audiokitob","#/app/books"], connect:["Claude'ga ulash","#/app/connect"], ref:["Takliflar","#/app/ref"],
+    assets:["Fayllarim","#/app/assets"], register:["Ro'yxatdan o'tish","#/register"], login:["Kirish","#/login"], reset:["Parolni tiklash","#/reset"]};
+  function splitActs(t){ const acts = []; t = String(t).replace(/\[\[go:([a-z]+)\]\]/g, (m, k) => { if(GO[k] && !acts.includes(k)) acts.push(k); return ""; }).trim(); return {t, acts}; }
+  function addActs(acts){
+    if(!acts.length) return;
+    const d = document.createElement("div"); d.className = "gp-acts";
+    acts.slice(0,3).forEach(k => { let href = GO[k][1]; if(href.startsWith("#/app") && !store.token) href = "#/register";
+      const a = document.createElement("a"); a.href = href; a.textContent = GO[k][0] + " →"; a.onclick = () => toggle(false); d.append(a); });
+    log.append(d); log.scrollTop = log.scrollHeight;
+  }
+
   function facts(){
     try{ return CONFIG.PLANS.map(p => `${p.name}: ${p.price}${p.per} — ${p.daily}`).join("; "); }catch(e){ return ""; }
   }
@@ -2785,10 +2799,23 @@ const Gapi = (() => {
     const s = " " + t.toLowerCase().replace(/[‘’ʻʼ`']/g, "").replace(/[^a-zа-яё0-9 ]/gi, " ").replace(/\s+/g, " ") + " ";
     const has = (...w) => w.some(x => s.includes(x));
     const pr = CONFIG.PLANS.map(p => `• ${p.name}: ${p.price}${p.per} — ${p.daily}`).join("\n");
-    if(has("claud","клод","konnektor","ulash","ulasa","ulab","chatgpt")) return "Ha, ulasa bo'ladi! 🤖 Gapir AI'ni Claude AI'ga ulaysiz:\n1) Kabinet → «Claude'ga ulash» bo'limidan shaxsiy manzilingizni nusxalang.\n2) claude.ai → Settings → Connectors → Add custom connector → nomi «Gapir AI», URL — o'sha manzil → Add → Connect.\n3) Claude'ga «reklama audiosi tayyorla» deng — u matnni yozib, Gapir AI ovozida audio yaratadi.\nBu imkoniyat Max va Biznes tariflarida bor.";
-    if(has("parol","unut")) return "Parolni unutgan bo'lsangiz: Kirish sahifasida «Parolni unutdingizmi?» ni bosing → Telegram botda raqamingizni tasdiqlang → yangi parol qo'ying. 1 daqiqa ham ketmaydi 🔑";
-    if(has("royxat","registr","akkaunt","hisob och","qanday kir","kira olmay","kirish")) return "Ro'yxatdan o'tish juda oson 👇\n1) Yuqoridagi «Boshlash» yoki «Ro'yxatdan o'tish» tugmasini bosing.\n2) Ismingizni yozing va «Telegram orqali tasdiqlash»ni bosing.\n3) Botda «Raqamni yuborish» tugmasini bosing — raqamingiz tasdiqlanadi.\n4) Saytga qaytib parol qo'ying. Tamom! Har kuni bepul belgilar beriladi 🎉";
-    if(has("tarif","narx","qancha","pul","tolov","pro ","biznes","obuna","sotib")) return `Tariflarimiz:\n${pr}\n\nYillik to'lasangiz ${CONFIG.YEAR_DISCOUNT}% chegirma. To'lov Click, Payme, Uzum yoki karta orqali — kabinetdagi «Tarif va to'lovlar» bo'limida, tarif darhol yoqiladi ✅`;
+    const U = store.token && USER ? USER : null, PN = id => (CONFIG.PLANS.find(p=>p.id===id)||{}).name || id;
+    if(has("mening","menga","qoldi","qolgan","limitim","tarifim","hisobim","qachon tugaydi","muddat")){
+      if(!U) return "Shaxsiy limit va tarifingizni ko'rish uchun avval hisobingizga kiring 🙂 [[go:login]]";
+      return `Hisobingiz 📊\n• Tarif: ${PN(U.plan)}${U.planUntil ? " — " + new Date(U.planUntil).toLocaleDateString("ru-RU") + " gacha" : ""}\n• Bugun: ${fmt(U.used)} / ${fmt(U.limit)} belgi ishlatildi\n• Qoldi: ${fmt(Math.max(0, U.limit - U.used))} belgi\nLimit har kuni yarim tunda yangilanadi. [[go:plans]] [[go:ref]]`;
+    }
+    if(has("sorovlar kop","band","kop sorov")) return "«So'rovlar ko'p» — server hozir band degani. 1 daqiqa kutib, qayta urinib ko'ring 🙏 Matnni qisqaroq qilsangiz, tezroq chiqadi.";
+    if(has("limit tugadi","limitim tugadi","tugab qoldi")) return "Bugungi limit tugagan bo'lsa, u yarim tunda (Toshkent vaqti) yangilanadi. Kutmaslik uchun tarifni oshiring yoki do'st taklif qilib qo'shimcha belgi oling 🎁 [[go:plans]] [[go:ref]]";
+    if(has("yaratilmadi","ishlamayapti","xato chiq","error")) return "Ovoz yaratilmasa:\n1) Bir daqiqa kutib qayta bosing.\n2) Matnni qisqartiring yoki boshqa ovozni tanlang.\n3) Limitingiz qolganini tekshiring.\nBaribir bo'lmasa, admin bilan bog'laning. [[go:tts]]";
+    if(has("tolov topilmadi","pul yechildi","tolov otmadi","tolov qildim","yoqilmadi")) return "To'lov qilgan bo'lsangiz, tarif 1–2 daqiqada o'zi yoqiladi — «Tarif va to'lovlar» sahifasini yangilang. «To'lov topilmadi» chiqsa, TezCheck sahifasida to'lov oxirigacha bajarilmagan bo'lishi mumkin. Pul yechilib, tarif yoqilmasa — admin bilan bog'laning. [[go:plans]]";
+    if(has("mp3","format")) return "Audio WAV formatda (yuqori sifat) yuklanadi. MP3 kerak bo'lsa, istalgan bepul onlayn konvertor bilan o'girasiz 🎧";
+    if(has("uzun matn","katta matn","qancha belgi","nechta belgi")) return "Uzun matnni bemalol joylang — sayt uni o'zi bo'laklarga bo'lib, bitta audioga yig'adi. Faqat kunlik limitingiz yetishi kerak. Juda uzun matnlar uchun «Audiokitob» qulayroq. [[go:tts]] [[go:books]]";
+    if(has("fayllar yoq","fayllarim yoq","yoqoldi","ochib ketdi","boshqa telefon")) return "«Fayllarim» shu brauzerning o'zida saqlanadi: brauzer tozalansa yoki boshqa qurilmadan kirsangiz, ko'rinmaydi 😕 Muhim audiolarni yaratgan zahoti ⬇️ tugmasi bilan yuklab oling. [[go:assets]]";
+    if(has("telegram","bot","tasdiq")) return "Telegram tasdiqlash: botda /start bosing va pastdagi «📱 Raqamni yuborish» tugmasini bosing (raqamni qo'lda yozmang). Keyin saytga qayting — sahifa o'zi davom etadi. [[go:register]]";
+    if(has("claud","клод","konnektor","ulash","ulasa","ulab","chatgpt")) return "Ha, ulasa bo'ladi! 🤖 Gapir AI'ni Claude AI'ga ulaysiz:\n1) Kabinet → «Claude'ga ulash» bo'limidan shaxsiy manzilingizni nusxalang.\n2) claude.ai → Settings → Connectors → Add custom connector → nomi «Gapir AI», URL — o'sha manzil → Add → Connect.\n3) Claude'ga «reklama audiosi tayyorla» deng — u matnni yozib, Gapir AI ovozida audio yaratadi.\nBu imkoniyat Max va Biznes tariflarida bor. [[go:connect]]";
+    if(has("parol","unut")) return "Parolni unutgan bo'lsangiz: Kirish sahifasida «Parolni unutdingizmi?» ni bosing → Telegram botda raqamingizni tasdiqlang → yangi parol qo'ying. 1 daqiqa ham ketmaydi 🔑 [[go:reset]]";
+    if(has("royxat","registr","akkaunt","hisob och","qanday kir","kira olmay","kirish")) return "Ro'yxatdan o'tish juda oson 👇\n1) Yuqoridagi «Boshlash» yoki «Ro'yxatdan o'tish» tugmasini bosing.\n2) Ismingizni yozing va «Telegram orqali tasdiqlash»ni bosing.\n3) Botda «Raqamni yuborish» tugmasini bosing — raqamingiz tasdiqlanadi.\n4) Saytga qaytib parol qo'ying. Tamom! Har kuni bepul belgilar beriladi 🎉 [[go:register]]";
+    if(has("tarif","narx","qancha","pul","tolov","pro ","biznes","obuna","sotib")) return `Tariflarimiz:\n${pr}\n\nYillik to'lasangiz ${CONFIG.YEAR_DISCOUNT}% chegirma. To'lov Click, Payme, Uzum yoki karta orqali — kabinetdagi «Tarif va to'lovlar» bo'limida, tarif darhol yoqiladi ✅${U ? "\nHozir sizda: " + PN(U.plan) + "." : ""} [[go:plans]]`;
     if(has("limit","belgi","bepul")) return `Bepul tarifda har kuni ${(CONFIG.PLANS[0]||{}).daily||"3 000 belgi"} beriladi, limit har kuni yarim tunda yangilanadi. Do'st taklif qilsangiz, har biri uchun qo'shimcha belgi olasiz 🎁`;
     if(has("ozbek","til","rus","ingliz")) return "Ha! O'zbek, rus, ingliz va boshqa ko'p tillarda gapiradi 🇺🇿 Matnni qaysi tilda yozsangiz, o'sha tilda o'qiydi. 30 ta ovoz va uslublar (quvnoq, jiddiy, diktor...) bor.";
     if(has("qanday ishla","nima qila","imkoniyat","nimalar bor")) return "Juda oddiy: 1) Matnni yozasiz yoki joylaysiz, 2) ovoz va uslubni tanlaysiz, 3) «Yaratish»ni bosasiz — bir necha soniyada tayyor audio, uni yuklab olasiz 🎧 Yana: nutqni matnga aylantirish, dublyaj (tarjima + ovoz) va audiokitob yaratish bor.";
@@ -2797,11 +2824,12 @@ const Gapi = (() => {
     return "";
   }
 
-  function reply(w){
+  function reply(raw){
+    const {t: w, acts} = splitActs(raw);
     const m = addMsg("a", ""); setMood("talk");
     let i = 0;
     const tick = () => { i = Math.min(w.length, i + 3); m.textContent = w.slice(0, i); log.scrollTop = log.scrollHeight;
-      if(i < w.length) setTimeout(tick, 12); else setMood("happy", 2200); };
+      if(i < w.length) setTimeout(tick, 12); else { setMood("happy", 2200); addActs(acts); } };
     tick();
   }
 
@@ -2810,15 +2838,15 @@ const Gapi = (() => {
     inp.value = ""; addMsg("u", t);
     const q = quick(t);
     if(q){ busy = true; setMood("laugh"); await new Promise(r => setTimeout(r, 350)); busy = false;
-      hist.push({r:"u", t}, {r:"a", t:q}); hist = hist.slice(-12); reply(q); return; }
+      hist.push({r:"u", t}, {r:"a", t:q}); saveHist(); reply(q); return; }
     busy = true; setMood("dance"); notes();
     const nt = setInterval(notes, 900);
     const typing = addMsg("a", ""); typing.classList.add("typing"); typing.innerHTML = "<i></i><i></i><i></i>";
-    const r = await Promise.race([api("chat", {cid, text: t, history: hist.slice(-8), facts: facts()}),
+    const r = await Promise.race([api("chat", {cid, text: t, history: hist.slice(-12).map(m => ({r:m.r, t:splitActs(m.t).t})), facts: facts()}),
       new Promise(res => setTimeout(() => res({ok:false, error:"Javob kechikyapti 😅 Savolni qisqaroq yozing yoki birozdan keyin qayta so'rang."}), 25000))]);
     clearInterval(nt); busy = false; typing.remove();
     if(!r.ok){ addMsg("a", r.error || "Hozir javob bera olmayman 😔"); setMood("sad", 2600); return; }
-    hist.push({r:"u", t}, {r:"a", t:r.text}); hist = hist.slice(-12);
+    hist.push({r:"u", t}, {r:"a", t:r.text}); saveHist();
     reply(r.text);
   }
 
@@ -2846,6 +2874,7 @@ const Gapi = (() => {
     panel.querySelector(".gp-av svg").innerHTML = panel.querySelector(".gp-av svg").innerHTML.replace(/url\(#(gp\w+)\)/g, "url(#$12)");
     log = panel.querySelector(".gp-log"); inp = panel.querySelector("input");
     addMsg("a", "Salom! Men Gapi 👋 Gapir AI haqida istalgan savolingizga javob beraman. Nimani bilmoqchisiz?");
+    hist.slice(-10).forEach(m => { if(m.r === "u") addMsg("u", m.t); else addMsg("a", splitActs(m.t).t); });
     el.onclick = () => toggle();
     panel.querySelector(".gp-x").onclick = () => toggle(false);
     panel.querySelector(".gp-f").onsubmit = e => { e.preventDefault(); send(); };
