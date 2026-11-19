@@ -2457,11 +2457,17 @@ const ADMIN = {
       <div class="mdf" style="margin-top:16px"><div class="flex1"></div><button class="btn-k lg" id="sv">${IC.check} Saqlash</button></div>
       <div class="box pad" style="margin-top:20px"><div class="chh"><div><b>Claude konnektori</b><small>Claude saytdagi ovozlar bilan audio yaratadi (video va reklamalar uchun)</small></div>
         <span class="sbg ${r.gh?"ok":"bad"}">${r.gh?IC.check+" Tayyor":IC.x+" GITHUB_TOKEN yo'q"}</span></div>
-        <div class="lb">Konnektor manzili <em>maxfiy — hech kimga bermang</em></div>
-        <div class="mdf"><input class="inp" id="mcpu" readonly style="flex:1;min-width:0;font-size:12.5px" value="${esc(CONFIG.API_URL + "?mcp=" + (r.mcp||""))}"><button class="btn-l" id="mcpc">${IC.copy} Nusxa</button></div>
+        <div class="lb">Cloudflare Worker manzili <em>masalan https://gapir-mcp.ismingiz.workers.dev</em></div>
+        <input class="inp" id="cfw" placeholder="https://....workers.dev" value="${esc((()=>{ try{ return localStorage.getItem("ovoz_cfw")||""; }catch(e){ return ""; } })())}">
+        <div class="lb">Claude'ga qo'yiladigan manzil <em>maxfiy — hech kimga bermang</em></div>
+        <div class="mdf"><input class="inp" id="mcpu" readonly style="flex:1;min-width:0;font-size:12.5px"><button class="btn-l" id="mcpc">${IC.copy} Nusxa</button></div>
         <p class="sub3">Claude → Settings → Connectors → <b>Add custom connector</b> → nomi «Gapir AI», URL — shu manzil. Audio fayllar GitHub'dagi <code>mcp-audio</code> papkasiga yoziladi.</p></div>
       <div class="box pad" style="margin-top:20px"><div class="chh"><div><b>Adminlar</b><small>Kim admin panelga kira oladi</small></div></div>
         <p class="sub3">Apps Script → Project Settings → Script Properties → <b>ADMIN_PHONES</b>. Bir nechta admin bo'lsa vergul bilan yozing: <code>+998901234567, +998911112233</code></p></div>`;
+    const mcpUrl = () => { const w = $("#cfw").value.trim().replace(/\/+$/,"");
+      $("#mcpu").value = w ? w + "/" + (r.mcp||"") : "Avval yuqoriga Cloudflare Worker manzilini yozing";
+      try{ localStorage.setItem("ovoz_cfw", w); }catch(e){} };
+    $("#cfw").oninput = mcpUrl; mcpUrl();
     $("#mcpc").onclick = async () => { try{ await navigator.clipboard.writeText($("#mcpu").value); toast("Nusxa olindi ✓"); }catch(e){ $("#mcpu").select(); } };
     $("#sv").onclick = async () => {
       const btn = $("#sv"); btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Saqlanmoqda...';
