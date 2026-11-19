@@ -1,0 +1,1022 @@
+/**
+ * Gapir AI — backend (Google Apps Script)
+ * Vazifasi: ro'yxatdan o'tish, kirish, kunlik limit va Gemini TTS ga xavfsiz so'rov.
+ * Gemini API kaliti FAQAT shu yerda (Script Properties) saqlanadi — saytda ko'rinmaydi.
+ *
+ * O'rnatish: SETUP.md ga qarang.
+ */
+
+const CFG = {
+  // Asosiy model, undan keyin zaxira variantlar ketma-ket sinab ko'riladi
+  MODEL: 'gemini-3.8-flash-tts',
+  FALLBACK_MODEL: 'gemini-3.1-flash-tts-preview',
+  TEXT_MODELS: ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-2.5-flash'], // nutqdan matnga va tarjima uchun
+  MAX_AUDIO_B64: 18000000, // ~13 MB audio
+  MAX_TRANSLATE: 5000,
+  TZ: 'Asia/Tashkent',
+  SITE_URL: 'https://xusniddin-del.github.io/OvozAI-baza/', // bot xabarlaridagi sayt havolasi
+  // Kunlik belgi limiti (tarif bo'yicha). Foydalanuvchi tarifini Users varag'idan o'zgartirasiz.
+  PLANS: { free: 3000, pro: 50000, business: 200000 },
+  MAX_CHARS_PER_REQUEST: 1200,
+  SESSION_DAYS: 30,
+  MIN_PASSWORD: 6,
+  HASH_ROUNDS: 300,
+  MAX_FAILS: 8, // 15 daqiqada noto'g'ri parol urinishlari
+  PRICES: { pro: 49000, business: 199000 }, // so'm / oy (admin paneldan o'zgartiriladi)
+  YEAR_DISCOUNT: 20,                        // yillik to'lovda chegirma, %
+  TC_API: 'https://api.tezcheck.uz/api/merchant/v1',
+  REF_BONUS: 1000, // har bir taklif qilingan do'st uchun kunlik limitga qo'shiladigan belgi
+  REF_MAX: 10      // bonus beriladigan takliflar soni chegarasi
+};
+
+const VOICES = ['Zephyr','Puck','Charon','Kore','Fenrir','Leda','Orus','Aoede','Callirrhoe','Autonoe','Enceladus','Iapetus','Umbriel','Algieba','Despina','Erinome','Algenib','Rasalgethi','Laomedeia','Achernar','Alnilam','Schedar','Gacrux','Pulcherrima','Achird','Zubenelgenubi','Vindemiatrix','Sadachbia','Sadaltager','Sulafat'];
+
+const USER_HEADERS = ['id','name','phone','salt','hash','plan','usedToday','day','createdAt','status','lastLogin','ref','referredBy','tgId','planUntil'];
+const SESSION_HEADERS = ['tokenHash','userId','expires'];
+const LOG_HEADERS = ['time','userId','chars','model','ok','note'];
+
+/* ============ Kirish nuqtalari ============ */
+
+function doGet() {
+  return json_({ ok: true, service: 'Gapir AI', time: new Date().toISOString() });
+}
+
+function doPost(e) {
+  try {
+    const req = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+    if (req.update_id != null) {   // Telegram: HtmlService 302 emas, to'g'ridan-to'g'ri 200 qaytaradi
+      try { tgUpdate_(req); } catch (te) { console.error(te); }
+      return HtmlService.createHtmlOutput('ok');
+    }
+    try { ensureTextFmt_(); ensureHeaders_(); } catch (fe) { console.error(fe); }
+    switch (req.action) {
+      case 'cfg':      return json_({ ok: true, bot: botName_(), prices: set_().prices, discount: set_().discount, limits: set_().plans, pay: !!tcKey_() });
+      case 'pay_create': return json_(payCreate_(req));
+      case 'pay_check':  return json_(payCheck_(req));
+      case 'vcheck':   return json_(vcheck_(req));
+      case 'reset':    return json_(reset_(req));
+      case 'chat':     return json_(chat_(req));
+      case 'register': return json_(register_(req));
+      case 'login':    return json_(login_(req));
+      case 'me':       return json_(me_(req));
+      case 'logout':   return json_(logout_(req));
+      case 'tts':      return json_(tts_(req));
+      case 'stt':      return json_(stt_(req));
+      case 'translate':return json_(translate_(req));
+      case 'admin':    return json_(admin_(req));
+      default:         return json_({ ok: false, error: "Noma'lum amal" });
+    }
+  } catch (err) {
+    console.error(err && err.stack || err);
+    return json_({ ok: false, error: 'Server xatosi. Birozdan keyin urinib ko\'ring.' });
+  }
+}
+
+function json_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+/* ============ Bir martalik sozlash (muharrirdan ishga tushiring) ============ */
+
+function setup() {
+  const us = sheet_('Users', USER_HEADERS);
+  us.getRange(1, 1, 1, USER_HEADERS.length).setValues([USER_HEADERS]); // eski "email" sarlavhasini "phone" ga almashtiradi
+  sheet_('Sessions', SESSION_HEADERS);
+  sheet_('Log', LOG_HEADERS);
+  const key = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  Logger.log(key ? 'Tayyor: GEMINI_API_KEY topildi.' : 'DIQQAT: Project Settings → Script Properties ga GEMINI_API_KEY qo\'shing!');
+}
+
+/** Muharrirdan: adminSetPlan('+998901234567', 'pro') */
+function adminSetPlan(phoneNumber, plan) {
+  if (!set_().plans[plan]) throw new Error('Tarif: ' + Object.keys(set_().plans).join(', '));
+  const row = findPhoneRow_(phoneNumber);
+  if (!row) throw new Error('Foydalanuvchi topilmadi');
+  sheet_('Users', USER_HEADERS).getRange(row, USER_HEADERS.indexOf('plan') + 1).setValue(plan);
+}
+
+/* ============ Telefon raqam ============ */
+
+/** Raqamni +998XXXXXXXXX ko'rinishiga keltiradi. Noto'g'ri bo'lsa '' qaytaradi. */
+function normPhone_(raw) {
+  let d = String(raw || '').replace(/\D/g, '');
+  if (d.length === 9) d = '998' + d;
+  if (d.length === 12 && d.indexOf('998') === 0) return '+' + d;
+  return '';
+}
+
+/* ============ Ro'yxatdan o'tish / kirish ============ */
+
+function register_(req) {
+  const name = String(req.name || '').trim().slice(0, 60);
+  let phone = normPhone_(req.phone), tgId = '';
+  const password = String(req.password || '');
+  if (name.length < 2) return { ok: false, error: 'Ismingizni kiriting' };
+  if (botToken_()) {
+    const v = vget_(req.vcode);
+    if (!v || v.purpose !== 'r' || v.st !== 'ok') return { ok: false, error: "Avval raqamingizni Telegram bot orqali tasdiqlang" };
+    phone = v.phone; tgId = v.tg;
+  }
+  if (!phone) return { ok: false, error: "Telefon raqam noto'g'ri (masalan: +998 90 123 45 67)" };
+  if (password.length < CFG.MIN_PASSWORD) return { ok: false, error: 'Parol kamida ' + CFG.MIN_PASSWORD + ' belgi bo\'lsin' };
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    if (findPhoneRow_(phone)) return { ok: false, error: "Bu raqam bilan ro'yxatdan o'tilgan. Kirish bo'limidan kiring." };
+    const salt = Utilities.getUuid();
+    const rc = String(req.ref || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+    const referredBy = rc && findRow_('Users', USER_HEADERS, 'ref', rc) ? rc : '';
+    const user = {
+      id: Utilities.getUuid(), name: name, phone: phone, salt: salt,
+      hash: hashPassword_(password, salt), plan: 'free', usedToday: 0,
+      day: today_(), createdAt: new Date().toISOString(), status: 'active', lastLogin: new Date().toISOString(),
+      ref: makeRef_(), referredBy: referredBy, tgId: tgId
+    };
+    const ush = sheet_('Users', USER_HEADERS);
+    ush.appendRow(USER_HEADERS.map(function (h) { return user[h]; }));
+    ush.getRange(ush.getLastRow(), 1, 1, USER_HEADERS.length).setNumberFormat('@')
+       .setValues([USER_HEADERS.map(function (h) { return String(user[h]); })]);
+    if (req.vcode) CacheService.getScriptCache().remove('v_' + req.vcode);
+    if (tgId) tgSend_(tgId, '🎉 <b>' + esc_(name) + "</b>, ro'yxatdan muvaffaqiyatli o'tdingiz!\nKunlik bepul limit: <b>" + limitFor_(user) + '</b> belgi.', siteBtn_());
+    return { ok: true, token: createSession_(user.id), user: publicUser_(user) };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function login_(req) {
+  const phone = normPhone_(req.phone);
+  const password = String(req.password || '');
+  if (!phone) return { ok: false, error: "Telefon raqam noto'g'ri (masalan: +998 90 123 45 67)" };
+  const cache = CacheService.getScriptCache();
+  const failKey = 'fail_' + hex_(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, phone)).slice(0, 24);
+  if (Number(cache.get(failKey) || 0) >= CFG.MAX_FAILS) {
+    return { ok: false, error: "Juda ko'p urinish. 15 daqiqadan keyin qayta urinib ko'ring." };
+  }
+  const row = findPhoneRow_(phone);
+  const user = row ? readUser_(row) : null;
+  if (user) ensureRef_(row, user);
+  if (!user || user.hash !== hashPassword_(password, user.salt)) {
+    cache.put(failKey, String(Number(cache.get(failKey) || 0) + 1), 900);
+    return { ok: false, error: "Telefon raqam yoki parol noto'g'ri" };
+  }
+  if (user.status !== 'active') return { ok: false, error: 'Akkaunt bloklangan' };
+  cache.remove(failKey);
+  sheet_('Users', USER_HEADERS).getRange(row, USER_HEADERS.indexOf('lastLogin') + 1).setValue(new Date().toISOString());
+  return { ok: true, token: createSession_(user.id), user: publicUser_(user) };
+}
+
+function me_(req) {
+  const auth = auth_(req.token);
+  if (!auth) return { ok: false, error: 'auth' };
+  ensureRef_(auth.row, auth.user);
+  try { if (payPendingFor_(auth.user.id)) auth.user = readUser_(auth.row); } catch (e) { console.error(e); }
+  return { ok: true, user: publicUser_(auth.user) };
+}
+
+function logout_(req) {
+  const row = findRow_('Sessions', SESSION_HEADERS, 'tokenHash', tokenHash_(req.token || ''));
+  if (row) sheet_('Sessions', SESSION_HEADERS).deleteRow(row);
+  return { ok: true };
+}
+
+/* ============ Matnni ovozga aylantirish ============ */
+
+function tts_(req) {
+  const auth = auth_(req.token);
+  if (!auth) return { ok: false, error: 'auth' };
+
+  const text = String(req.text || '').trim();
+  const voice = VOICES.indexOf(req.voice) >= 0 ? req.voice : 'Kore';
+  const style = String(req.style || '').trim().slice(0, 160);
+  if (!text) return { ok: false, error: 'Matn kiriting' };
+  if (text.length > CFG.MAX_CHARS_PER_REQUEST) return { ok: false, error: 'Bir so\'rovga ' + CFG.MAX_CHARS_PER_REQUEST + ' belgigacha' };
+
+  // Limitni oldindan band qilamiz (kvotani aylanib o'tishga yo'l qo'ymaslik uchun)
+  const reserve = reserveQuota_(auth.row, text.length);
+  if (!reserve.ok) return reserve;
+
+  const key = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  if (!key) { refundQuota_(auth.row, text.length); return { ok: false, error: 'Server sozlanmagan (API kalit yo\'q)' }; }
+
+  const result = callGemini_(text, voice, style, key);
+  if (!result.ok) {
+    refundQuota_(auth.row, text.length);
+    log_(auth.user.id, text.length, result.model || '', false, result.error);
+    return { ok: false, error: result.userError || 'Ovoz yaratilmadi. Qayta urinib ko\'ring.' };
+  }
+  log_(auth.user.id, text.length, result.model, true, '');
+  return { ok: true, audio: result.audio, mime: result.mime, used: reserve.used, limit: reserve.limit };
+}
+
+function attempts_() {
+  // Hujjatlardagi ikki xil so'rov shakli: yangi (3.8) va eski (prebuiltVoiceConfig)
+  return [
+    { model: CFG.MODEL, shape: 'new' },
+    { model: CFG.MODEL, shape: 'old' },
+    { model: CFG.FALLBACK_MODEL, shape: 'new' },
+    { model: CFG.FALLBACK_MODEL, shape: 'old' },
+    { model: 'gemini-2.5-flash-preview-tts', shape: 'old' }
+  ];
+}
+
+function buildBody_(shape, text, voice, style) {
+  if (shape === 'new') {
+    const part = { text: text };
+    if (style) part.speech_metadata = { style: style };
+    return {
+      contents: [{ role: 'user', parts: [part] }],
+      generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { voice: voice } } }
+    };
+  }
+  const prompt = style ? 'Say ' + style + ': ' + text : text;
+  return {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      responseModalities: ['AUDIO'],
+      speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } }
+    }
+  };
+}
+
+function callGemini_(text, voice, style, key) {
+  const props = PropertiesService.getScriptProperties();
+  const known = props.getProperty('WORKING_ATTEMPT'); // masalan "gemini-3.8-flash-tts|new"
+  let list = attempts_();
+  if (known) {
+    list.sort(function (a, b) { return (b.model + '|' + b.shape === known) - (a.model + '|' + a.shape === known); });
+  }
+  let lastErr = '', userError = '', lastModel = '';
+  const busy = {};   // limiti tugagan modellar — ularni qayta sinamaymiz
+  for (let i = 0; i < list.length; i++) {
+    const a = list[i];
+    if (busy[a.model]) continue;
+    lastModel = a.model;
+    const resp = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + a.model + ':generateContent', {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { 'x-goog-api-key': key },
+      payload: JSON.stringify(buildBody_(a.shape, text, voice, style)),
+      muteHttpExceptions: true
+    });
+    const code = resp.getResponseCode();
+    const raw = resp.getContentText();
+    if (code === 200) {
+      let data;
+      try { data = JSON.parse(raw); } catch (e) { lastErr = 'JSON xato'; continue; }
+      const parts = (((data.candidates || [])[0] || {}).content || {}).parts || [];
+      for (let p = 0; p < parts.length; p++) {
+        const inl = parts[p].inlineData || parts[p].inline_data;
+        if (inl && inl.data) {
+          props.setProperty('WORKING_ATTEMPT', a.model + '|' + a.shape);
+          return { ok: true, audio: inl.data, mime: inl.mimeType || inl.mime_type || 'audio/L16;rate=24000', model: a.model };
+        }
+      }
+      lastErr = 'Audio qaytmadi: ' + raw.slice(0, 200);
+      continue;
+    }
+    lastErr = code + ': ' + raw.slice(0, 300);
+    if (code === 429 || code === 503) {   // shu modelning limiti tugagan yoki band — boshqa modelni sinaymiz
+      busy[a.model] = true;
+      userError = /per.?day|PerDay|daily/i.test(raw)
+        ? "Bugungi bepul Google limiti tugadi. Ertaga qayta urinib ko'ring yoki admin billing'ni yoqsin."
+        : "Hozir so'rovlar ko'p. Bir daqiqadan keyin urinib ko'ring.";
+      continue;
+    }
+    if (code === 401 || code === 403) { userError = 'Server API kaliti bilan muammo. Admin bilan bog\'laning.'; break; }
+    // 400/404 — shakl yoki model mos kelmadi: keyingi variantga o'tamiz
+  }
+  return { ok: false, error: lastErr, userError: userError, model: lastModel };
+}
+
+/* ============ Nutqdan matnga va tarjima (Gemini matn modeli) ============ */
+
+function stt_(req) {
+  const auth = auth_(req.token);
+  if (!auth) return { ok: false, error: 'auth' };
+  const audio = String(req.audio || '');
+  const mime = String(req.mime || 'audio/mpeg').split(';')[0];
+  if (!audio) return { ok: false, error: 'Audio fayl yuborilmadi' };
+  if (audio.length > CFG.MAX_AUDIO_B64) return { ok: false, error: 'Fayl juda katta (13 MB gacha)' };
+  if (!/^(audio|video)\//.test(mime)) return { ok: false, error: "Faqat audio yoki video fayl" };
+  const user = readUser_(auth.row), limit = limitFor_(user);
+  const used = user.day === today_() ? Number(user.usedToday) || 0 : 0;
+  if (used >= limit) return { ok: false, error: 'limit', message: 'Bugungi limit tugadi (' + used + '/' + limit + ').', used: used, limit: limit };
+  const lang = String(req.lang || '').slice(0, 30);
+  const prompt = 'Transcribe this audio verbatim' + (lang ? ' (language: ' + lang + ')' : '') +
+    '. Output only the transcript text in the original language, with punctuation and paragraph breaks. ' +
+    'If there are several speakers, prefix lines with "Spiker 1:", "Spiker 2:". Do not add any comments.';
+  const r = callText_([{ inline_data: { mime_type: mime, data: audio } }, { text: prompt }]);
+  if (!r.ok) { log_(auth.user.id, 0, r.model || '', false, 'stt ' + r.error); return { ok: false, error: r.userError || "Matnga o'girilmadi. Qayta urinib ko'ring." }; }
+  const charged = chargeQuota_(auth.row, r.text.length);
+  log_(auth.user.id, r.text.length, r.model, true, 'stt');
+  return { ok: true, text: r.text, used: charged.used, limit: charged.limit };
+}
+
+function translate_(req) {
+  const auth = auth_(req.token);
+  if (!auth) return { ok: false, error: 'auth' };
+  const text = String(req.text || '').trim();
+  const lang = String(req.lang || '').slice(0, 30);
+  if (!text || !lang) return { ok: false, error: 'Matn va til kerak' };
+  if (text.length > CFG.MAX_TRANSLATE) return { ok: false, error: 'Tarjima uchun ' + CFG.MAX_TRANSLATE + ' belgigacha' };
+  const reserve = reserveQuota_(auth.row, text.length);
+  if (!reserve.ok) return reserve;
+  const r = callText_([{ text: 'Translate the following text into ' + lang + '. Keep the meaning, tone and line breaks. Output only the translation.\n\n' + text }]);
+  if (!r.ok) { refundQuota_(auth.row, text.length); return { ok: false, error: r.userError || 'Tarjima qilinmadi' }; }
+  log_(auth.user.id, text.length, r.model, true, 'translate');
+  return { ok: true, text: r.text, used: reserve.used, limit: reserve.limit };
+}
+
+function callText_(parts, sys, history) {
+  const key = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  if (!key) return { ok: false, error: 'no key', userError: "Server sozlanmagan (API kalit yo'q)" };
+  let lastErr = '', userError = '', model = '';
+  for (let i = 0; i < CFG.TEXT_MODELS.length; i++) {
+    model = CFG.TEXT_MODELS[i];
+    const resp = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent', {
+      method: 'post', contentType: 'application/json', headers: { 'x-goog-api-key': key },
+      payload: JSON.stringify(Object.assign({ contents: (history || []).concat([{ role: 'user', parts: parts }]) },
+        sys ? { systemInstruction: { parts: [{ text: sys }] }, generationConfig: { maxOutputTokens: 600, temperature: 0.7 } } : {})), muteHttpExceptions: true
+    });
+    const code = resp.getResponseCode(), raw = resp.getContentText();
+    if (code === 200) {
+      try {
+        const ps = ((((JSON.parse(raw).candidates || [])[0] || {}).content || {}).parts) || [];
+        const text = ps.map(function (p) { return p.text || ''; }).join('').trim();
+        if (text) return { ok: true, text: text, model: model };
+        lastErr = "Bo'sh javob";
+      } catch (e) { lastErr = 'JSON xato'; }
+      continue;
+    }
+    lastErr = code + ': ' + raw.slice(0, 300);
+    if (code === 429 || code === 503) { userError = "Hozir so'rovlar ko'p. Bir daqiqadan keyin urinib ko'ring."; continue; }
+    if (code === 401 || code === 403) { userError = "Server API kaliti bilan muammo. Admin bilan bog'laning."; break; }
+  }
+  return { ok: false, error: lastErr, userError: userError, model: model };
+}
+
+/** Bajarilgan ish uchun kvotani yechadi (natija uzunligi oldindan noma'lum bo'lganda) */
+function chargeQuota_(row, chars) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const user = readUser_(row), limit = limitFor_(user);
+    const used = (user.day === today_() ? Number(user.usedToday) || 0 : 0) + chars;
+    sheet_('Users', USER_HEADERS).getRange(row, USER_HEADERS.indexOf('usedToday') + 1, 1, 2).setValues([[used, today_()]]);
+    return { used: used, limit: limit };
+  } finally { lock.releaseLock(); }
+}
+
+/* ============ Kvota ============ */
+
+function reserveQuota_(row, chars) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const user = readUser_(row);
+    const limit = limitFor_(user);
+    let used = user.day === today_() ? Number(user.usedToday) || 0 : 0;
+    if (used + chars > limit) {
+      return { ok: false, error: 'limit', message: 'Bugungi limit tugadi (' + used + '/' + limit + '). Ertaga yangilanadi yoki tarifni oshiring.', used: used, limit: limit };
+    }
+    used += chars;
+    const sh = sheet_('Users', USER_HEADERS);
+    sh.getRange(row, USER_HEADERS.indexOf('usedToday') + 1, 1, 2).setValues([[used, today_()]]);
+    return { ok: true, used: used, limit: limit };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function refundQuota_(row, chars) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const user = readUser_(row);
+    if (user.day !== today_()) return;
+    const used = Math.max(0, (Number(user.usedToday) || 0) - chars);
+    sheet_('Users', USER_HEADERS).getRange(row, USER_HEADERS.indexOf('usedToday') + 1).setValue(used);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/* ============ Sessiya ============ */
+
+function createSession_(userId) {
+  const token = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
+  const expires = new Date(Date.now() + CFG.SESSION_DAYS * 86400000).toISOString();
+  sheet_('Sessions', SESSION_HEADERS).appendRow([tokenHash_(token), userId, expires]);
+  return token;
+}
+
+function auth_(token) {
+  if (!token) return null;
+  const sRow = findRow_('Sessions', SESSION_HEADERS, 'tokenHash', tokenHash_(token));
+  if (!sRow) return null;
+  const sess = sheet_('Sessions', SESSION_HEADERS).getRange(sRow, 1, 1, 3).getValues()[0];
+  if (new Date(sess[2]).getTime() < Date.now()) {
+    sheet_('Sessions', SESSION_HEADERS).deleteRow(sRow);
+    return null;
+  }
+  const uRow = findRow_('Users', USER_HEADERS, 'id', String(sess[1]));
+  if (!uRow) return null;
+  const user = readUser_(uRow);
+  if (user.status !== 'active') return null;
+  return { user: user, row: uRow };
+}
+
+/* ============ Yordamchilar ============ */
+
+function publicUser_(u) {
+  const invited = countRefs_(u.ref);
+  const S = set_(), bonus = Math.min(S.refMax, invited) * S.refBonus;
+  const used = u.day === today_() ? Number(u.usedToday) || 0 : 0;
+  return { name: u.name, phone: u.phone, plan: u.plan, used: used, limit: limitFor_(u),
+           ref: u.ref || '', invited: invited, bonus: bonus, refBonus: S.refBonus, refMax: S.refMax,
+           isAdmin: isAdmin_(u), announce: S.announce, planUntil: u.plan !== 'free' ? u.planUntil : '' };
+}
+
+/* ============ Takliflar (referral) ============ */
+
+function limitFor_(u) {
+  const S = set_(), base = S.plans[u.plan] || S.plans.free;
+  return base + Math.min(S.refMax, countRefs_(u.ref)) * S.refBonus;
+}
+
+function countRefs_(ref) {
+  if (!ref) return 0;
+  const sh = sheet_('Users', USER_HEADERS);
+  const last = sh.getLastRow();
+  if (last < 2) return 0;
+  const col = USER_HEADERS.indexOf('referredBy') + 1;
+  return sh.getRange(2, col, last - 1, 1).createTextFinder(String(ref)).matchEntireCell(true).findAll().length;
+}
+
+function makeRef_() {
+  for (let i = 0; i < 5; i++) {
+    const code = Utilities.getUuid().replace(/-/g, '').slice(0, 8).toUpperCase();
+    if (!findRow_('Users', USER_HEADERS, 'ref', code)) return code;
+  }
+  return Utilities.getUuid().replace(/-/g, '').slice(0, 12).toUpperCase();
+}
+
+/** Eski akkauntlarda taklif kodi bo'lmasa, yaratib qo'yadi */
+function ensureRef_(row, user) {
+  if (user.ref) return;
+  user.ref = makeRef_();
+  sheet_('Users', USER_HEADERS).getRange(row, USER_HEADERS.indexOf('ref') + 1).setValue(user.ref);
+}
+
+function readUser_(row) {
+  const vals = sheet_('Users', USER_HEADERS).getRange(row, 1, 1, USER_HEADERS.length).getValues()[0];
+  const u = {};
+  USER_HEADERS.forEach(function (h, i) { u[h] = vals[i]; });
+  if (u.day instanceof Date) u.day = Utilities.formatDate(u.day, CFG.TZ, 'yyyy-MM-dd');
+  u.day = String(u.day);
+  u.phone = normPhone_(u.phone) || String(u.phone);
+  u.ref = String(u.ref || ''); u.referredBy = String(u.referredBy || '');
+  expire_(u);
+  return u;
+}
+
+/** Tarif muddati o'tgan bo'lsa, foydalanuvchini bepul tarifda hisoblaydi */
+function expire_(u) {
+  u.planUntil = u.planUntil instanceof Date ? u.planUntil.toISOString() : String(u.planUntil || '');
+  if (u.planUntil && u.plan !== 'free' && new Date(u.planUntil).getTime() < Date.now()) { u.paidPlan = u.plan; u.plan = 'free'; }
+}
+
+function today_() { return Utilities.formatDate(new Date(), CFG.TZ, 'yyyy-MM-dd'); }
+
+function sheet_(name, headers) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName(name);
+  if (!sh) {
+    sh = ss.insertSheet(name);
+    sh.appendRow(headers);
+    sh.setFrozenRows(1);
+    sh.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+  }
+  return sh;
+}
+
+/** Telefon bo'yicha qator topish. Sheets raqamni son qilib saqlagan bo'lsa ham topadi. */
+function findPhoneRow_(phone) {
+  phone = normPhone_(phone);
+  if (!phone) return 0;
+  const sh = sheet_('Users', USER_HEADERS), last = sh.getLastRow();
+  if (last < 2) return 0;
+  const vals = sh.getRange(2, USER_HEADERS.indexOf('phone') + 1, last - 1, 1).getValues();
+  for (let i = 0; i < vals.length; i++) if (normPhone_(vals[i][0]) === phone) return i + 2;
+  return 0;
+}
+
+/** Barcha varaqlarni "matn" formatiga o'tkazadi (bir marta) — Sheets qiymatlarni songa aylantirmasin */
+function ensureTextFmt_() {
+  const p = PropertiesService.getScriptProperties();
+  if (p.getProperty('FMT_TEXT_V1')) return;
+  [['Users', USER_HEADERS], ['Sessions', SESSION_HEADERS], ['Log', LOG_HEADERS]].forEach(function (x) {
+    const sh = sheet_(x[0], x[1]);
+    sh.getRange(1, 1, sh.getMaxRows(), sh.getMaxColumns()).setNumberFormat('@');
+  });
+  p.setProperty('FMT_TEXT_V1', '1');
+}
+
+function findRow_(sheetName, headers, field, value) {
+  const sh = sheet_(sheetName, headers);
+  const last = sh.getLastRow();
+  if (last < 2) return 0;
+  const col = headers.indexOf(field) + 1;
+  const found = sh.getRange(2, col, last - 1, 1).createTextFinder(String(value)).matchEntireCell(true).matchCase(false).findNext();
+  return found ? found.getRow() : 0;
+}
+
+function hashPassword_(password, salt) {
+  let h = salt + ':' + password;
+  for (let i = 0; i < CFG.HASH_ROUNDS; i++) {
+    h = hex_(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, h + salt));
+  }
+  return h;
+}
+
+function tokenHash_(token) {
+  return hex_(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(token)));
+}
+
+function hex_(bytes) {
+  return bytes.map(function (b) { return ('0' + (b < 0 ? b + 256 : b).toString(16)).slice(-2); }).join('');
+}
+
+function log_(userId, chars, model, ok, note) {
+  try {
+    sheet_('Log', LOG_HEADERS).appendRow([new Date().toISOString(), userId, chars, model, ok, String(note || '').slice(0, 300)]);
+  } catch (e) { /* log xatosi asosiy ishga xalaqit bermasin */ }
+}
+
+/* ============================================================
+   SOZLAMALAR (admin paneldan o'zgartiriladi) va ADMIN PANEL
+   Admin bo'lish: Project Settings → Script Properties → ADMIN_PHONES = +998901234567
+   (bir nechta bo'lsa vergul bilan)
+   ============================================================ */
+
+let SET_CACHE = null;
+function set_() {
+  if (SET_CACHE) return SET_CACHE;
+  let s = {};
+  try { s = JSON.parse(PropertiesService.getScriptProperties().getProperty('SETTINGS') || '{}'); } catch (e) { s = {}; }
+  const plans = Object.assign({}, CFG.PLANS, s.plans || {});
+  return SET_CACHE = {
+    plans: plans,
+    refBonus: s.refBonus != null ? Number(s.refBonus) : CFG.REF_BONUS,
+    refMax: s.refMax != null ? Number(s.refMax) : CFG.REF_MAX,
+    announce: String(s.announce || ''),
+    prices: Object.assign({}, CFG.PRICES, s.prices || {}),
+    discount: s.discount != null ? Number(s.discount) : CFG.YEAR_DISCOUNT
+  };
+}
+
+function isAdmin_(u) {
+  const list = String(PropertiesService.getScriptProperties().getProperty('ADMIN_PHONES') || '')
+    .split(/[,;\n]+/).map(normPhone_).filter(String);
+  return !!u && list.indexOf(String(u.phone)) >= 0;
+}
+
+function dayOf_(v) {
+  if (!v) return '';
+  const d = v instanceof Date ? v : new Date(v);
+  return isNaN(d) ? '' : Utilities.formatDate(d, CFG.TZ, 'yyyy-MM-dd');
+}
+
+function allUsers_() {
+  const sh = sheet_('Users', USER_HEADERS), last = sh.getLastRow();
+  if (last < 2) return [];
+  return sh.getRange(2, 1, last - 1, USER_HEADERS.length).getValues().map(function (r, i) {
+    const u = { row: i + 2 };
+    USER_HEADERS.forEach(function (h, j) { u[h] = r[j]; });
+    u.day = dayOf_(u.day) || String(u.day);
+    u.phone = normPhone_(u.phone) || String(u.phone);
+    u.ref = String(u.ref || ''); u.referredBy = String(u.referredBy || '');
+    expire_(u);
+    return u;
+  });
+}
+
+function admin_(req) {
+  const auth = auth_(req.token);
+  if (!auth) return { ok: false, error: 'auth' };
+  if (!isAdmin_(auth.user)) return { ok: false, error: "Sizda admin huquqi yo'q" };
+  switch (req.op) {
+    case 'stats':    return adminStats_();
+    case 'users':    return adminUsers_();
+    case 'update':   return adminUpdate_(req);
+    case 'logs':     return adminLogs_(req);
+    case 'settings': return { ok: true, settings: set_() };
+    case 'save':     return adminSave_(req);
+    case 'payments': return adminPayments_();
+    default:         return { ok: false, error: "Noma'lum admin amal" };
+  }
+}
+
+function adminStats_() {
+  const users = allUsers_(), today = today_(), S = set_();
+  const days = [];
+  for (let i = 13; i >= 0; i--) days.push(Utilities.formatDate(new Date(Date.now() - i * 86400000), CFG.TZ, 'yyyy-MM-dd'));
+  const idx = {}; days.forEach(function (d, i) { idx[d] = i; });
+  const reg = days.map(function () { return 0; }), chars = reg.slice(), reqs = reg.slice(), errs = reg.slice();
+  const plans = {}; Object.keys(S.plans).forEach(function (p) { plans[p] = 0; });
+  let newToday = 0, new7 = 0, active = 0, used = 0, blocked = 0;
+  users.forEach(function (u) {
+    const cd = dayOf_(u.createdAt);
+    if (cd in idx) reg[idx[cd]]++;
+    if (cd === today) newToday++;
+    if (cd && idx[cd] >= 7) new7++;
+    if (u.day === today && Number(u.usedToday) > 0) { active++; used += Number(u.usedToday) || 0; }
+    plans[u.plan] = (plans[u.plan] || 0) + 1;
+    if (u.status !== 'active') blocked++;
+  });
+  const kinds = { tts: 0, stt: 0, translate: 0 };
+  const lg = sheet_('Log', LOG_HEADERS), last = lg.getLastRow();
+  if (last >= 2) {
+    const from = Math.max(2, last - 5000);
+    lg.getRange(from, 1, last - from + 1, LOG_HEADERS.length).getValues().forEach(function (r) {
+      const d = dayOf_(r[0]); if (!(d in idx)) return;
+      const i = idx[d], ok = r[4] === true || r[4] === 'TRUE', note = String(r[5] || '');
+      reqs[i]++; if (!ok) errs[i]++; else chars[i] += Number(r[2]) || 0;
+      if (d === today) { const k = note.indexOf('stt') === 0 ? 'stt' : note.indexOf('translate') === 0 ? 'translate' : 'tts'; kinds[k]++; }
+    });
+  }
+  const top = users.filter(function (u) { return u.day === today && Number(u.usedToday) > 0; })
+    .sort(function (a, b) { return b.usedToday - a.usedToday; }).slice(0, 6)
+    .map(function (u) { return { name: u.name, phone: u.phone, used: Number(u.usedToday), plan: u.plan }; });
+  return { ok: true, stats: { total: users.length, newToday: newToday, new7: new7, active: active, usedToday: used, blocked: blocked,
+    plans: plans, days: days, reg: reg, chars: chars, reqs: reqs, errs: errs, kinds: kinds, top: top } };
+}
+
+function adminUsers_() {
+  const users = allUsers_(), today = today_(), refs = {};
+  users.forEach(function (u) { if (u.referredBy) refs[u.referredBy] = (refs[u.referredBy] || 0) + 1; });
+  const S = set_();
+  return { ok: true, users: users.map(function (u) {
+    const inv = refs[u.ref] || 0;
+    return { id: u.id, name: u.name, phone: u.phone, plan: u.plan, status: u.status,
+      used: u.day === today ? Number(u.usedToday) || 0 : 0,
+      limit: (S.plans[u.plan] || S.plans.free) + Math.min(S.refMax, inv) * S.refBonus,
+      invited: inv, createdAt: String(u.createdAt), lastLogin: String(u.lastLogin), referredBy: u.referredBy || '' };
+  }).reverse() };
+}
+
+function adminUpdate_(req) {
+  const row = findRow_('Users', USER_HEADERS, 'id', String(req.id || ''));
+  if (!row) return { ok: false, error: 'Foydalanuvchi topilmadi' };
+  const sh = sheet_('Users', USER_HEADERS), col = function (h) { return USER_HEADERS.indexOf(h) + 1; };
+  const S = set_();
+  if (req.plan) { if (!S.plans[req.plan]) return { ok: false, error: "Noto'g'ri tarif" }; sh.getRange(row, col('plan')).setValue(req.plan); sh.getRange(row, col('planUntil')).setValue(''); }
+  if (req.status) { if (['active', 'blocked'].indexOf(req.status) < 0) return { ok: false, error: "Noto'g'ri holat" }; sh.getRange(row, col('status')).setValue(req.status); }
+  if (req.resetUsage) sh.getRange(row, col('usedToday')).setValue(0);
+  if (req.logoutAll || req.status === 'blocked') {
+    const id = String(sh.getRange(row, col('id')).getValue()), ss = sheet_('Sessions', SESSION_HEADERS), last = ss.getLastRow();
+    if (last >= 2) {
+      const vals = ss.getRange(2, 2, last - 1, 1).getValues();
+      for (let i = vals.length - 1; i >= 0; i--) if (String(vals[i][0]) === id) ss.deleteRow(i + 2);
+    }
+  }
+  return { ok: true };
+}
+
+function adminLogs_(req) {
+  const lg = sheet_('Log', LOG_HEADERS), last = lg.getLastRow();
+  if (last < 2) return { ok: true, logs: [] };
+  const n = Math.min(Number(req.limit) || 300, 1000), from = Math.max(2, last - n + 1);
+  const map = {}; allUsers_().forEach(function (u) { map[u.id] = { name: u.name, phone: u.phone }; });
+  const logs = lg.getRange(from, 1, last - from + 1, LOG_HEADERS.length).getValues().reverse().map(function (r) {
+    const note = String(r[5] || ''), ok = r[4] === true || r[4] === 'TRUE', u = map[r[1]] || {};
+    return { time: String(r[0]), name: u.name || '—', phone: u.phone || '', chars: Number(r[2]) || 0, model: String(r[3] || ''), ok: ok,
+      kind: note.indexOf('stt') === 0 ? 'stt' : note.indexOf('translate') === 0 ? 'translate' : 'tts',
+      note: ok ? '' : note.replace(/^(stt|translate)\s*/, '').slice(0, 200) };
+  });
+  return { ok: true, logs: logs };
+}
+
+function adminSave_(req) {
+  const s = req.settings || {}, plans = {};
+  Object.keys(CFG.PLANS).forEach(function (p) {
+    const v = Math.round(Number((s.plans || {})[p]));
+    plans[p] = v > 0 && v < 100000000 ? v : CFG.PLANS[p];
+  });
+  const out = { plans: plans,
+    refBonus: Math.max(0, Math.min(1000000, Math.round(Number(s.refBonus) || 0))),
+    refMax: Math.max(0, Math.min(1000, Math.round(Number(s.refMax) || 0))),
+    announce: String(s.announce || '').slice(0, 300),
+    prices: {}, discount: Math.max(0, Math.min(90, Math.round(Number(s.discount) || 0))) };
+  Object.keys(CFG.PRICES).forEach(function (p) {
+    const v = Math.round(Number((s.prices || {})[p]));
+    out.prices[p] = v >= 1000 && v < 100000000 ? v : CFG.PRICES[p];
+  });
+  PropertiesService.getScriptProperties().setProperty('SETTINGS', JSON.stringify(out));
+  SET_CACHE = null;
+  return { ok: true, settings: set_() };
+}
+
+/* ============================================================
+   TELEGRAM BOT: raqamni tasdiqlash va parolni tiklash
+   Sozlash: Script Properties → BOT_TOKEN = @BotFather bergan token.
+   Keyin brauzerda bir marta oching:
+   https://api.telegram.org/bot<TOKEN>/setWebhook?url=<WEB_APP_URL>
+   ============================================================ */
+
+function botToken_() { return String(PropertiesService.getScriptProperties().getProperty('BOT_TOKEN') || '').trim(); }
+
+function botName_() {
+  const tok = botToken_(); if (!tok) return '';
+  const p = PropertiesService.getScriptProperties(), saved = p.getProperty('BOT_USERNAME_FOR');
+  if (saved === tok.slice(-12) && p.getProperty('BOT_USERNAME')) return p.getProperty('BOT_USERNAME');
+  try {
+    const r = JSON.parse(UrlFetchApp.fetch('https://api.telegram.org/bot' + tok + '/getMe', { muteHttpExceptions: true }).getContentText());
+    if (r.ok) { p.setProperty('BOT_USERNAME', r.result.username); p.setProperty('BOT_USERNAME_FOR', tok.slice(-12)); return r.result.username; }
+  } catch (e) { console.error(e); }
+  return '';
+}
+
+function tgApi_(method, payload) {
+  const tok = botToken_(); if (!tok) return null;
+  try {
+    return JSON.parse(UrlFetchApp.fetch('https://api.telegram.org/bot' + tok + '/' + method, {
+      method: 'post', contentType: 'application/json', payload: JSON.stringify(payload), muteHttpExceptions: true }).getContentText());
+  } catch (e) { console.error(e); return null; }
+}
+
+function tgSend_(chat, text, markup) {
+  const p = { chat_id: chat, text: text, parse_mode: 'HTML', disable_web_page_preview: true };
+  if (markup) p.reply_markup = markup;
+  return tgApi_('sendMessage', p);
+}
+
+function esc_(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function siteBtn_() { return { inline_keyboard: [[{ text: '🌐 Saytni ochish', url: CFG.SITE_URL }]] }; }
+
+function vget_(code) {
+  code = String(code || '');
+  if (!/^[A-Za-z0-9]{16,40}$/.test(code)) return null;
+  const raw = CacheService.getScriptCache().get('v_' + code);
+  return raw ? JSON.parse(raw) : null;
+}
+
+function vcheck_(req) {
+  const v = vget_(req.code);
+  if (!v) return { ok: true, st: 'wait' };
+  return { ok: true, st: v.st, phone: v.st === 'ok' ? v.phone : '' };
+}
+
+function reset_(req) {
+  const v = vget_(req.vcode);
+  if (!v || v.purpose !== 'p' || v.st !== 'ok') return { ok: false, error: "Avval raqamingizni Telegram bot orqali tasdiqlang" };
+  const password = String(req.password || '');
+  if (password.length < CFG.MIN_PASSWORD) return { ok: false, error: 'Parol kamida ' + CFG.MIN_PASSWORD + " belgi bo'lsin" };
+  const row = findPhoneRow_(v.phone);
+  if (!row) return { ok: false, error: 'Bu raqam bilan akkaunt topilmadi' };
+  const sh = sheet_('Users', USER_HEADERS), col = function (h) { return USER_HEADERS.indexOf(h) + 1; };
+  const salt = Utilities.getUuid();
+  sh.getRange(row, col('salt'), 1, 2).setNumberFormat('@').setValues([[salt, hashPassword_(password, salt)]]);
+  sh.getRange(row, col('tgId')).setNumberFormat('@').setValue(String(v.tg));
+  const user = readUser_(row);
+  if (user.status !== 'active') return { ok: false, error: 'Akkaunt bloklangan' };
+  adminUpdate_({ id: user.id, logoutAll: true });
+  CacheService.getScriptCache().remove('v_' + req.vcode);
+  tgSend_(v.tg, '🔐 Parolingiz yangilandi. Agar buni siz qilmagan bo\'lsangiz, darhol admin bilan bog\'laning.');
+  return { ok: true, token: createSession_(user.id), user: publicUser_(user) };
+}
+
+function tgUpdate_(u) {
+  const cache = CacheService.getScriptCache();
+  if (cache.get('u_' + u.update_id)) return;          // Telegram qayta yuborsa, ikki marta ishlamasin
+  cache.put('u_' + u.update_id, '1', 21600);
+  const m = u.message; if (!m || !m.chat || m.chat.type !== 'private') return;
+  const chat = m.chat.id, text = String(m.text || '');
+
+  if (/^\/start\b/.test(text)) {
+    const arg = text.split(/\s+/)[1] || '', mm = /^([rp])_([A-Za-z0-9]{16,40})$/.exec(arg);
+    if (!mm) {
+      tgSend_(chat, '👋 <b>' + esc_(CFG_BRAND_()) + "</b> botiga xush kelibsiz!\nMatnni tabiiy ovozga aylantirish uchun saytga kiring.", siteBtn_());
+      return;
+    }
+    cache.put('c_' + chat, JSON.stringify({ purpose: mm[1], code: mm[2] }), 900);
+    const what = mm[1] === 'r' ? "ro'yxatdan o'tish" : 'parolni tiklash';
+    tgSend_(chat, '📱 ' + what.charAt(0).toUpperCase() + what.slice(1) + ' uchun pastdagi <b>«Raqamni ulashish»</b> tugmasini bosing.',
+      { keyboard: [[{ text: '📱 Raqamni ulashish', request_contact: true }]], resize_keyboard: true, one_time_keyboard: true });
+    return;
+  }
+
+  if (m.contact) {
+    const raw = cache.get('c_' + chat);
+    if (!raw) { tgSend_(chat, "Avval saytdagi <b>«Telegram orqali tasdiqlash»</b> tugmasini bosing.", siteBtn_()); return; }
+    if (!m.from || m.contact.user_id !== m.from.id) { tgSend_(chat, "Iltimos, o'z raqamingizni pastdagi tugma orqali yuboring."); return; }
+    const c = JSON.parse(raw), phone = normPhone_(m.contact.phone_number);
+    const done = { remove_keyboard: true };
+    if (!phone) { tgSend_(chat, "Hozircha faqat O'zbekiston raqamlari (+998) qabul qilinadi.", done); return; }
+    const exists = !!findPhoneRow_(phone);
+    let st = 'ok', msg = "✅ Raqamingiz tasdiqlandi: <b>" + phone + "</b>\n\nSaytga qayting — jarayon avtomatik davom etadi.";
+    if (c.purpose === 'r' && exists) { st = 'exists'; msg = "ℹ️ Bu raqam bilan avval ro'yxatdan o'tilgan. Saytga qayting va <b>Kirish</b>ni bosing. Parolni unutgan bo'lsangiz — «Parolni unutdingizmi?»"; }
+    if (c.purpose === 'p' && !exists) { st = 'none'; msg = "ℹ️ Bu raqam bilan akkaunt topilmadi. Saytga qaytib ro'yxatdan o'ting."; }
+    cache.put('v_' + c.code, JSON.stringify({ st: st, phone: phone, purpose: c.purpose, tg: String(chat) }), 900);
+    cache.remove('c_' + chat);
+    tgSend_(chat, msg, done);
+    return;
+  }
+
+  tgSend_(chat, "Men faqat raqamni tasdiqlash uchun ishlayman. Saytdan foydalaning 👇", siteBtn_());
+}
+
+function CFG_BRAND_() { return 'Gapir AI'; }
+
+/** USER_HEADERS o'zgarganda jadval sarlavhasini yangilaydi (bir marta) */
+function ensureHeaders_() {
+  const p = PropertiesService.getScriptProperties(), v = 'HDR_' + USER_HEADERS.length;
+  if (p.getProperty(v)) return;
+  sheet_('Users', USER_HEADERS).getRange(1, 1, 1, USER_HEADERS.length).setNumberFormat('@').setValues([USER_HEADERS]).setFontWeight('bold');
+  p.setProperty(v, '1');
+}
+
+/* ============================================================
+   GAPI — sayt yordamchisi (chat)
+   ============================================================ */
+const CHAT_LIMIT_PER_CLIENT = 30;   // bitta brauzerdan 6 soatda
+const CHAT_LIMIT_GLOBAL = 1500;     // butun sayt bo'yicha 6 soatda
+
+function chat_(req) {
+  const cid = String(req.cid || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 40);
+  const text = String(req.text || '').trim().slice(0, 600);
+  if (!cid || !text) return { ok: false, error: 'Savol yozing' };
+  const cache = CacheService.getScriptCache();
+  const n1 = Number(cache.get('ch_' + cid) || 0), n2 = Number(cache.get('ch_all') || 0);
+  if (n1 >= CHAT_LIMIT_PER_CLIENT || n2 >= CHAT_LIMIT_GLOBAL) return { ok: false, error: "Hozircha ko'p savol berdingiz 🙂 Birozdan keyin yana yozing." };
+  cache.put('ch_' + cid, String(n1 + 1), 21600); cache.put('ch_all', String(n2 + 1), 21600);
+
+  const S = set_(), auth = req.token ? auth_(req.token) : null;
+  const facts = String(req.facts || '').slice(0, 1500);
+  const sys = [
+    "Sen 'Gapi' — Gapir AI saytining quvnoq va do'stona yordamchisisan. Gapir AI matnni tabiiy ovozga aylantiradigan o'zbek sayti.",
+    "Qisqa javob ber (1–4 gap), o'zbek tilida (lotin), samimiy ohangda, kerak bo'lsa 1 ta emoji. Foydalanuvchi boshqa tilda yozsa, o'sha tilda javob ber.",
+    "Saytdagi imkoniyatlar: Matnni nutqqa (30 ta ovoz, uslub, tezlik, bir nechta spiker), Nutqdan matnga, Dublyaj (audioni boshqa tilga), Audiokitoblar, Fayllar, Takliflar (do'st taklif qilsa bonus).",
+    "Ro'yxatdan o'tish Telegram bot orqali raqamni tasdiqlab bo'ladi. Ovoz klonlash hozircha yo'q.",
+    "Kunlik limitlar (belgi): " + Object.keys(S.plans).map(function (p) { return p + ' = ' + S.plans[p]; }).join(', ') + ". Taklif bonusi: har bir do'st uchun +" + S.refBonus + " belgi.",
+    facts ? 'Saytdagi tariflar: ' + facts : '',
+    auth ? ('Foydalanuvchi kirgan: ismi ' + auth.user.name + ', tarifi ' + auth.user.plan + '.') : "Foydalanuvchi hali ro'yxatdan o'tmagan — kerak bo'lsa bepul ro'yxatdan o'tishni taklif qil.",
+    "Faqat Gapir AI, ovoz, audio, matn va saytdan foydalanish haqida yordam ber. Boshqa mavzularda muloyimlik bilan saytga qaytar. Narx yoki imkoniyat o'ylab topma; bilmasang, admin bilan bog'lanishni ayt."
+  ].filter(String).join('\n');
+  const hist = (Array.isArray(req.history) ? req.history : []).slice(-8).map(function (m) {
+    return { role: m.r === 'u' ? 'user' : 'model', parts: [{ text: String(m.t || '').slice(0, 600) }] };
+  });
+  while (hist.length && hist[0].role !== 'user') hist.shift();   // Gemini: suhbat foydalanuvchidan boshlanadi
+  const r = callText_([{ text: text }], sys, hist);
+  if (!r.ok) return { ok: false, error: r.userError || "Hozir javob bera olmayman, birozdan keyin urinib ko'ring." };
+  return { ok: true, text: r.text.slice(0, 1500) };
+}
+
+/* ============================================================
+   TEZCHECK TO'LOVLARI
+   Script Properties: TEZCHECK_KEY = maxfiy API kalit (aps_...), TEZCHECK_DESK = kassa kodi (cdk_...)
+   ============================================================ */
+const PAY_HEADERS = ['bill','userId','plan','months','amount','state','createdAt','paidAt','env','ref'];
+
+function tcKey_() { return String(PropertiesService.getScriptProperties().getProperty('TEZCHECK_KEY') || '').trim(); }
+
+function tcCall_(path, body, idem) {
+  const p = PropertiesService.getScriptProperties();
+  const headers = { Authorization: 'Bearer ' + tcKey_() };
+  const desk = String(p.getProperty('TEZCHECK_DESK') || '').trim();
+  if (desk) headers['X-Cash-Desk-Code'] = desk;
+  if (idem) headers['Idempotency-Key'] = idem;
+  const resp = UrlFetchApp.fetch(CFG.TC_API + path, { method: 'post', contentType: 'application/json', headers: headers,
+    payload: JSON.stringify(body || {}), muteHttpExceptions: true });
+  let json = {}; try { json = JSON.parse(resp.getContentText()); } catch (e) {}
+  return { code: resp.getResponseCode(), json: json };
+}
+
+function priceOf_(plan, months) {
+  const S = set_(), m = Number(S.prices[plan]) || 0;
+  if (!m) return 0;
+  const raw = months === 12 ? m * 12 * (100 - S.discount) / 100 : m;
+  return Math.round(raw / 1000) * 1000;
+}
+
+function payCreate_(req) {
+  const auth = auth_(req.token);
+  if (!auth) return { ok: false, error: 'auth' };
+  if (!tcKey_()) return { ok: false, error: "Onlayn to'lov hali ulanmagan. Admin bilan bog'laning." };
+  const plan = String(req.plan || ''), months = Number(req.months) === 12 ? 12 : 1;
+  const amount = priceOf_(plan, months);
+  if (!amount) return { ok: false, error: "Noto'g'ri tarif" };
+  const ref = 'gp-' + String(auth.user.id).slice(0, 8) + '-' + Date.now();
+  const names = { pro: 'Pro', business: 'Biznes' };
+  const r = tcCall_('/bills', {
+    amount_minor: amount * 100,
+    title: 'Gapir AI — ' + (names[plan] || plan) + ' tarifi (' + (months === 12 ? '1 yil' : '1 oy') + ')',
+    description: auth.user.name + ' · ' + auth.user.phone,
+    external_reference: ref,
+    return_url: CFG.SITE_URL + '#/app/plans?paid=1'
+  }, ref);
+  const d = r.json && r.json.data;
+  if (r.code >= 300 || !d || !d.payment_url) {
+    const er = (r.json && r.json.error) || {};
+    log_(auth.user.id, 0, 'tezcheck', false, 'pay ' + r.code + ' ' + (er.code || '') + ' ' + (er.message || ''));
+    return { ok: false, error: "To'lov havolasi yaratilmadi" + (er.code ? ' (' + er.code + ')' : '') + ". Birozdan keyin urinib ko'ring." };
+  }
+  sheet_('Payments', PAY_HEADERS).appendRow([d.bill.id, auth.user.id, plan, months, amount, 'pending', new Date().toISOString(), '', '', ref]);
+  return { ok: true, url: d.payment_url, bill: d.bill.id, amount: amount };
+}
+
+/** Bitta to'lovni TezCheck'dan tekshiradi; to'langan bo'lsa tarifni yoqadi. */
+function payVerify_(row) {
+  const sh = sheet_('Payments', PAY_HEADERS);
+  const v = sh.getRange(row, 1, 1, PAY_HEADERS.length).getValues()[0], p = {};
+  PAY_HEADERS.forEach(function (h, i) { p[h] = v[i]; });
+  if (p.state !== 'pending') return p;
+  const r = tcCall_('/bills/' + encodeURIComponent(p.bill), {});
+  const b = r.json && r.json.data && r.json.data.bill;
+  if (!b) return p;
+  const col = function (h) { return PAY_HEADERS.indexOf(h) + 1; };
+  if (b.paid) {
+    const env = String(b.environment || (b.livemode === false ? 'test' : 'live'));
+    const uRow = findRow_('Users', USER_HEADERS, 'id', String(p.userId));
+    const user = uRow ? readUser_(uRow) : null;
+    if (env === 'test' && !(user && isAdmin_(user))) {   // test to'lovi faqat admin uchun tarifni yoqadi
+      sh.getRange(row, col('state'), 1, 1).setValue('test');
+      sh.getRange(row, col('env')).setValue(env);
+      p.state = 'test'; return p;
+    }
+    if (uRow) activatePlan_(uRow, String(p.plan), Number(p.months));
+    sh.getRange(row, col('state')).setValue('paid');
+    sh.getRange(row, col('paidAt')).setValue(new Date().toISOString());
+    sh.getRange(row, col('env')).setValue(env);
+    p.state = 'paid';
+    if (user && user.tgId) tgSend_(user.tgId, '✅ To\'lov qabul qilindi! <b>' + esc_(String(p.plan).toUpperCase()) + '</b> tarifi yoqildi. Rahmat! 🎉', siteBtn_());
+  } else if (['expired', 'revoked', 'exhausted'].indexOf(String(b.state)) >= 0) {
+    sh.getRange(row, col('state')).setValue(String(b.state)); p.state = String(b.state);
+  }
+  return p;
+}
+
+function activatePlan_(uRow, plan, months) {
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    const sh = sheet_('Users', USER_HEADERS), col = function (h) { return USER_HEADERS.indexOf(h) + 1; };
+    const u = readUser_(uRow);
+    let from = Date.now();
+    const cur = u.planUntil ? new Date(u.planUntil).getTime() : 0;
+    if (u.plan === plan && cur > from) from = cur;              // shu tarif davom etsa — muddatga qo'shiladi
+    const until = new Date(from); until.setMonth(until.getMonth() + (months || 1));
+    sh.getRange(uRow, col('plan')).setValue(plan);
+    sh.getRange(uRow, col('planUntil')).setNumberFormat('@').setValue(until.toISOString());
+  } finally { lock.releaseLock(); }
+}
+
+function payCheck_(req) {
+  const auth = auth_(req.token);
+  if (!auth) return { ok: false, error: 'auth' };
+  const sh = sheet_('Payments', PAY_HEADERS), last = sh.getLastRow();
+  if (last < 2) return { ok: true, state: 'none' };
+  const rows = sh.getRange(2, 1, last - 1, 2).getValues();
+  let found = 0;
+  for (let i = rows.length - 1; i >= 0; i--) {
+    if (String(rows[i][1]) === String(auth.user.id) && (!req.bill || String(rows[i][0]) === String(req.bill))) { found = i + 2; break; }
+  }
+  if (!found) return { ok: true, state: 'none' };
+  const p = payVerify_(found);
+  return { ok: true, state: p.state, plan: p.plan, user: publicUser_(readUser_(auth.row)) };
+}
+
+/** Kirishda: oxirgi 3 kundagi kutilayotgan to'lovlarni tekshiradi (daqiqasiga 1 marta) */
+function payPendingFor_(userId) {
+  if (!tcKey_()) return false;
+  const cache = CacheService.getScriptCache(), ck = 'pp_' + userId;
+  if (cache.get(ck)) return false;
+  cache.put(ck, '1', 60);
+  const sh = sheet_('Payments', PAY_HEADERS), last = sh.getLastRow();
+  if (last < 2) return false;
+  const vals = sh.getRange(2, 1, last - 1, PAY_HEADERS.length).getValues();
+  let changed = false, n = 0;
+  for (let i = vals.length - 1; i >= 0 && n < 3; i--) {
+    if (String(vals[i][1]) !== String(userId) || vals[i][5] !== 'pending') continue;
+    if (Date.now() - new Date(vals[i][6]).getTime() > 3 * 86400000) continue;
+    n++;
+    if (payVerify_(i + 2).state === 'paid') changed = true;
+  }
+  return changed;
+}
+
+function adminPayments_() {
+  const sh = sheet_('Payments', PAY_HEADERS), last = sh.getLastRow();
+  if (last < 2) return { ok: true, payments: [], total: 0 };
+  const map = {}; allUsers_().forEach(function (u) { map[u.id] = { name: u.name, phone: u.phone }; });
+  let total = 0;
+  const list = sh.getRange(Math.max(2, last - 299), 1, Math.min(300, last - 1), PAY_HEADERS.length).getValues().reverse().map(function (r) {
+    const u = map[r[1]] || {};
+    if (r[5] === 'paid') total += Number(r[4]) || 0;
+    return { bill: r[0], name: u.name || '—', phone: u.phone || '', plan: r[2], months: Number(r[3]), amount: Number(r[4]), state: r[5],
+      createdAt: String(r[6]), paidAt: String(r[7]), env: r[8] };
+  });
+  return { ok: true, payments: list, total: total, enabled: !!tcKey_() };
+}
+

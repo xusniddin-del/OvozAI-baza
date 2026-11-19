@@ -635,6 +635,20 @@ kbd{font:700 10.5px var(--fb);border:1px solid var(--ln2);border-radius:6px;padd
 .mdb.mid{max-width:680px}.mdb.wide{max-width:1080px;height:min(760px,86vh);padding:0;overflow:hidden}
 .mdh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.mdh b{font-family:var(--fh);font-size:17px;font-weight:500;display:block;letter-spacing:-.02em}.mdh small{color:var(--mt);font-size:13px;font-weight:500}
 .mdf{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pyo{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pyo button{position:relative;text-align:left;padding:14px;border-radius:16px;border:1px solid var(--ln);background:rgba(255,255,255,.04);color:#dbe4ff;transition:.2s;font-family:var(--fb)}
+.pyo button:hover{border-color:var(--ln2)}.pyo button.on{border-color:#4f86ff;background:rgba(47,107,255,.14);box-shadow:0 0 0 3px rgba(47,107,255,.18)}
+.pyo b{display:block;font-family:var(--fh);font-weight:500;font-size:18px;color:#fff;margin-top:4px}.pyo small{color:var(--mt);font-size:12.5px;font-weight:600}
+.pyo em{position:absolute;top:10px;right:10px;font-style:normal;font-size:11px;font-weight:800;color:#06102a;background:#7cf0c0;border-radius:99px;padding:2px 8px}
+.pysum{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.04);border:1px dashed var(--ln2)}
+.pysum b{font-family:var(--fh);font-size:22px;font-weight:500;color:#fff}.pysum span{color:var(--mt);font-size:13px;font-weight:600}
+.paybx{display:flex;gap:14px;align-items:center;padding:16px 18px;border-radius:18px;border:1px solid var(--ln2);background:linear-gradient(120deg,rgba(47,107,255,.16),rgba(124,240,192,.08));margin-bottom:18px}
+.paybx.ok{border-color:rgba(124,240,192,.5)}.paybx.bad{border-color:rgba(255,110,110,.45);background:rgba(255,80,80,.07)}
+.paybx b{display:block;color:#fff;font-size:15px}.paybx small{color:var(--mt);font-size:13px;font-weight:500}.paybx .flex1{flex:1}
+.paybx .pi{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:rgba(255,255,255,.08);flex:none}.paybx .pi svg{width:22px;height:22px}
+.secure{display:flex;gap:8px;align-items:center;justify-content:center;color:var(--mt2);font-size:12px;font-weight:600}.secure svg{width:14px;height:14px}
+.pyl{display:grid;grid-template-columns:120px minmax(0,1.3fr) 120px 110px 110px;gap:12px;align-items:center}
+@media(max-width:1020px){.pyl{grid-template-columns:90px minmax(0,1fr) 100px}.pyl>span:nth-child(3),.pyl>span:nth-child(4){display:none}}
 .ta{width:100%;min-height:260px;border:1px solid var(--ln);border-radius:16px;padding:14px 16px;font:inherit;font-size:15px;font-weight:500;line-height:1.7;resize:vertical;outline:0;color:#fff;background:rgba(255,255,255,.04)}
 .ta:focus{border-color:#5b8cff}
 .g2c{display:grid;grid-template-columns:1fr 1fr;gap:12px}.g2c .lb{margin-top:0}
@@ -852,7 +866,8 @@ body[data-page=tts] .gp-panel{right:404px;bottom:166px}
 const CONFIG = {
   API_URL: "https://script.google.com/macros/s/AKfycbw7lAHdoR0Gpa13WwszMpqfVf-W7ubsnEEs7MNUL4OMXjPnFv14FeEyltANBvmlg90eJA/exec",                       // Apps Script "Web app URL" ni shu yerga qo'ying (SETUP.md)
   BRAND: "Gapir AI",
-  CONTACT_URL: "https://t.me/",      // Pro/Business uchun bog'lanish (Telegram havola)
+  CONTACT_URL: "https://t.me/",      // yordam / sotuv bo'limi (Telegram havola)
+  YEAR_DISCOUNT: 20,                 // yillik to'lov chegirmasi, % (serverdagi sozlama ustun)
   MAX_CHUNK: 800,                    // matn shu uzunlikdagi bo'laklarga bo'linib yuboriladi
   PLANS: [
     {id:"free", name:"Boshlang'ich", price:"Bepul", per:"", daily:"3 000 belgi / kun",
@@ -860,7 +875,7 @@ const CONFIG = {
     {id:"pro", name:"Pro", price:"49 000", per:" so'm / oy", daily:"50 000 belgi / kun", hot:true,
       feats:["Barcha ovozlar","Uzun matnlar","Tezkor navbat","Telegram yordam"], cta:"Pro olish"},
     {id:"business", name:"Biznes", price:"199 000", per:" so'm / oy", daily:"200 000 belgi / kun",
-      feats:["Eng yuqori limit","Reklama va audiokitob uchun","Ustuvor yordam"], cta:"Bog'lanish"}
+      feats:["Eng yuqori limit","Reklama va audiokitob uchun","Ustuvor yordam"], cta:"Biznes olish"}
   ]
 };
 
@@ -1093,7 +1108,7 @@ function landing(){
         <ul>${p.feats.map(f=>`<li>${esc(f)}</li>`).join("")}</ul>
         ${p.id==="free"
           ? `<a class="btn btn-p" href="#/register">${esc(p.cta)}</a>`
-          : `<a class="btn ${p.hot?"btn-p":"btn-g"}" target="_blank" rel="noopener" href="${esc(CONFIG.CONTACT_URL)}">${esc(p.cta)}</a>`}
+          : `<a class="btn ${p.hot?"btn-p":"btn-g"}" href="${store.token?"#/app/plans":"#/register"}">${esc(p.cta)}</a>`}
       </div>`).join("")}</div>
   </div></section>
 
@@ -1115,10 +1130,29 @@ function landing(){
 }
 
 let BOT = (()=>{ try{ return sessionStorage.getItem("ovoz_bot"); }catch(e){ return null; } })();
-async function loadBot(){
-  const r = await api("cfg");
-  if(r.ok){ BOT = r.bot || ""; try{ sessionStorage.setItem("ovoz_bot", BOT); }catch(e){} }
-  return BOT;
+let PAY_ON = true;
+function applyCfg(c){
+  if(!c) return false;
+  let changed = false;
+  CONFIG.PLANS.forEach(p => {
+    const pr = c.prices && c.prices[p.id], lim = c.limits && c.limits[p.id];
+    if(pr){ const s = fmt(pr); if(p.price !== s){ p.price = s; changed = true; } }
+    if(lim){ const s = fmt(lim) + " belgi / kun"; if(p.daily !== s){ p.daily = s; changed = true; } }
+  });
+  if(c.discount != null) CONFIG.YEAR_DISCOUNT = Number(c.discount);
+  if(c.pay != null) PAY_ON = !!c.pay;
+  return changed;
+}
+try{ applyCfg(JSON.parse(sessionStorage.getItem("ovoz_cfg") || "null")); }catch(e){}
+let CFG_P = null;
+function loadBot(){
+  if(!CFG_P) CFG_P = api("cfg").then(r => {
+    if(r.ok){ BOT = r.bot || ""; try{ sessionStorage.setItem("ovoz_bot", BOT); sessionStorage.setItem("ovoz_cfg", JSON.stringify(r)); }catch(e){}
+      if(applyCfg(r) && document.body.dataset.page==="site" && $(".plans")) route(); }
+    else CFG_P = null;
+    return BOT;
+  });
+  return CFG_P;
 }
 const TG_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3l-3.2 15.2c-.2 1.1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.3 13.2l-4.8-1.5c-1-.3-1.1-1 .2-1.5l18.8-7.2c.9-.3 1.6.2 1.4 1.3z"/></svg>';
 
@@ -1796,6 +1830,7 @@ const PAGES = {
     $("#tools").onclick = e => { const b = e.target.closest(".ex"); if(!b) return; const s = STARTERS[+b.dataset.i];
       SEL.style = s[3]; SEL.styleName = s[4]; saveSel(); setDraft([{voice:SEL.voice, text:s[2]}]); location.hash = "#/app/tts"; };
     let all = await listAssets(), k = "", q = "";
+    if(!$("#rec")) return;   // foydalanuvchi boshqa sahifaga o'tib ketgan
     const draw = () => {
       const list = all.filter(a => (!k || (k==="audio" ? !!a.blob : a.kind==="stt"||a.kind==="dub")) && a.title.toLowerCase().includes(q)).slice(0,8);
       $("#rec").innerHTML = assetTable(list, "Hozircha hech narsa yaratilmagan");
@@ -2135,25 +2170,31 @@ const PAGES = {
 
   plans(){
     const u = USER, pct = Math.min(100, u.used/u.limit*100); let yearly = true;
-    const OFF = 20, num = p => Number(String(p.price).replace(/\D/g,"")) || 0;
+    const OFF = CONFIG.YEAR_DISCOUNT, num = p => Number(String(p.price).replace(/\D/g,"")) || 0;
+    const until = u.planUntil ? fdate(u.planUntil) : "";
     $("#pgv").innerHTML = `<div class="pg">
       <h1 class="t2">Tarif va to'lovlar</h1>
+      <div id="paybx"></div>
       <div class="g2b">
         <div class="box pad"><div class="r2"><span>Bugun ishlatilgan</span><b>${fmt(u.used)} / ${fmt(u.limit)} belgi</b></div><div class="pbar dk"><i style="width:${pct}%"></i></div>
           <small class="muted">Limit har kuni yarim tunda (Toshkent vaqti) yangilanadi.${u.bonus?` Taklif bonusi: +${fmt(u.bonus)}.`:""}</small></div>
-        <div class="box pad r2c"><span>Hozir <b>${esc(planName(u.plan))}</b> tarifidasiz</span><a class="btn-l" target="_blank" rel="noopener" href="${esc(CONFIG.CONTACT_URL)}">${IC.card} To'lov</a></div></div>
+        <div class="box pad r2c"><span>Hozir <b>${esc(planName(u.plan))}</b> tarifidasiz${until?`<br><small class="muted">${until} gacha amal qiladi</small>`:""}</span>${u.plan!=="free"?`<button class="btn-l" id="ext">${IC.card} Uzaytirish</button>`:""}</div></div>
       <div class="lh"><div class="seg" id="per"><button data-y="0">Oylik</button><button class="on" data-y="1">Yillik (${OFF}% tejang)</button></div>
         <a class="btn-l" target="_blank" rel="noopener" href="${esc(CONFIG.CONTACT_URL)}">Sotuv bo'limi bilan bog'lanish</a></div>
       <div class="plg2" id="plg"></div>
-      <p class="note">To'lov uchun «Tarifni oshirish» tugmasi orqali bog'laning — tarifingiz shu zahoti yoqiladi.</p></div>`;
-    const draw = () => { $("#plg").innerHTML = CONFIG.PLANS.map((p,i) => { const n = num(p), d = Math.round(n*(100-OFF)/100/1000)*1000, cur = p.id===u.plan;
+      <p class="secure">${IC.check} To'lov TezCheck orqali xavfsiz amalga oshiriladi — Click, Payme, Uzum va karta bilan. Tarif to'lovdan so'ng avtomatik yoqiladi.</p></div>`;
+    const draw = () => { $("#plg").innerHTML = CONFIG.PLANS.map((p,i) => { const n = num(p), yt = Math.round(n*12*(100-OFF)/100/1000)*1000, d = Math.round(yt/12), cur = p.id===u.plan;
       return `<div class="pc2 ${p.hot?"hot":""} ${cur?"cur":""}"><div class="pt3"><b>${esc(p.name)}</b>${p.hot&&n?`<span class="off">${yearly?OFF+"% chegirma":"Mashhur"}</span>`:""}</div>
         <div class="pr2">${n ? (yearly ? `<s>${fmt(n)}</s> ${fmt(d)}` : fmt(n)) : esc(p.price)}${n?`<small> so'm/oy</small>`:""}</div>
-        <small class="muted">${n ? (yearly ? `Yiliga ${fmt(d*12)} so'm to'lanadi` : "Har oy to'lanadi") : "Doimiy bepul"}</small>
-        ${cur ? `<button class="btn-l wide" disabled>Joriy tarif</button>` : `<a class="${p.hot?"btn-k":"btn-l"} wide" target="_blank" rel="noopener" href="${esc(CONFIG.CONTACT_URL)}">Tarifni oshirish</a>`}
+        <small class="muted">${n ? (yearly ? `Yiliga ${fmt(yt)} so'm to'lanadi` : "Har oy to'lanadi") : "Doimiy bepul"}</small>
+        ${cur ? (n ? `<button class="btn-l wide" data-buy="${p.id}">${IC.card} Muddatni uzaytirish</button>` : `<button class="btn-l wide" disabled>Joriy tarif</button>`)
+              : n ? `<button class="${p.hot?"btn-k":"btn-l"} wide" data-buy="${p.id}">Tarifni oshirish</button>` : `<button class="btn-l wide" disabled>Bepul</button>`}
         <ul><li>${IC.check}<b>${esc(p.daily)}</b></li>${p.feats.map(f=>`<li>${IC.check}${esc(f)}</li>`).join("")}${i?`<li class="mut">${IC.plus}${esc(CONFIG.PLANS[i-1].name)} tarifidagi hammasi</li>`:""}</ul></div>`; }).join(""); };
     draw();
     $("#per").onclick = e => { const b = e.target.closest("button"); if(!b) return; yearly = b.dataset.y==="1"; document.querySelectorAll("#per button").forEach(x=>x.classList.toggle("on", x===b)); draw(); };
+    $("#plg").onclick = e => { const b = e.target.closest("[data-buy]"); if(b) payModal(b.dataset.buy, yearly ? 12 : 1); };
+    if($("#ext")) $("#ext").onclick = () => payModal(u.plan, 1);
+    payReturn();
   },
 
   ref(){
@@ -2239,6 +2280,64 @@ function barChart(title, sub, days, vals, unit){
         <div class="tt"><b>${fmt(v)} ${unit}</b><small>${dlab(days[i])}</small></div><em>${i%2===1||i===days.length-1?dlab(days[i],true):""}</em></div>`).join("")}</div></div></div>`;
 }
 
+/* ---- TezCheck to'lovi ---- */
+function payModal(planId, months){
+  const p = CONFIG.PLANS.find(x => x.id===planId); if(!p) return;
+  if(!PAY_ON){ window.open(CONFIG.CONTACT_URL, "_blank"); return; }
+  const OFF = CONFIG.YEAR_DISCOUNT, m = Number(String(p.price).replace(/\D/g,"")) || 0;
+  const sum = k => k===12 ? Math.round(m*12*(100-OFF)/100/1000)*1000 : m;
+  const {el, close} = modal(`<div class="mdh"><div><b>${esc(p.name)} tarifi</b><small>${esc(p.daily)}</small></div><button class="ib" data-close>${IC.x}</button></div>
+    <div class="pyo" id="pyo">
+      <button data-m="1"><small>1 oy</small><b>${fmt(sum(1))} so'm</b></button>
+      <button data-m="12">${OFF?`<em>−${OFF}%</em>`:""}<small>1 yil</small><b>${fmt(sum(12))} so'm</b><small>${fmt(Math.round(sum(12)/12))} so'm/oy</small></button></div>
+    <div class="pysum"><span>To'lanadi</span><b id="pys"></b></div>
+    <button class="btn-k lg wide" id="pygo">${IC.card} To'lovga o'tish</button>
+    <p class="secure">${IC.check} TezCheck sahifasida Click, Payme, Uzum yoki karta bilan to'laysiz</p>`);
+  const set = k => { months = k; el.querySelectorAll("#pyo button").forEach(b => b.classList.toggle("on", +b.dataset.m===k)); el.querySelector("#pys").textContent = fmt(sum(k)) + " so'm"; };
+  set(months);
+  el.querySelector("#pyo").onclick = e => { const b = e.target.closest("button"); if(b) set(+b.dataset.m); };
+  el.querySelector("#pygo").onclick = async () => {
+    const btn = el.querySelector("#pygo"); btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Havola tayyorlanmoqda...';
+    const r = await api("pay_create", {plan: planId, months});
+    if(!r.ok){ btn.disabled = false; btn.innerHTML = `${IC.card} To'lovga o'tish`; return toast(apiFail(r).error || "To'lov havolasi yaratilmadi"); }
+    try{ localStorage.setItem("ovoz_bill", r.bill); }catch(e){}
+    btn.innerHTML = '<span class="spin"></span> To\'lov sahifasiga o\'tilmoqda...';
+    location.href = r.url;
+  };
+}
+
+async function payReturn(){
+  let bill = ""; try{ bill = localStorage.getItem("ovoz_bill") || ""; }catch(e){}
+  const back = /[?&]paid=1/.test(location.hash);
+  if(!bill && !back) return;
+  const box = () => $("#paybx");
+  const show = (cls, ic, t, s, btn="") => { if(box()) box().innerHTML = `<div class="paybx ${cls}"><span class="pi">${ic}</span><div class="flex1"><b>${t}</b><small>${s}</small></div>${btn}</div>`; };
+  show("", '<span class="spin"></span>', "To'lov tekshirilmoqda...", "TezCheck'dan javob kutilmoqda, bir necha soniya.");
+  for(let i=0; i<12; i++){
+    const r = await api("pay_check", {bill});
+    if(!box()) return;
+    if(!r.ok){ show("bad", IC.x, "Tekshirib bo'lmadi", esc(apiFail(r).error || "Birozdan keyin sahifani yangilang.")); return; }
+    if(r.state==="paid"){
+      try{ localStorage.removeItem("ovoz_bill"); }catch(e){}
+      if(r.user){ USER = r.user; paintUser(); }
+      if(back) history.replaceState(null, "", "#/app/plans");
+      PAGES.plans();
+      show("ok", IC.check, `To'lov qabul qilindi — ${esc(planName(r.plan))} tarifi yoqildi! 🎉`, USER.planUntil ? `${fdate(USER.planUntil)} gacha amal qiladi. Rahmat!` : "Rahmat!");
+      try{ Gapi.dance(); }catch(e){}
+      return;
+    }
+    if(r.state==="test"){ try{ localStorage.removeItem("ovoz_bill"); }catch(e){}
+      show("bad", IC.x, "Bu test to'lovi edi", "Test rejimidagi to'lov faqat admin akkauntida tarifni yoqadi."); return; }
+    if(r.state==="none" || ["expired","revoked","exhausted"].includes(r.state)){ try{ localStorage.removeItem("ovoz_bill"); }catch(e){}
+      if(back) show("bad", IC.x, "To'lov topilmadi yoki bekor qilindi", "Agar pul yechilgan bo'lsa, yordam bo'limiga yozing.", `<a class="btn-l" target="_blank" rel="noopener" href="${esc(CONFIG.CONTACT_URL)}">Yordam</a>`);
+      else if(box()) box().innerHTML = "";
+      return; }
+    if(!back && i===0){ if(box()) box().innerHTML = ""; return; }   // to'lov sahifasidan qaytmagan — kutib turmaymiz
+    await new Promise(res => setTimeout(res, 4000));
+  }
+  show("", IC.card, "To'lov hali tasdiqlanmagan", "To'lagan bo'lsangiz, bir daqiqadan so'ng sahifani yangilang — tarif avtomatik yoqiladi.", `<button class="btn-l" onclick="PAGES.plans()">${IC.reset} Tekshirish</button>`);
+}
+
 const ADMIN = {
   async stats(b){
     const r = await aapi("stats"); if(!r.ok) return b.innerHTML = `<div class="msg err">${esc(apiFail(r).error||"Xatolik")}</div>`;
@@ -2295,6 +2394,23 @@ const ADMIN = {
     $("#ul").onclick = e => { const row = e.target.closest(".ur"); if(row) editUser(all.find(u=>u.id===row.dataset.id), () => ADMIN.users(b)); };
   },
 
+  async pays(b){
+    const r = await aapi("payments"); if(!r.ok) return b.innerHTML = `<div class="msg err">${esc(apiFail(r).error||"Xatolik")}</div>`;
+    const ST = {paid:["ok",IC.check,"To'langan"], pending:["",IC.reset,"Kutilmoqda"], test:["",IC.spark,"Test"], expired:["bad",IC.x,"Muddati o'tgan"], revoked:["bad",IC.x,"Bekor"], exhausted:["bad",IC.x,"Yopilgan"]};
+    const l = r.payments, paid = l.filter(x=>x.state==="paid"), m30 = paid.filter(x=>Date.now()-new Date(x.paidAt).getTime() < 30*864e5);
+    const tile = (ic, label, val, note, cls="") => `<div class="tile ${cls}"><span class="ti">${ic}</span><small>${label}</small><b>${val}</b><em>${note}</em></div>`;
+    b.innerHTML = `${r.enabled?"":`<div class="msg err">TezCheck ulanmagan: Script Properties'ga TEZCHECK_KEY va TEZCHECK_DESK qo'shing.</div>`}
+      <div class="tiles">${tile(IC.card,"Jami tushum, so'm",fmt(r.total),`${fmt(paid.length)} ta to'lov`,"good")}
+        ${tile(IC.bolt,"Oxirgi 30 kun, so'm",fmt(m30.reduce((a,x)=>a+x.amount,0)),`${fmt(m30.length)} ta to'lov`)}
+        ${tile(IC.reset,"Kutilayotgan",fmt(l.filter(x=>x.state==="pending").length),"havola ochilgan, hali to'lanmagan")}</div>
+      <div class="ltbl" style="margin-top:16px">${l.length ? `<div class="lh2 pyl"><span>Sana</span><span>Mijoz</span><span>Tarif</span><span>Summa</span><span>Holat</span></div>` +
+        l.map(x => { const s = ST[x.state] || ["",IC.file,x.state];
+          return `<div class="lr pyl"><span><b>${fdate(x.paidAt||x.createdAt)}</b><small>${new Date(x.paidAt||x.createdAt).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})}</small></span>
+          <span><b>${esc(x.name)}</b><small>${fmtPhone(x.phone)}</small></span><span>${esc(planName(x.plan))}<small>${x.months===12?"1 yil":"1 oy"}</small></span>
+          <span><b>${fmt(x.amount)}</b><small>so'm</small></span><span><span class="sbg ${s[0]}">${s[1]} ${s[2]}</span></span></div>`; }).join("")
+        : `<div class="emp">${IC.card}<b>Hali to'lov yo'q</b><span>Mijozlar «Tarifni oshirish» orqali to'laganda shu yerda ko'rinadi.</span></div>`}</div>`;
+  },
+
   async logs(b){
     const r = await aapi("logs", {limit:400}); if(!r.ok) return b.innerHTML = `<div class="msg err">${esc(apiFail(r).error||"Xatolik")}</div>`;
     const all = r.logs; let f = "";
@@ -2320,7 +2436,10 @@ const ADMIN = {
     b.innerHTML = `<div class="g2b">
       <div class="box pad"><div class="chh"><div><b>Kunlik limitlar</b><small>Har bir tarif uchun kuniga beriladigan belgi</small></div></div>
         ${CONFIG.PLANS.map(p=>`<div class="lb">${esc(p.name)} <em>${p.id}</em></div><input class="inp" type="number" min="1" data-plan="${p.id}" value="${s.plans[p.id]||""}">`).join("")}
-        <p class="note">O'zgarish darhol kuchga kiradi. Tariflar sahifasidagi narx va yozuvlar index.html dagi CONFIG.PLANS dan olinadi — raqamlarni u yerda ham yangilang.</p></div>
+        <p class="note">O'zgarish darhol kuchga kiradi.</p>
+        <div class="chh" style="margin-top:22px"><div><b>Narxlar</b><small>Oylik narx, so'm — to'lov shu narxda olinadi</small></div></div>
+        ${CONFIG.PLANS.filter(p=>p.id!=="free").map(p=>`<div class="lb">${esc(p.name)} <em>so'm / oy</em></div><input class="inp" type="number" min="1000" step="1000" data-price="${p.id}" value="${(s.prices||{})[p.id]||""}">`).join("")}
+        <div class="lb">Yillik to'lov chegirmasi <em>%</em></div><input class="inp" type="number" min="0" max="90" id="dc" value="${s.discount!=null?s.discount:20}"></div>
       <div class="box pad"><div class="chh"><div><b>Takliflar</b><small>Do'st taklif qilgani uchun bonus</small></div></div>
         <div class="lb">Har bir do'st uchun bonus <em>belgi / kun</em></div><input class="inp" type="number" min="0" id="rb" value="${s.refBonus}">
         <div class="lb">Bonus beriladigan takliflar soni <em>maksimum</em></div><input class="inp" type="number" min="0" id="rm" value="${s.refMax}">
@@ -2332,10 +2451,13 @@ const ADMIN = {
     $("#sv").onclick = async () => {
       const btn = $("#sv"); btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Saqlanmoqda...';
       const plans = {}; document.querySelectorAll("[data-plan]").forEach(i => plans[i.dataset.plan] = +i.value);
-      const r2 = await aapi("save", {settings:{plans, refBonus:+$("#rb").value, refMax:+$("#rm").value, announce:$("#an").value.trim()}});
+      const prices = {}; document.querySelectorAll("[data-price]").forEach(i => prices[i.dataset.price] = +i.value);
+      const r2 = await aapi("save", {settings:{plans, prices, discount:+$("#dc").value, refBonus:+$("#rb").value, refMax:+$("#rm").value, announce:$("#an").value.trim()}});
       btn.disabled = false; btn.innerHTML = `${IC.check} Saqlash`;
       if(!r2.ok) return toast(apiFail(r2).error || "Saqlanmadi");
-      USER.announce = r2.settings.announce; paintAnnounce(); toast("Sozlamalar saqlandi ✓"); ADMIN.settings(b);
+      USER.announce = r2.settings.announce; paintAnnounce();
+      applyCfg({prices:r2.settings.prices, limits:r2.settings.plans, discount:r2.settings.discount}); try{ sessionStorage.removeItem("ovoz_cfg"); }catch(e){} CFG_P = null;
+      toast("Sozlamalar saqlandi ✓"); ADMIN.settings(b);
     };
   }
 };
@@ -2369,7 +2491,7 @@ function editUser(u, done){
 PAGES.admin = async function(){
   if(!USER.isAdmin){ $("#pgv").innerHTML = `<div class="pg"><div class="emp">${IC.user}<b>Ruxsat yo'q</b><span>Bu bo'lim faqat adminlar uchun.</span></div></div>`; return; }
   let tab = (()=>{ try{ return sessionStorage.getItem("ovoz_atab") || "stats"; }catch(e){ return "stats"; } })();
-  const T = [["stats","Umumiy",IC.home],["users","Foydalanuvchilar",IC.users],["logs","Jurnal",IC.file],["settings","Sozlamalar",IC.sliders]];
+  const T = [["stats","Umumiy",IC.home],["users","Foydalanuvchilar",IC.users],["pays","To'lovlar",IC.card],["logs","Jurnal",IC.file],["settings","Sozlamalar",IC.sliders]];
   $("#pgv").innerHTML = `<div class="pg"><div class="ph"><div><h1 class="t2">Admin panel</h1><p class="sub3">Foydalanuvchilar, sarf va sozlamalar — hammasi bir joyda.</p></div>
     <button class="btn-l" id="arf">${IC.reset} Yangilash</button></div>
     <div class="tabs4 ul" id="at">${T.map(t=>`<button data-t="${t[0]}" class="${t[0]===tab?"on":""}">${t[2]}${t[1]}</button>`).join("")}</div><div id="ab"></div></div>`;
@@ -2593,6 +2715,7 @@ const Gapi = (() => {
 })();
 
 route();
+loadBot();   // narxlar, chegirma va bot nomi serverdan
 Gapi.mount();
 
 </script>
