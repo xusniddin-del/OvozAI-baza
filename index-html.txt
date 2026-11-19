@@ -752,6 +752,59 @@ body.light ::-webkit-scrollbar-track{background:transparent}
 .logo i svg,.lg2 i svg{width:21px!important;height:21px!important}
 .logo .aip,.lg2 .aip{font-style:normal;font-family:var(--fh);font-size:.52em;font-weight:600;color:#fff;background:var(--grad);border-radius:99px;padding:2px 6px;margin-left:5px;vertical-align:.55em;letter-spacing:0;box-shadow:0 0 12px rgba(47,107,255,.55)}
 
+/* ================= GAPI ================= */
+.gapi{position:fixed;right:22px;bottom:22px;z-index:90;width:76px;height:76px;padding:0;border-radius:26px;cursor:pointer;filter:drop-shadow(0 10px 24px rgba(27,69,230,.55));animation:gpf 3.6s ease-in-out infinite;transition:transform .25s}
+.gapi svg{width:100%;height:100%;overflow:visible}
+.gapi:hover{transform:scale(1.08)}
+.gapi.open{animation:none;transform:scale(.92)}
+@keyframes gpf{0%,100%{translate:0 0}50%{translate:0 -7px}}
+.gapi .gp-head{transition:transform .12s linear;transform-origin:60px 70px}
+.gapi .gp-ball{animation:gpb 2s ease-in-out infinite}
+@keyframes gpb{50%{filter:drop-shadow(0 0 6px #9cc0ff)}}
+.gapi svg .gp-eh,.gapi svg .gp-ew,.gp-av svg .gp-eh,.gp-av svg .gp-ew{display:none}
+.gapi svg[data-face=happy] .gp-eo,.gapi svg[data-face=wink] .gp-eo{display:none}
+.gapi svg[data-face=happy] .gp-eh{display:inline}
+.gapi svg[data-face=wink] .gp-ew{display:inline}
+.gapi .gp-blink{transform-origin:60px 60px;transition:transform .08s}
+.gapi svg.bl .gp-blink{transform:scaleY(.12)}
+.gapi.dance{animation:gpd .55s ease-in-out infinite}
+@keyframes gpd{0%{transform:rotate(-10deg) translateY(0)}25%{transform:rotate(0) translateY(-10px)}50%{transform:rotate(10deg) translateY(0)}75%{transform:rotate(0) translateY(-6px)}100%{transform:rotate(-10deg) translateY(0)}}
+.gp-talk{transform-box:fill-box;transform-origin:center;animation:gpt .22s ease-in-out infinite alternate}
+@keyframes gpt{to{transform:scaleY(.35)}}
+.gp-note{position:absolute;bottom:70%;font-size:18px;color:#9fd0ff;font-weight:700;pointer-events:none;text-shadow:0 0 10px #3d7bff;animation:gpn 1.6s ease-out forwards}
+@keyframes gpn{from{opacity:0;transform:translateY(0) scale(.6)}20%{opacity:1}to{opacity:0;transform:translate(14px,-60px) rotate(20deg) scale(1.1)}}
+.gp-tip{position:fixed;right:108px;bottom:44px;z-index:90;background:#fff;color:#0b1230;font-family:var(--fb);font-size:14px;font-weight:600;padding:11px 15px;border-radius:16px 16px 4px 16px;box-shadow:0 14px 34px rgba(0,0,0,.35);cursor:pointer;animation:gpi .5s cubic-bezier(.2,.9,.3,1.4) both}
+@keyframes gpi{from{opacity:0;transform:translateX(16px) scale(.8)}}
+.gp-panel{position:fixed;right:22px;bottom:112px;z-index:91;width:min(370px,calc(100vw - 32px));height:min(520px,calc(100vh - 140px));display:flex;flex-direction:column;border-radius:24px;border:1px solid rgba(130,165,255,.3);background:linear-gradient(180deg,rgba(16,26,62,.97),rgba(5,9,26,.98));backdrop-filter:blur(18px);box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 50px rgba(47,107,255,.25);color:#eef2ff;font-family:var(--fb);opacity:0;transform:translateY(16px) scale(.96);transform-origin:bottom right;pointer-events:none;transition:.28s cubic-bezier(.2,.8,.2,1)}
+.gp-panel.on{opacity:1;transform:none;pointer-events:auto}
+.gp-h{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(130,165,255,.15)}
+.gp-h>div{flex:1}.gp-h b{display:block;font-family:var(--fh);font-weight:500;font-size:16px}
+.gp-h small{display:flex;align-items:center;gap:6px;font-size:12px;color:#8e9cc7;font-weight:600}
+.gp-h small i{width:7px;height:7px;border-radius:50%;background:#34d399;box-shadow:0 0 8px #34d399}
+.gp-av{width:42px;height:42px;flex:none}.gp-av svg{width:100%;height:100%}
+.gp-x{width:32px;height:32px;border-radius:10px;color:#a9b7df;font-size:14px}.gp-x:hover{background:rgba(255,255,255,.08);color:#fff}
+.gp-log{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.gp-m{max-width:85%;padding:10px 13px;border-radius:16px;font-size:14px;line-height:1.5;font-weight:500;white-space:pre-wrap;word-wrap:break-word;animation:su .3s both}
+.gp-m.a{align-self:flex-start;background:rgba(255,255,255,.07);border:1px solid rgba(130,165,255,.15);border-bottom-left-radius:5px}
+.gp-m.u{align-self:flex-end;background:var(--grad);color:#fff;border-bottom-right-radius:5px}
+.gp-m.typing{display:flex;gap:4px;padding:13px 14px}
+.gp-m.typing i{width:7px;height:7px;border-radius:50%;background:#8fb0ff;animation:gpy 1s infinite}
+.gp-m.typing i:nth-child(2){animation-delay:.15s}.gp-m.typing i:nth-child(3){animation-delay:.3s}
+@keyframes gpy{0%,60%,100%{opacity:.3;transform:none}30%{opacity:1;transform:translateY(-4px)}}
+.gp-chips{display:flex;gap:6px;overflow:auto;padding:0 14px 10px;scrollbar-width:none}
+.gp-chips button{flex:none;border:1px solid rgba(130,165,255,.3);background:rgba(47,107,255,.12);color:#cfe0ff;border-radius:99px;padding:6px 12px;font-size:12.5px;font-weight:600}
+.gp-chips button:hover{background:rgba(47,107,255,.3)}
+.gp-f{display:flex;gap:8px;padding:12px 14px;border-top:1px solid rgba(130,165,255,.15)}
+.gp-f input{flex:1;min-width:0;border:1px solid rgba(130,165,255,.2);background:rgba(255,255,255,.05);border-radius:99px;padding:11px 15px;color:#fff;font:inherit;font-size:14px;outline:0}
+.gp-f input:focus{border-color:#5b8cff;box-shadow:0 0 0 3px rgba(47,107,255,.2)}
+.gp-f button{width:42px;height:42px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;flex:none;box-shadow:0 0 16px rgba(47,107,255,.6)}
+.gp-f button svg{width:18px;height:18px}
+body[data-page=tts] .gapi{right:404px;bottom:92px;width:62px;height:62px}
+body[data-page=tts] .gp-panel{right:404px;bottom:166px}
+@media(max-width:1020px){body[data-page=tts] .gapi{right:14px}body[data-page=tts] .gp-panel{right:16px}}
+@media(max-width:900px){.gapi{width:62px;height:62px;right:14px;bottom:14px}.gp-panel{right:16px;bottom:88px}.gp-tip{right:86px;bottom:30px}}
+@media(prefers-reduced-motion:reduce){.gapi,.gapi.dance{animation:none!important}}
+
 @media(prefers-reduced-motion:reduce){
   *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   .w,.lead,.hero-form,.proof,.dashwrap{opacity:1!important;transform:none!important;filter:none!important}
@@ -1862,8 +1915,9 @@ const PAGES = {
     $("#go").onclick = async () => {
       if(BUSY) return; const go = $("#go"), out = $("#out");
       out.innerHTML = ""; BUSY = true; go.disabled = true; const old = go.innerHTML; go.innerHTML = '<span class="spin"></span> Yaratilmoqda...';
+      Gapi.dance();
       const r = await synth(blocks, (i,n) => { const pg = $("#pg"); if(pg) pg.innerHTML = `<span class="eq">${eqBars(7,.1)}</span>${n>1?`Bo'lak ${i+1} / ${n}...`:"Ovoz tayyorlanmoqda..."}`; });
-      BUSY = false; if(!$("#go")) return;
+      BUSY = false; r.ok ? Gapi.happy() : Gapi.sad(); if(!$("#go")) return;
       go.disabled = false; go.innerHTML = old; $("#pg").textContent = "";
       if(!r.ok){ if(r.error) out.innerHTML = `<div class="msg err">${esc(r.error)}</div>`; return; }
       const txt = blocks.filter(b=>b.text.trim()).map(b=>blocks.length>1?`${b.voice}: ${b.text.trim()}`:b.text.trim()).join("\n");
@@ -2340,6 +2394,7 @@ function route(){
   if(ref){ try{ localStorage.setItem("ovoz_ref", ref); }catch(e){} }
   const isApp = h.startsWith("/app") || h==="/studio";
   document.body.classList.toggle("light", isApp);
+  document.body.dataset.page = isApp ? (h.split("/")[2] || "home") : "site";
   window.scrollTo(0,0);
   const app = $("#app");
   if(isApp){
@@ -2355,7 +2410,166 @@ function route(){
   app.innerHTML = landing(); bindNav(); bindLanding(); bindFx();
 }
 window.addEventListener("hashchange", route);
+
+/* ============================================================
+   GAPI — jonli yordamchi (maskot + chat)
+   ============================================================ */
+const Gapi = (() => {
+  const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const cid = (() => { try{ let c = localStorage.getItem("gapi_cid"); if(!c){ c = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem("gapi_cid", c); } return c; }catch(e){ return "anon" + Date.now(); } })();
+  let el, svg, eyes, panel, log, inp, open = false, busy = false, mood = "smile", moodT = 0, hist = [];
+  const MOUTH = {
+    smile: '<path d="M53 73 Q60 79 67 73" fill="none" stroke="#e5486b" stroke-width="3.2" stroke-linecap="round"/>',
+    laugh: '<path d="M52 71 Q60 83 68 71 Z" fill="#e5486b"/><path d="M55.5 76 Q60 79.5 64.5 76" fill="#ff9db1"/>',
+    sad:   '<path d="M53 77 Q60 71 67 77" fill="none" stroke="#e5486b" stroke-width="3.2" stroke-linecap="round"/>',
+    oh:    '<ellipse cx="60" cy="75" rx="3.4" ry="4.2" fill="#e5486b"/>',
+    talk:  '<ellipse class="gp-talk" cx="60" cy="74" rx="5" ry="3.5" fill="#e5486b"/>'
+  };
+  const FACE = {smile:"o", laugh:"happy", happy:"happy", sad:"o", oh:"o", talk:"o", dance:"happy", listen:"o", wink:"wink"};
+  const MOUTHOF = {smile:"smile", laugh:"laugh", happy:"smile", sad:"sad", oh:"oh", talk:"talk", dance:"laugh", listen:"smile", wink:"smile"};
+
+  function svgHTML(){
+    return `<svg viewBox="0 0 120 120" aria-hidden="true">
+      <defs>
+        <linearGradient id="gpBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b93ff"/><stop offset=".55" stop-color="#2f6bff"/><stop offset="1" stop-color="#1b45e6"/></linearGradient>
+        <radialGradient id="gpHead" cx=".38" cy=".28" r=".9"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#eef3ff"/><stop offset="1" stop-color="#c9d9ff"/></radialGradient>
+        <radialGradient id="gpBall" cx=".35" cy=".35" r=".7"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#9cc0ff"/></radialGradient>
+      </defs>
+      <rect x="6" y="8" width="108" height="106" rx="36" fill="url(#gpBg)"/>
+      <path d="M20 22 Q40 10 70 12" stroke="#fff" stroke-opacity=".35" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="60" cy="104" rx="26" ry="4" fill="#0b1e6b" opacity=".35"/>
+      <g class="gp-head">
+        <line x1="60" y1="34" x2="60" y2="21" stroke="#dfe8ff" stroke-width="3" stroke-linecap="round"/>
+        <circle class="gp-ball" cx="60" cy="18" r="5.5" fill="url(#gpBall)"/>
+        <rect x="25" y="32" width="70" height="62" rx="27" fill="url(#gpHead)"/>
+        <path d="M42 90 L36 101 L54 92 Z" fill="#dbe6ff"/>
+        <ellipse cx="41" cy="72" rx="6" ry="3.6" fill="#ff8fb1" opacity=".55"/>
+        <ellipse cx="79" cy="72" rx="6" ry="3.6" fill="#ff8fb1" opacity=".55"/>
+        <g class="gp-eyes">
+          <g class="gp-eo"><g class="gp-blink"><ellipse cx="48" cy="60" rx="4.6" ry="6.4" fill="#0b1230"/><ellipse cx="72" cy="60" rx="4.6" ry="6.4" fill="#0b1230"/>
+            <circle cx="49.6" cy="57.6" r="1.7" fill="#fff"/><circle cx="73.6" cy="57.6" r="1.7" fill="#fff"/></g></g>
+          <g class="gp-eh"><path d="M43 62 L48 56.5 L53 62" fill="none" stroke="#0b1230" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M67 62 L72 56.5 L77 62" fill="none" stroke="#0b1230" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></g>
+          <g class="gp-ew"><ellipse cx="48" cy="60" rx="4.6" ry="6.4" fill="#0b1230"/><circle cx="49.6" cy="57.6" r="1.7" fill="#fff"/>
+            <path d="M67 61 Q72 57 77 61" fill="none" stroke="#0b1230" stroke-width="3.2" stroke-linecap="round"/></g>
+        </g>
+        <g class="gp-mouth">${MOUTH.smile}</g>
+      </g>
+    </svg>`;
+  }
+
+  function setMood(m, ms){
+    mood = m; clearTimeout(moodT);
+    if(!el) return;
+    el.dataset.mood = m;
+    svg.dataset.face = FACE[m] || "o";
+    svg.querySelector(".gp-mouth").innerHTML = MOUTH[MOUTHOF[m] || "smile"];
+    el.classList.toggle("dance", m === "dance");
+    if(ms) moodT = setTimeout(() => setMood(open ? "listen" : "smile"), ms);
+  }
+
+  function blink(){
+    if(!el) return;
+    if(svg.dataset.face === "o"){ svg.classList.add("bl"); setTimeout(() => svg.classList.remove("bl"), 160); }
+    setTimeout(blink, 2200 + Math.random()*3200);
+  }
+
+  let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0;
+  function look(x, y){
+    if(!el || RM) return;
+    const r = el.getBoundingClientRect(), mx = r.left + r.width/2, my = r.top + r.height*0.52;
+    const dx = x - mx, dy = y - my, d = Math.hypot(dx, dy) || 1, k = Math.min(1, d/220);
+    tx = dx/d*4.2*k; ty = dy/d*3.4*k;
+    if(!raf) raf = requestAnimationFrame(step);
+  }
+  function step(){
+    cx += (tx - cx)*0.25; cy += (ty - cy)*0.25;
+    eyes.setAttribute("transform", `translate(${cx.toFixed(2)} ${cy.toFixed(2)})`);
+    svg.querySelector(".gp-head").style.transform = `translate(${(cx*0.35).toFixed(2)}px,${(cy*0.25).toFixed(2)}px)`;
+    raf = (Math.abs(tx-cx) > .05 || Math.abs(ty-cy) > .05) ? requestAnimationFrame(step) : 0;
+  }
+
+  function notes(){
+    if(RM || !el) return;
+    for(let i=0;i<3;i++) setTimeout(() => {
+      const n = document.createElement("span"); n.className = "gp-note"; n.textContent = ["♪","♫","♬"][i%3];
+      n.style.left = (20 + Math.random()*50) + "%"; el.append(n); setTimeout(() => n.remove(), 1600);
+    }, i*260);
+  }
+
+  function addMsg(r, t){
+    const d = document.createElement("div"); d.className = "gp-m " + (r === "u" ? "u" : "a");
+    d.textContent = t; log.append(d); log.scrollTop = log.scrollHeight; return d;
+  }
+
+  function facts(){
+    try{ return CONFIG.PLANS.map(p => `${p.name}: ${p.price}${p.per} — ${p.daily}`).join("; "); }catch(e){ return ""; }
+  }
+
+  async function send(t){
+    t = (t || inp.value).trim(); if(!t || busy) return;
+    inp.value = ""; addMsg("u", t);
+    busy = true; setMood("dance"); notes();
+    const nt = setInterval(notes, 900);
+    const typing = addMsg("a", ""); typing.classList.add("typing"); typing.innerHTML = "<i></i><i></i><i></i>";
+    const r = await api("chat", {cid, text: t, history: hist.slice(-8), facts: facts()});
+    clearInterval(nt); busy = false; typing.remove();
+    if(!r.ok){ addMsg("a", r.error || "Hozir javob bera olmayman 😔"); setMood("sad", 2600); return; }
+    hist.push({r:"u", t}, {r:"a", t:r.text}); hist = hist.slice(-12);
+    const m = addMsg("a", "");
+    setMood("talk");
+    let i = 0; const w = r.text;
+    const tick = () => { i = Math.min(w.length, i + 2); m.textContent = w.slice(0, i); log.scrollTop = log.scrollHeight;
+      if(i < w.length) setTimeout(tick, 14); else setMood("happy", 2200); };
+    tick();
+  }
+
+  function toggle(v){
+    open = v == null ? !open : v;
+    panel.classList.toggle("on", open); el.classList.toggle("open", open);
+    const tip = document.querySelector(".gp-tip"); if(tip) tip.remove();
+    if(open){ setMood("laugh", 1400); setTimeout(() => inp.focus(), 250); }
+    else setMood("smile");
+  }
+
+  function mount(){
+    if(el) return;
+    el = document.createElement("button"); el.className = "gapi"; el.setAttribute("aria-label", "Gapi yordamchisi bilan suhbat");
+    el.innerHTML = svgHTML(); document.body.append(el);
+    svg = el.querySelector("svg"); eyes = svg.querySelector(".gp-eyes"); svg.dataset.face = "o";
+    panel = document.createElement("div"); panel.className = "gp-panel"; panel.setAttribute("role","dialog"); panel.setAttribute("aria-label","Gapi yordamchisi");
+    panel.innerHTML = `<div class="gp-h"><span class="gp-av">${svgHTML()}</span><div><b>Gapi</b><small><i></i> Gapir AI yordamchisi</small></div>
+        <button class="gp-x" aria-label="Yopish">✕</button></div>
+      <div class="gp-log" id="gpLog"></div>
+      <div class="gp-chips">${["Qanday ishlaydi?","Tariflar qanaqa?","O'zbekcha gapiradimi?","Bepul limit qancha?"].map(c=>`<button>${c}</button>`).join("")}</div>
+      <form class="gp-f"><input placeholder="Gapiga yozing..." maxlength="600" aria-label="Xabar"><button aria-label="Yuborish"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button></form>`;
+    document.body.append(panel);
+    panel.querySelector(".gp-av svg").querySelectorAll("[id]").forEach(n => n.id += "2");
+    panel.querySelector(".gp-av svg").innerHTML = panel.querySelector(".gp-av svg").innerHTML.replace(/url\(#(gp\w+)\)/g, "url(#$12)");
+    log = panel.querySelector(".gp-log"); inp = panel.querySelector("input");
+    addMsg("a", "Salom! Men Gapi 👋 Gapir AI haqida istalgan savolingizga javob beraman. Nimani bilmoqchisiz?");
+    el.onclick = () => toggle();
+    panel.querySelector(".gp-x").onclick = () => toggle(false);
+    panel.querySelector(".gp-f").onsubmit = e => { e.preventDefault(); send(); };
+    panel.querySelector(".gp-chips").onclick = e => { const b = e.target.closest("button"); if(b) send(b.textContent); };
+    inp.addEventListener("input", () => { if(!busy && mood !== "talk") setMood(inp.value ? "listen" : "smile"); });
+    inp.addEventListener("focus", () => { const r = inp.getBoundingClientRect(); look(r.left + 40, r.top); });
+    document.addEventListener("keydown", e => { if(e.key === "Escape" && open) toggle(false); });
+    el.addEventListener("mouseenter", () => { if(!busy && !open) setMood("happy"); });
+    el.addEventListener("mouseleave", () => { if(!busy && !open) setMood("smile"); });
+    document.addEventListener("mousemove", e => look(e.clientX, e.clientY), {passive:true});
+    setTimeout(blink, 1800);
+    setTimeout(() => { if(!open && el && !document.body.classList.contains("light") && !sessionStorage.getItem("gp_tip")){
+      const t = document.createElement("div"); t.className = "gp-tip"; t.innerHTML = "Salom! Men <b>Gapi</b> 👋 Savolingiz bormi?";
+      t.onclick = () => toggle(true); document.body.append(t); try{ sessionStorage.setItem("gp_tip","1"); }catch(e){}
+      setMood("wink", 1200); setTimeout(() => t.remove(), 9000); } }, 4000);
+  }
+
+  return {mount, mood: setMood, dance(){ setMood("dance"); notes(); }, happy(){ setMood("laugh", 2200); }, sad(){ setMood("sad", 2600); }};
+})();
+
 route();
+Gapi.mount();
 
 </script>
 </body>
