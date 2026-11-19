@@ -1,0 +1,76 @@
+name: Build APK
+run-name: APK ${{ github.event.client_payload.id || inputs.id || 'push' }}
+
+on:
+  push:
+    branches: [main]
+    paths: ['apps/*/meta.json']
+  repository_dispatch:
+    types: [build-apk]
+  workflow_dispatch:
+    inputs:
+      id:
+        description: 'Ilova id (apps/<id>)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Ilovani aniqlash
+        id: app
+        env:
+          PAYLOAD_ID: ${{ github.event.client_payload.id || inputs.id }}
+        run: |
+          python3 - <<'PY'
+          import os, re, json, subprocess, html
+          pid = os.environ.get('PAYLOAD_ID') or ''
+          if not pid:
+              out = subprocess.run(['git', 'diff', '--name-only', 'HEAD~1', 'HEAD'], capture_output=True, text=True).stdout
+              ids = re.findall(r'^apps/([a-z0-9]+)/meta\.json$', out, re.M)
+              pid = ids[-1] if ids else ''
+          if not re.fullmatch(r'a[0-9a-z]{6,40}', pid):
+              raise SystemExit('Noto\'g\'ri id: ' + pid)
+          meta = json.load(open(f'apps/{pid}/meta.json', encoding='utf-8'))
+          name = str(meta.get('name') or 'Mening ilovam')[:30]
+          # Android satri uchun xavfsiz ko'rinish
+          safe = html.escape(name).replace("'", "\\'").replace('"', '\\"').replace('@', '\\@').replace('?', '\\?')
+          open('android-template/app/src/main/res/values/strings.xml', 'w', encoding='utf-8').write(
+              '<?xml version="1.0" encoding="utf-8"?>\n<resources><string name="app_name">' + safe + '</string></resources>\n')
+          import shutil
+          shutil.copy(f'apps/{pid}/index.html', 'android-template/app/src/main/assets/index.html')
+          file = re.sub(r'[^A-Za-z0-9]+', '-', name).strip('-') or 'ilova'
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f'id={pid}\nfile={file}\n')
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              f.write('APP_NAME<<EOF_NAME\n' + name + '\nEOF_NAME\n')
+          PY
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: APK yig'ish
+        run: gradle -p android-template assembleRelease -PappId=uz.gapir.${{ steps.app.outputs.id }} --no-daemon
+
+      - name: Yuklab olishga qo'yish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ID: ${{ steps.app.outputs.id }}
+          FILE: ${{ steps.app.outputs.file }}
+        run: |
+          cp android-template/app/build/outputs/apk/release/app-release.apk "$FILE.apk"
+          gh release create "app-$ID" "$FILE.apk" --title "$APP_NAME" --notes "Gapir AI yaratgan ilova ($ID)" --repo "$GITHUB_REPOSITORY"
