@@ -663,7 +663,7 @@ function adminStats_() {
       const d = dayOf_(r[0]); if (!(d in idx)) return;
       const i = idx[d], ok = r[4] === true || r[4] === 'TRUE', note = String(r[5] || '');
       reqs[i]++; if (!ok) errs[i]++; else chars[i] += Number(r[2]) || 0;
-      if (d === today) { const k = note.indexOf('stt') === 0 ? 'stt' : note.indexOf('translate') === 0 ? 'translate' : 'tts'; kinds[k]++; }
+      if (d === today && note.indexOf('chat') !== 0) { const k = note.indexOf('stt') === 0 ? 'stt' : note.indexOf('translate') === 0 ? 'translate' : 'tts'; kinds[k]++; }
     });
   }
   const top = users.filter(function (u) { return u.day === today && Number(u.usedToday) > 0; })
@@ -711,8 +711,8 @@ function adminLogs_(req) {
   const map = {}; allUsers_().forEach(function (u) { map[u.id] = { name: u.name, phone: u.phone }; });
   const logs = lg.getRange(from, 1, last - from + 1, LOG_HEADERS.length).getValues().reverse().map(function (r) {
     const note = String(r[5] || ''), ok = r[4] === true || r[4] === 'TRUE', u = map[r[1]] || {};
-    return { time: String(r[0]), name: u.name || '—', phone: u.phone || '', chars: Number(r[2]) || 0, model: String(r[3] || ''), ok: ok,
-      kind: note.indexOf('stt') === 0 ? 'stt' : note.indexOf('translate') === 0 ? 'translate' : 'tts',
+    return { time: String(r[0]), name: u.name || (r[1] === 'gapi' ? 'Gapi yordamchi' : '—'), phone: u.phone || '', chars: Number(r[2]) || 0, model: String(r[3] || ''), ok: ok,
+      kind: note.indexOf('stt') === 0 ? 'stt' : note.indexOf('translate') === 0 ? 'translate' : note.indexOf('chat') === 0 ? 'chat' : 'tts',
       note: ok ? '' : note.replace(/^(stt|translate)\s*/, '').slice(0, 200) };
   });
   return { ok: true, logs: logs };
@@ -889,7 +889,10 @@ function chat_(req) {
   });
   while (hist.length && hist[0].role !== 'user') hist.shift();   // Gemini: suhbat foydalanuvchidan boshlanadi
   const r = callText_([{ text: text }], sys, hist, { chat: true });
-  if (!r.ok) return { ok: false, error: r.userError || "Hozir javob bera olmayman, birozdan keyin urinib ko'ring." };
+  if (!r.ok) {
+    try { log_('gapi', 0, r.model || '', false, 'chat (' + (String(PropertiesService.getScriptProperties().getProperty('CHAT_API_KEY') || '').trim() ? 'CHAT_API_KEY' : 'GEMINI_API_KEY') + '): ' + String(r.error).slice(0, 250)); } catch (e) {}
+    return { ok: false, error: r.userError || "Hozir javob bera olmayman, birozdan keyin urinib ko'ring." };
+  }
   return { ok: true, text: r.text.slice(0, 1500) };
 }
 

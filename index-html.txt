@@ -2414,7 +2414,7 @@ const ADMIN = {
   async logs(b){
     const r = await aapi("logs", {limit:400}); if(!r.ok) return b.innerHTML = `<div class="msg err">${esc(apiFail(r).error||"Xatolik")}</div>`;
     const all = r.logs; let f = "";
-    const KN = {tts:["Nutq",IC.wave], stt:["Matnga",IC.text], translate:["Tarjima",IC.trans]};
+    const KN = {tts:["Nutq",IC.wave], stt:["Matnga",IC.text], translate:["Tarjima",IC.trans], chat:["Gapi",IC.chat]};
     b.innerHTML = `<div class="chips4" id="lf">${[["","Hammasi"],["err","Faqat xatolar"],["tts","Nutq"],["stt","Matnga"],["translate","Tarjima"]].map(c=>`<button class="tchip ${c[0]===f?"on":""}" data-f="${c[0]}">${c[1]}</button>`).join("")}</div>
       <p class="note">Oxirgi ${fmt(all.length)} ta yozuv. Xato bo'lsa, Google'ning javobi «Izoh» ustunida.</p><div class="ltbl" id="ll"></div>`;
     const draw = () => {
