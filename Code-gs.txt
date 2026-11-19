@@ -17,13 +17,13 @@ const CFG = {
   TZ: 'Asia/Tashkent',
   SITE_URL: 'https://xusniddin-del.github.io/OvozAI-baza/', // bot xabarlaridagi sayt havolasi
   // Kunlik belgi limiti (tarif bo'yicha). Foydalanuvchi tarifini Users varag'idan o'zgartirasiz.
-  PLANS: { free: 3000, pro: 50000, business: 200000 },
+  PLANS: { free: 1000, pro: 10000, max: 30000, business: 80000 }, // kunlik belgi limiti
   MAX_CHARS_PER_REQUEST: 1200,
   SESSION_DAYS: 30,
   MIN_PASSWORD: 6,
   HASH_ROUNDS: 300,
   MAX_FAILS: 8, // 15 daqiqada noto'g'ri parol urinishlari
-  PRICES: { pro: 49000, business: 199000 }, // so'm / oy (admin paneldan o'zgartiriladi)
+  PRICES: { pro: 49000, max: 99000, business: 199000 }, // so'm / oy (admin paneldan o'zgartiriladi)
   YEAR_DISCOUNT: 20,                        // yillik to'lovda chegirma, %
   TC_API: 'https://api.tezcheck.uz/api/merchant/v1',
   REF_BONUS: 1000, // har bir taklif qilingan do'st uchun kunlik limitga qo'shiladigan belgi
@@ -589,7 +589,12 @@ let SET_CACHE = null;
 function set_() {
   if (SET_CACHE) return SET_CACHE;
   let s = {};
-  try { s = JSON.parse(PropertiesService.getScriptProperties().getProperty('SETTINGS') || '{}'); } catch (e) { s = {}; }
+  const P = PropertiesService.getScriptProperties();
+  try { s = JSON.parse(P.getProperty('SETTINGS') || '{}'); } catch (e) { s = {}; }
+  if (!P.getProperty('PLANS_V2')) {   // bir martalik: 4 tarifga o'tish — yangi limit va narxlar
+    s.plans = Object.assign({}, CFG.PLANS); s.prices = Object.assign({}, CFG.PRICES);
+    P.setProperty('SETTINGS', JSON.stringify(s)); P.setProperty('PLANS_V2', '1');
+  }
   const plans = Object.assign({}, CFG.PLANS, s.plans || {});
   return SET_CACHE = {
     plans: plans,
@@ -936,7 +941,7 @@ function payCreate_(req) {
   const amount = priceOf_(plan, months);
   if (!amount) return { ok: false, error: "Noto'g'ri tarif" };
   const ref = 'gp-' + String(auth.user.id).slice(0, 8) + '-' + Date.now();
-  const names = { pro: 'Pro', business: 'Biznes' };
+  const names = { pro: 'Pro', max: 'Max', business: 'Biznes' };
   const r = tcCall_('/bills', {
     amount_minor: amount * 100,
     title: 'Gapir AI — ' + (names[plan] || plan) + ' tarifi (' + (months === 12 ? '1 yil' : '1 oy') + ')',
