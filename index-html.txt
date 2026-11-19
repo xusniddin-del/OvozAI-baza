@@ -1724,12 +1724,19 @@ function videoThumb(u){ return new Promise(res => { const v = document.createEle
   v.onseeked = () => { try{ const c = document.createElement("canvas"); c.width = 280; c.height = Math.round(280*v.videoHeight/v.videoWidth)||280; c.getContext("2d").drawImage(v,0,0,c.width,c.height); res(c.toDataURL("image/jpeg",.8)); }catch(e){ res(""); } };
   v.onerror = () => res(""); setTimeout(() => res(""), 4000); }); }
 /** Uzoq ishlar (video, sayt): chipta oladi va Worker orqali bajaradi */
-async function studioRun(kind, body){
+async function studioRun(kind, body, onChunk){
   const t = await api("ticket", {kind});
   if(!t.ok){ const f = apiFail(t); return {ok:false, error:f.error||"Xatolik", upgrade:t.upgrade}; }
   try{
     const r = await fetch(t.worker.replace(/\/+$/,"") + (kind==="vid" ? "/ai/video" : "/ai/site"), {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ticket:t.ticket, ...body})});
-    const j = await r.json(); if(j.ok){ j.used = t.used; j.limit = t.limit; } return j;
+    if(/json/.test(r.headers.get("content-type")||"")){ const j = await r.json(); if(j.ok){ j.used = t.used; j.limit = t.limit; } return j; }
+    // jonli oqim: kod yozilayotganini ko'rsatib boramiz
+    const rd = r.body.getReader(), dec = new TextDecoder(); let all = "";
+    for(;;){ const {value, done} = await rd.read(); if(done) break; all += dec.decode(value, {stream:true}); if(onChunk) onChunk(all); }
+    if(all.includes("[[GAPIR_ERROR]]")) return {ok:false, error:"Sayt yaratilmadi — birozdan keyin qayta urinib ko'ring."};
+    const m = all.match(/```(?:html)?\s*([\s\S]*?)(```|$)/i), html = (m ? m[1] : all).trim();
+    if(!/<html|<!doctype/i.test(html)) return {ok:false, error:"Sayt to'liq chiqmadi — qayta urinib ko'ring."};
+    return {ok:true, html, used:t.used, limit:t.limit};
   }catch(e){ return {ok:false, error:"Internet aloqasi uzildi. Qayta urinib ko'ring."}; }
 }
 
@@ -1814,7 +1821,13 @@ function builderPage(kind){
     $("#pv").innerHTML = `<div class="stage"><div class="genw"><span class="ring2"></span>${html ? "O'zgartirilmoqda..." : (app ? "Ilova yasalmoqda..." : "Sayt yasalmoqda...")}<small id="tm">0:00 · odatda 30–90 soniya</small></div></div>`;
     const tick = setInterval(() => { const s = Math.round((Date.now()-t0)/1000); if($("#tm")) $("#tm").textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")} · odatda 30–90 soniya`; }, 1000);
     const full = (name ? (app ? "Ilova nomi: " : "Sayt nomi: ") + name + ". " : "") + prompt;
-    const r = await studioRun("site", {prompt: full, mode: app ? "app" : "web", html});
+    let shown = false;
+    const r = await studioRun("site", {prompt: full, mode: app ? "app" : "web", html}, all => {
+      const lines = all.split("\n").length;
+      if(!shown && $("#pv")){ shown = true; $("#pv").innerHTML = `<div class="stage" style="place-items:stretch"><div style="display:flex;flex-direction:column;gap:10px;width:100%"><div class="quota2"><span class="spin"></span> <b id="lc">0</b>&nbsp;qator kod yozildi · <span id="tm">0:00</span></div><pre id="code" style="margin:0;height:380px;overflow:hidden;padding:14px;border-radius:14px;background:#050a1f;border:1px solid var(--ln);color:#9cc0ff;font:12px/1.5 ui-monospace,Menlo,monospace;white-space:pre-wrap;word-break:break-all"></pre></div></div>`; }
+      if($("#lc")) $("#lc").textContent = fmt(lines);
+      if($("#code")) $("#code").textContent = all.slice(-2600);
+    });
     clearInterval(tick); busy = false; if(!$("#go")) return;
     if(!r.ok){ go.disabled = false; draw(); toast(r.error||"Xatolik"); if(r.upgrade) location.hash = "#/app/plans"; return; }
     const first = !html; html = r.html; if(app && apk) apk = null; save();
