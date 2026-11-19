@@ -329,29 +329,48 @@ function translate_(req) {
   return { ok: true, text: r.text, used: reserve.used, limit: reserve.limit };
 }
 
-function callText_(parts, sys, history) {
-  const key = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+function callText_(parts, sys, history, opt) {
+  opt = opt || {};
+  const P = PropertiesService.getScriptProperties();
+  // Yordamchi (chat) uchun alohida kalit bo'lsa — o'shani ishlatadi, aks holda asosiy kalitni
+  const key = (opt.chat && String(P.getProperty('CHAT_API_KEY') || '').trim()) || P.getProperty('GEMINI_API_KEY');
   if (!key) return { ok: false, error: 'no key', userError: "Server sozlanmagan (API kalit yo'q)" };
+  const cache = CacheService.getScriptCache(), tag = opt.chat ? 'c' : 'm';
   let lastErr = '', userError = '', model = '';
-  for (let i = 0; i < CFG.TEXT_MODELS.length; i++) {
-    model = CFG.TEXT_MODELS[i];
+  // Yaqinda band bo'lgan modellarni oxiriga suradi — har safar ularni kutib o'tirmaslik uchun
+  const models = CFG.TEXT_MODELS.filter(function (m) { return !cache.get('busy' + tag + m); })
+    .concat(CFG.TEXT_MODELS.filter(function (m) { return cache.get('busy' + tag + m); }));
+  for (let i = 0; i < models.length; i++) {
+    model = models[i];
+    const gen = sys ? { maxOutputTokens: opt.chat ? 450 : 600, temperature: 0.7 } : {};
+    // Chatda "o'ylash"ni kamaytiradi — javob tezroq keladi
+    const fast = opt.chat && !cache.get('nofast' + model);
+    if (fast) gen.thinkingConfig = /^gemini-2\./.test(model) ? { thinkingBudget: 0 } : { thinkingLevel: 'low' };
+    const body = { contents: (history || []).concat([{ role: 'user', parts: parts }]) };
+    if (sys) body.systemInstruction = { parts: [{ text: sys }] };
+    if (Object.keys(gen).length) body.generationConfig = gen;
     const resp = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent', {
       method: 'post', contentType: 'application/json', headers: { 'x-goog-api-key': key },
-      payload: JSON.stringify(Object.assign({ contents: (history || []).concat([{ role: 'user', parts: parts }]) },
-        sys ? { systemInstruction: { parts: [{ text: sys }] }, generationConfig: { maxOutputTokens: 600, temperature: 0.7 } } : {})), muteHttpExceptions: true
+      payload: JSON.stringify(body), muteHttpExceptions: true
     });
     const code = resp.getResponseCode(), raw = resp.getContentText();
     if (code === 200) {
       try {
         const ps = ((((JSON.parse(raw).candidates || [])[0] || {}).content || {}).parts) || [];
-        const text = ps.map(function (p) { return p.text || ''; }).join('').trim();
+        const text = ps.filter(function (p) { return !p.thought; }).map(function (p) { return p.text || ''; }).join('').trim();
         if (text) return { ok: true, text: text, model: model };
         lastErr = "Bo'sh javob";
       } catch (e) { lastErr = 'JSON xato'; }
       continue;
     }
     lastErr = code + ': ' + raw.slice(0, 300);
-    if (code === 429 || code === 503) { userError = "Hozir so'rovlar ko'p. Bir daqiqadan keyin urinib ko'ring."; continue; }
+    if (code === 400 && fast && /thinking/i.test(raw)) {    // model bu sozlamani bilmasa — usiz qayta urinadi
+      cache.put('nofast' + model, '1', 21600); i--; continue;
+    }
+    if (code === 429 || code === 503) {
+      cache.put('busy' + tag + model, '1', code === 429 ? 300 : 60);
+      userError = "Hozir so'rovlar ko'p. Bir daqiqadan keyin urinib ko'ring."; continue;
+    }
     if (code === 401 || code === 403) { userError = "Server API kaliti bilan muammo. Admin bilan bog'laning."; break; }
   }
   return { ok: false, error: lastErr, userError: userError, model: model };
@@ -869,7 +888,7 @@ function chat_(req) {
     return { role: m.r === 'u' ? 'user' : 'model', parts: [{ text: String(m.t || '').slice(0, 600) }] };
   });
   while (hist.length && hist[0].role !== 'user') hist.shift();   // Gemini: suhbat foydalanuvchidan boshlanadi
-  const r = callText_([{ text: text }], sys, hist);
+  const r = callText_([{ text: text }], sys, hist, { chat: true });
   if (!r.ok) return { ok: false, error: r.userError || "Hozir javob bera olmayman, birozdan keyin urinib ko'ring." };
   return { ok: true, text: r.text.slice(0, 1500) };
 }
