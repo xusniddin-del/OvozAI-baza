@@ -734,6 +734,21 @@ body.light ::-webkit-scrollbar-track{background:transparent}
 @media(max-width:1020px){.g3a{grid-template-columns:1fr}.lh2,.lr{grid-template-columns:100px minmax(0,1fr) 90px}.lh2 span:nth-child(n+4),.lr>span:nth-child(4),.lr>span:nth-child(5){display:none}.lr>span:nth-child(6){grid-column:3}}
 @media(max-width:900px){.tiles{grid-template-columns:1fr 1fr}.annc{margin:12px 16px 0}.uh{display:none}.ur{grid-template-columns:minmax(0,1fr) auto}.ur>span:nth-child(2),.ur>span:nth-child(3){display:none}.ust{grid-template-columns:1fr}}
 
+/* ---- Telegram tasdiqlash ---- */
+#asub svg{width:18px;height:18px}
+.fgt{display:block;text-align:right;font-size:13px;font-weight:600;color:#8fb0ff;margin:-4px 0 14px}
+.fgt:hover{color:#fff}
+.tgn{text-align:center;font-size:12.5px;color:var(--muted);margin-top:12px;font-weight:500}
+.tgw{display:flex;flex-direction:column;gap:14px;animation:fu .4s both}
+.tgi{width:62px;height:62px;border-radius:50%;margin:0 auto;display:grid;place-items:center;background:linear-gradient(135deg,#2aabee,#229ed9);color:#fff;box-shadow:0 0 34px rgba(42,171,238,.6);animation:ob 2.5s ease-in-out infinite}
+.tgi svg{width:30px;height:30px;margin-left:-3px}
+.tgw ol{padding-left:22px;display:grid;gap:9px;font-size:14px;color:#c3cfef;font-weight:500}
+.tgw ol b{color:#fff}
+.tgw .btn svg{width:18px;height:18px}
+.tgs{display:flex;align-items:center;justify-content:center;gap:10px;font-size:13.5px;color:#9fbaff;font-weight:600}
+.lnk2{color:var(--muted);font-size:13px;font-weight:600;text-decoration:underline}
+.msg.err a{color:#fff;text-decoration:underline}
+
 @media(prefers-reduced-motion:reduce){
   *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   .w,.lead,.hero-form,.proof,.dashwrap{opacity:1!important;transform:none!important;filter:none!important}
@@ -1013,20 +1028,33 @@ function landing(){
   <footer>© ${new Date().getFullYear()} ${CONFIG.BRAND}. Barcha huquqlar himoyalangan.</footer>`;
 }
 
+let BOT = (()=>{ try{ return sessionStorage.getItem("ovoz_bot"); }catch(e){ return null; } })();
+async function loadBot(){
+  const r = await api("cfg");
+  if(r.ok){ BOT = r.bot || ""; try{ sessionStorage.setItem("ovoz_bot", BOT); }catch(e){} }
+  return BOT;
+}
+const TG_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3l-3.2 15.2c-.2 1.1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.3 13.2l-4.8-1.5c-1-.3-1.1-1 .2-1.5l18.8-7.2c.9-.3 1.6.2 1.4 1.3z"/></svg>';
+
 function authPage(mode){
-  const reg = mode==="register";
+  const reg = mode==="register", rst = mode==="reset", useBot = !!BOT && (reg || rst);
+  const T = {login:["Xush kelibsiz","Akkauntingizga kiring.","Kirish"],
+    register:["Akkaunt yaratish","Bepul boshlang — kun davomida 3 000 belgi sovg'a.","Ro'yxatdan o'tish"],
+    reset:["Parolni tiklash","Raqamingizni Telegram orqali tasdiqlang va yangi parol qo'ying.","Parolni yangilash"]}[mode];
   return navHTML(false) + `<div class="auth"><div class="auth-box">
-    <h2>${reg?"Akkaunt yaratish":"Xush kelibsiz"}</h2>
-    <p class="sub">${reg?"Bepul boshlang — kun davomida 3 000 belgi sovg'a.":"Akkauntingizga kiring."}</p>
+    <h2>${T[0]}</h2><p class="sub">${T[1]}</p>
     ${CONFIG.API_URL?"":'<div class="msg warn">Sayt hali serverga ulanmagan: CONFIG.API_URL ni to\'ldiring.</div>'}
     <div id="amsg"></div>
     <form id="af" novalidate>
       ${reg?'<div class="f"><label>Ismingiz</label><input name="name" autocomplete="name" placeholder="Masalan, Xusniddin"></div>':""}
-      <div class="f"><label>Telefon raqam</label><div class="phf"><span>+998</span><input name="phone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="90 123 45 67" value="${esc(PREFILL)}"></div></div>
-      <div class="f"><label>Parol</label><div class="pw"><input name="password" type="password" autocomplete="${reg?"new-password":"current-password"}" placeholder="Kamida 6 belgi"><button type="button" id="tp">Ko'rsat</button></div></div>
-      <button class="btn btn-p" style="width:100%;padding:15px" id="asub">${reg?"Ro'yxatdan o'tish":"Kirish"}</button>
+      <div class="f" id="phw" ${useBot?"hidden":""}><label>Telefon raqam</label><div class="phf"><span>+998</span><input name="phone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="90 123 45 67" value="${esc(PREFILL)}"></div></div>
+      <div class="f"><label>${rst?"Yangi parol":"Parol"}</label><div class="pw"><input name="password" type="password" autocomplete="${mode==="login"?"current-password":"new-password"}" placeholder="Kamida 6 belgi"><button type="button" id="tp">Ko'rsat</button></div></div>
+      ${mode==="login"?'<a class="fgt" href="#/reset">Parolni unutdingizmi?</a>':""}
+      <button class="btn btn-p" style="width:100%;padding:15px" id="asub">${useBot?TG_ICON+" Telegram orqali tasdiqlash":T[2]}</button>
+      ${useBot?`<p class="tgn">Telefon raqamingiz Telegram'dan olinadi — qo'lda yozish shart emas.</p>`:""}
     </form>
-    <p class="alt">${reg?'Akkauntingiz bormi? <a href="#/login">Kirish</a>':'Akkaunt yo\'qmi? <a href="#/register">Ro\'yxatdan o\'tish</a>'}</p>
+    <div id="wait" hidden></div>
+    <p class="alt">${reg?'Akkauntingiz bormi? <a href="#/login">Kirish</a>':rst?'<a href="#/login">← Kirishga qaytish</a>':'Akkaunt yo\'qmi? <a href="#/register">Ro\'yxatdan o\'tish</a>'}</p>
   </div></div>`;
 }
 
@@ -1128,24 +1156,63 @@ function bindLanding(){
 
 function bindAuth(mode){
   const form = $("#af"), msg = $("#amsg"), btn = $("#asub");
+  const bad = t => { msg.innerHTML = `<div class="msg err">${t}</div>`; };
   bindPhoneMask(form.phone);
   $("#tp").onclick = e => { const i=form.password; i.type = i.type==="password"?"text":"password"; e.target.textContent = i.type==="password"?"Ko'rsat":"Yashir"; };
+  if(mode!=="login" && BOT===null) loadBot().then(b => { if(b && $("#af")===form){ $("#app").innerHTML = authPage(mode); bindNav(); bindAuth(mode); } });
+  if(mode==="reset" && BOT==="") bad("Parolni tiklash hozircha yoqilmagan. Admin bilan bog'laning.");
+  const finish = r => { store.token = r.token; USER = r.user; PREFILL = ""; location.hash = "#/app"; };
+
   form.onsubmit = async ev => {
     ev.preventDefault();
     const d = Object.fromEntries(new FormData(form));
-    const digits = (d.phone||"").replace(/\D/g,"");
-    d.phone = "998" + digits;
-    if(mode==="register") d.ref = getRef();
     msg.innerHTML = "";
-    const bad = t => { msg.innerHTML = `<div class="msg err">${esc(t)}</div>`; };
     if(mode==="register" && (d.name||"").trim().length<2) return bad("Ismingizni kiriting");
-    if(digits.length!==9) return bad("Telefon raqamni to'liq kiriting (9 ta raqam, masalan: 90 123 45 67)");
     if((d.password||"").length<6) return bad("Parol kamida 6 belgi bo'lsin");
-    btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Kuting...';
+    if(mode==="register") d.ref = getRef();
+
+    if(BOT && mode!=="login"){                       // Telegram orqali tasdiqlash
+      const a = new Uint8Array(20); crypto.getRandomValues(a);
+      const code = [...a].map(x=>"ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789"[x%57]).join("");
+      const link = `https://t.me/${BOT}?start=${mode==="register"?"r":"p"}_${code}`;
+      window.open(link, "_blank");
+      form.hidden = true;
+      const w = $("#wait"); w.hidden = false;
+      w.innerHTML = `<div class="tgw"><div class="tgi">${TG_ICON}</div>
+        <ol><li>Telegram'da <b>@${esc(BOT)}</b> boti ochildi — <b>Start</b>ni bosing</li><li><b>«📱 Raqamni ulashish»</b> tugmasini bosing</li><li>Shu sahifaga qayting — qolgani avtomatik</li></ol>
+        <a class="btn btn-p" style="width:100%;padding:14px" href="${link}" target="_blank" rel="noopener">${TG_ICON} Botni ochish</a>
+        <div class="tgs"><span class="spin"></span> Tasdiqlash kutilmoqda...</div>
+        <button class="lnk2" id="wcancel">Bekor qilish</button></div>`;
+      let done = false, t0 = Date.now();
+      const stop = () => { done = true; document.removeEventListener("visibilitychange", check); };
+      $("#wcancel").onclick = () => { stop(); w.hidden = true; form.hidden = false; };
+      const check = async () => {
+        if(done || !$("#wait")) return stop();
+        if(Date.now()-t0 > 14*60000){ stop(); w.hidden = true; form.hidden = false; return bad("Vaqt tugadi. Qaytadan urinib ko'ring."); }
+        const r = await api("vcheck", {code});
+        if(done || !r.ok || r.st==="wait") return;
+        stop();
+        if(r.st==="exists"){ w.hidden = true; form.hidden = false; return bad(`Bu raqam bilan avval ro'yxatdan o'tilgan. <a href="#/login">Kirish</a> yoki <a href="#/reset">parolni tiklash</a>.`); }
+        if(r.st==="none"){ w.hidden = true; form.hidden = false; return bad(`Bu raqam bilan akkaunt topilmadi. <a href="#/register">Ro'yxatdan o'ting</a>.`); }
+        $(".tgs").innerHTML = `<span class="spin"></span> ${fmtPhone(r.phone)} tasdiqlandi — kirilmoqda...`;
+        const r2 = await api(mode, Object.assign(d, {vcode: code}));
+        if(!r2.ok){ w.hidden = true; form.hidden = false; return bad(esc(r2.error || "Xatolik")); }
+        finish(r2);
+      };
+      every(check, 2500);
+      document.addEventListener("visibilitychange", check);
+      return;
+    }
+
+    if(mode==="reset") return bad("Parolni tiklash hozircha yoqilmagan. Admin bilan bog'laning.");
+    const digits = (d.phone||"").replace(/\D/g,"");
+    if(digits.length!==9) return bad("Telefon raqamni to'liq kiriting (9 ta raqam, masalan: 90 123 45 67)");
+    d.phone = "998" + digits;
+    btn.disabled = true; const old = btn.innerHTML; btn.innerHTML = '<span class="spin"></span> Kuting...';
     const r = await api(mode, d);
-    btn.disabled = false; btn.textContent = mode==="register"?"Ro'yxatdan o'tish":"Kirish";
-    if(!r.ok) return bad(r.error||"Xatolik");
-    store.token = r.token; USER = r.user; PREFILL = ""; location.hash = "#/app";
+    btn.disabled = false; btn.innerHTML = old;
+    if(!r.ok) return bad(esc(r.error||"Xatolik"));
+    finish(r);
   };
 }
 
@@ -2276,7 +2343,7 @@ function route(){
     const seg = h.split("/"), page = seg[2] || "home";
     renderApp(PAGES[page] ? page : "home", seg[3]); return;
   }
-  if(h==="/login" || h==="/register"){
+  if(h==="/login" || h==="/register" || h==="/reset"){
     if(store.token){ location.hash="#/app"; return; }
     const mode = h.slice(1);
     app.innerHTML = authPage(mode); bindNav(); bindAuth(mode); return;
