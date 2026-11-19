@@ -1035,7 +1035,7 @@ function payPendingFor_(userId) {
 
 function adminPayments_() {
   const sh = sheet_('Payments', PAY_HEADERS), last = sh.getLastRow();
-  if (last < 2) return { ok: true, payments: [], total: 0 };
+  if (last < 2) return { ok: true, payments: [], total: 0, enabled: !!tcKey_() };
   const map = {}; allUsers_().forEach(function (u) { map[u.id] = { name: u.name, phone: u.phone }; });
   let total = 0;
   const list = sh.getRange(Math.max(2, last - 299), 1, Math.min(300, last - 1), PAY_HEADERS.length).getValues().reverse().map(function (r) {

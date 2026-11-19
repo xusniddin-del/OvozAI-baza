@@ -2399,7 +2399,7 @@ const ADMIN = {
     const ST = {paid:["ok",IC.check,"To'langan"], pending:["",IC.reset,"Kutilmoqda"], test:["",IC.spark,"Test"], expired:["bad",IC.x,"Muddati o'tgan"], revoked:["bad",IC.x,"Bekor"], exhausted:["bad",IC.x,"Yopilgan"]};
     const l = r.payments, paid = l.filter(x=>x.state==="paid"), m30 = paid.filter(x=>Date.now()-new Date(x.paidAt).getTime() < 30*864e5);
     const tile = (ic, label, val, note, cls="") => `<div class="tile ${cls}"><span class="ti">${ic}</span><small>${label}</small><b>${val}</b><em>${note}</em></div>`;
-    b.innerHTML = `${r.enabled?"":`<div class="msg err">TezCheck ulanmagan: Script Properties'ga TEZCHECK_KEY va TEZCHECK_DESK qo'shing.</div>`}
+    b.innerHTML = `${r.enabled!==false?"":`<div class="msg err">TezCheck ulanmagan: Script Properties'ga TEZCHECK_KEY va TEZCHECK_DESK qo'shing.</div>`}
       <div class="tiles">${tile(IC.card,"Jami tushum, so'm",fmt(r.total),`${fmt(paid.length)} ta to'lov`,"good")}
         ${tile(IC.bolt,"Oxirgi 30 kun, so'm",fmt(m30.reduce((a,x)=>a+x.amount,0)),`${fmt(m30.length)} ta to'lov`)}
         ${tile(IC.reset,"Kutilayotgan",fmt(l.filter(x=>x.state==="pending").length),"havola ochilgan, hali to'lanmagan")}</div>
