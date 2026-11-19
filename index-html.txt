@@ -2464,7 +2464,7 @@ const ADMIN = {
         <p class="sub3">Claude → Settings → Connectors → <b>Add custom connector</b> → nomi «Gapir AI», URL — shu manzil. Audio fayllar GitHub'dagi <code>mcp-audio</code> papkasiga yoziladi.</p></div>
       <div class="box pad" style="margin-top:20px"><div class="chh"><div><b>Adminlar</b><small>Kim admin panelga kira oladi</small></div></div>
         <p class="sub3">Apps Script → Project Settings → Script Properties → <b>ADMIN_PHONES</b>. Bir nechta admin bo'lsa vergul bilan yozing: <code>+998901234567, +998911112233</code></p></div>`;
-    const mcpUrl = () => { const w = $("#cfw").value.trim().replace(/\/+$/,"");
+    const mcpUrl = () => { let w = $("#cfw").value.trim().replace(/\/+$/,""); if(w && !/^https?:\/\//i.test(w)) w = "https://" + w;
       $("#mcpu").value = w ? w + "/" + (r.mcp||"") : "Avval yuqoriga Cloudflare Worker manzilini yozing";
       try{ localStorage.setItem("ovoz_cfw", w); }catch(e){} };
     $("#cfw").oninput = mcpUrl; mcpUrl();
