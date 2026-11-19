@@ -222,6 +222,37 @@ section{padding:90px 0;position:relative}
 .faq summary:after{content:"+";color:var(--blue2);font-size:22px;line-height:1;transition:transform .3s}
 .faq details[open] summary:after{transform:rotate(45deg)}
 .faq p{color:var(--muted);margin-top:10px;font-size:14px;font-weight:500}
+.ai2{display:grid;grid-template-columns:1fr 1.05fr;gap:48px;align-items:center;max-width:1080px;margin:0 auto}
+.ai2 h2{font-family:var(--fh);font-size:clamp(26px,3.6vw,42px);letter-spacing:-.035em;line-height:1.15;font-weight:500;margin:18px 0 14px}
+.ai2 h2 span{background:linear-gradient(90deg,#ff9a62,#8b7bff 45%,#6c9aff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ai2>div>p{color:var(--muted);font-weight:500;font-size:15.5px;line-height:1.6}
+.ai2 ul{list-style:none;display:grid;gap:12px;margin:22px 0 28px}
+.ai2 li{display:flex;gap:12px;align-items:flex-start;font-weight:600;font-size:14.5px;color:#dbe4ff}
+.ai2 li i{flex:none;width:26px;height:26px;border-radius:9px;display:grid;place-items:center;font-style:normal;font-size:13px;background:linear-gradient(135deg,rgba(255,138,76,.25),rgba(124,92,255,.3));border:1px solid rgba(255,255,255,.12)}
+.ai2 .note2{display:block;margin-top:12px;font-size:12.5px;color:var(--muted);font-weight:600}
+.aichat{position:relative;border-radius:26px;border:1px solid rgba(150,170,255,.28);background:linear-gradient(180deg,rgba(20,28,70,.75),rgba(6,10,28,.85));padding:18px;box-shadow:0 30px 80px rgba(0,0,0,.45),0 0 70px rgba(124,92,255,.22);overflow:hidden}
+.aichat:before{content:"";position:absolute;inset:-40% -20% auto;height:70%;background:radial-gradient(closest-side,rgba(255,138,76,.18),transparent);pointer-events:none}
+.ac-top{display:flex;align-items:center;gap:10px;padding:2px 4px 14px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:14px;font-weight:700;font-size:13.5px}
+.ac-top .av{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#ff8a4c,#7c5cff);font-size:15px;color:#fff}
+.ac-top small{margin-left:auto;display:flex;align-items:center;gap:6px;color:#9fb0dd;font-weight:600;font-size:12px}
+.ac-top small b{width:7px;height:7px;border-radius:50%;background:#34e0a0;box-shadow:0 0 8px #34e0a0}
+.acm{display:flex;flex-direction:column;gap:10px;min-height:300px}
+.acm>*{opacity:0;transform:translateY(10px);animation:acin 12s infinite}
+.acu{align-self:flex-end;max-width:82%;background:var(--grad);color:#fff;padding:11px 14px;border-radius:16px 16px 4px 16px;font-size:13.5px;font-weight:600;animation-delay:.2s}
+.aca{max-width:88%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);padding:11px 14px;border-radius:16px 16px 16px 4px;font-size:13.5px;color:#dbe4ff;font-weight:500;line-height:1.5}
+.aca.a1{animation-delay:1.4s}.aca.a2{animation-delay:4.6s}
+.actool{display:flex;align-items:center;gap:10px;align-self:flex-start;padding:9px 12px;border-radius:12px;border:1px solid rgba(130,170,255,.3);background:rgba(47,107,255,.1);font-size:12.5px;font-weight:700;color:#cfe0ff;animation-delay:2.6s}
+.actool .tl{width:22px;height:22px;border-radius:7px;background:var(--grad);display:grid;place-items:center}.actool .tl svg{width:13px;height:13px;color:#fff}
+.actool em{font-style:normal;color:#8ea2d6;font-weight:600}
+.actool .ok{margin-left:4px;color:#34e0a0;opacity:0;animation:acok 12s infinite;animation-delay:3.8s}
+.acaud{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:linear-gradient(120deg,rgba(47,107,255,.2),rgba(124,92,255,.14));border:1px solid rgba(130,170,255,.3);animation-delay:3.9s}
+.acaud .pb{width:36px;height:36px;border-radius:50%;background:#fff;display:grid;place-items:center;flex:none}.acaud .pb svg{width:14px;height:14px;fill:#2f6bff;margin-left:2px}
+.acaud .eq{flex:1;height:26px;gap:2px;overflow:hidden}.acaud .eq i{flex:1;width:auto}
+.acaud span{font-size:12px;color:#c3d0f5;font-weight:700;white-space:nowrap}
+@keyframes acin{0%{opacity:0;transform:translateY(10px)}6%,88%{opacity:1;transform:none}96%,100%{opacity:0;transform:translateY(-4px)}}
+@keyframes acok{0%,2%{opacity:0}8%,88%{opacity:1}96%,100%{opacity:0}}
+@media(max-width:900px){.ai2{grid-template-columns:1fr;gap:30px}}
+@media(prefers-reduced-motion:reduce){.acm>*,.actool .ok{animation:none;opacity:1;transform:none}}
 .cta{position:relative;max-width:1000px;margin:0 auto;border-radius:30px;border:1px solid rgba(130,170,255,.35);padding:70px 24px;text-align:center;background:radial-gradient(520px 230px at 50% 0,rgba(47,107,255,.55),transparent),rgba(255,255,255,.025);overflow:hidden}
 .cta h2{font-family:var(--fh);font-size:clamp(22px,3.4vw,36px);letter-spacing:-.035em;font-weight:500;margin-bottom:12px;line-height:1.2}
 .cta p{color:var(--muted);margin-bottom:28px;font-size:15px;font-weight:500}
@@ -1018,7 +1049,7 @@ function navHTML(fix){
   const logged = !!store.token;
   return `<div class="nav ${fix?"fix":""}"><div class="wrap">
     <a class="logo" href="#/"><i>${ICON_MIC}</i>${BRAND_MARK}</a>
-    <div class="links"><a href="#/">Bosh sahifa</a><a href="#/" data-s="features">Imkoniyatlar</a><a href="#/" data-s="pricing">Tariflar</a><a href="#/" data-s="faq">Savollar</a></div>
+    <div class="links"><a href="#/">Bosh sahifa</a><a href="#/" data-s="features">Imkoniyatlar</a><a href="#/" data-s="ai">AI ulanish</a><a href="#/" data-s="pricing">Tariflar</a><a href="#/" data-s="faq">Savollar</a></div>
     <div class="nav-cta">${logged
       ? `<a class="btn btn-p" href="#/app">Kabinet</a>`
       : `<a class="btn btn-p" href="#/login">Kirish</a>`}</div>
@@ -1109,6 +1140,26 @@ function landing(){
     </div>
   </div></section>
 
+  <section id="ai"><div class="wrap"><div class="ai2">
+    <div class="rv"><span class="tag">${ICON_SPARK} Yangi · Claude AI integratsiyasi</span>
+      <h2>Claude ichida <span>Gapir AI ovozi</span></h2>
+      <p>Gapir AI'ni Claude AI'ga bir marta ulang — keyin chatda shunchaki ayting: Claude matnni yozadi, ovozni o'zi tanlaydi va tayyor audioni beradi.</p>
+      <ul><li><i>✦</i><span>Reklama, reels va video uchun ovoz — bitta buyruq bilan</span></li>
+        <li><i>🎙</i><span>30 ta ovoz va 7 uslubdan Claude mosini tanlaydi</span></li>
+        <li><i>⚡</i><span>Saytga kirib, matn ko'chirib o'tirish shart emas</span></li></ul>
+      <a class="btn btn-p" href="${store.token?"#/app/connect":"#/register"}">${ICON_SPARK} Max tarifida ulash</a>
+      <small class="note2">Claude AI konnektori Max va Biznes tariflarida mavjud.</small></div>
+    <div class="aichat rv" style="--d:.12s">
+      <div class="ac-top"><span class="av">✳</span>Claude <small><b></b>Gapir AI ulangan</small></div>
+      <div class="acm">
+        <div class="acu">Kofe do'konim uchun 15 soniyalik quvnoq reklama audiosi tayyorla ☕</div>
+        <div class="aca a1">Albatta! Matnni yozdim, tetik erkak ovozi — <b>Puck</b>, uslub — <b>Quvnoq</b>.</div>
+        <div class="actool"><span class="tl">${ICON_MIC}</span>Gapir AI · generate_speech <em>Puck · Quvnoq</em><span class="ok">✓</span></div>
+        <div class="acaud"><span class="pb">${ICON_PLAY}</span><span class="eq">${Array.from({length:28},(_,i)=>`<i style="animation-delay:-${(i*0.07).toFixed(2)}s"></i>`).join("")}</span><span>kofe-reklama.wav · 0:15</span></div>
+        <div class="aca a2">Tayyor! 🎧 Xohlasangiz, shu audio bilan reels video ham yig'ib beraman.</div>
+      </div></div>
+  </div></div></section>
+
   <section id="pricing"><div class="wrap">
     <div class="sec-h rv"><span class="tag">${ICON_SPARK} Tariflar</span><h2>Bepul boshlang, <span>kerak bo'lsa kengaytiring</span></h2></div>
     <div class="plans">${CONFIG.PLANS.map((p,i)=>`
@@ -1129,7 +1180,8 @@ function landing(){
       <details><summary>Ovoz sifati qanday?</summary><p>Zamonaviy sun'iy intellekt ovozi ishlatiladi: intonatsiya va pauzalar tabiiy eshitiladi.</p></details>
       <details><summary>Limit nima?</summary><p>Har bir tarifda kuniga belgilangan miqdorda matn (belgi) o'tkazish mumkin. Limit har kuni yangilanadi.</p></details>
       <details><summary>Audioni tijorat maqsadida ishlatsam bo'ladimi?</summary><p>Ha, yaratilgan audioni videolar, reklama va darslarda ishlatishingiz mumkin.</p></details>
-      <details><summary>Tarifni qanday oshiraman?</summary><p>Tariflar bo'limidagi tugma orqali biz bilan bog'laning — akkauntingiz shu zahoti yangilanadi.</p></details>
+      <details><summary>Tarifni qanday oshiraman?</summary><p>Kabinetdagi «Tarif va to'lovlar» bo'limida tarifni tanlang va Click, Payme, Uzum yoki karta orqali to'lang — tarif shu zahoti yoqiladi.</p></details>
+      <details><summary>Claude AI konnektori nima?</summary><p>Gapir AI'ni Claude AI chatiga ulash imkoniyati. Ulangach, Claude'ga «reklama audiosi yarat» deysiz — u matnni yozib, Gapir AI ovozida audio tayyorlaydi. Max va Biznes tariflarida mavjud, belgilar kunlik limitingizdan yechiladi.</p></details>
     </div>
   </div></section>
 
