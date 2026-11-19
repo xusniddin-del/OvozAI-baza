@@ -32,7 +32,7 @@ const CFG = {
 
 const VOICES = ['Zephyr','Puck','Charon','Kore','Fenrir','Leda','Orus','Aoede','Callirrhoe','Autonoe','Enceladus','Iapetus','Umbriel','Algieba','Despina','Erinome','Algenib','Rasalgethi','Laomedeia','Achernar','Alnilam','Schedar','Gacrux','Pulcherrima','Achird','Zubenelgenubi','Vindemiatrix','Sadachbia','Sadaltager','Sulafat'];
 
-const USER_HEADERS = ['id','name','phone','salt','hash','plan','usedToday','day','createdAt','status','lastLogin','ref','referredBy','tgId','planUntil'];
+const USER_HEADERS = ['id','name','phone','salt','hash','plan','usedToday','day','createdAt','status','lastLogin','ref','referredBy','tgId','planUntil','mcpKey'];
 const SESSION_HEADERS = ['tokenHash','userId','expires'];
 const LOG_HEADERS = ['time','userId','chars','model','ok','note'];
 
@@ -56,6 +56,7 @@ function doPost(e) {
       case 'cfg':      return json_({ ok: true, bot: botName_(), prices: set_().prices, discount: set_().discount, limits: set_().plans, pay: !!tcKey_() });
       case 'pay_create': return json_(payCreate_(req));
       case 'pay_check':  return json_(payCheck_(req));
+      case 'mcp_key':    return json_(mcpUserKey_(req));
       case 'vcheck':   return json_(vcheck_(req));
       case 'reset':    return json_(reset_(req));
       case 'chat':     return json_(chat_(req));
@@ -137,9 +138,9 @@ function register_(req) {
       ref: makeRef_(), referredBy: referredBy, tgId: tgId
     };
     const ush = sheet_('Users', USER_HEADERS);
-    ush.appendRow(USER_HEADERS.map(function (h) { return user[h]; }));
+    ush.appendRow(USER_HEADERS.map(function (h) { return user[h] == null ? "" : user[h]; }));
     ush.getRange(ush.getLastRow(), 1, 1, USER_HEADERS.length).setNumberFormat('@')
-       .setValues([USER_HEADERS.map(function (h) { return String(user[h]); })]);
+       .setValues([USER_HEADERS.map(function (h) { return user[h] == null ? "" : String(user[h]); })]);
     if (req.vcode) CacheService.getScriptCache().remove('v_' + req.vcode);
     if (tgId) tgSend_(tgId, '🎉 <b>' + esc_(name) + "</b>, ro'yxatdan muvaffaqiyatli o'tdingiz!\nKunlik bepul limit: <b>" + limitFor_(user) + '</b> belgi.', siteBtn_());
     return { ok: true, token: createSession_(user.id), user: publicUser_(user) };
@@ -462,7 +463,8 @@ function publicUser_(u) {
   const used = u.day === today_() ? Number(u.usedToday) || 0 : 0;
   return { name: u.name, phone: u.phone, plan: u.plan, used: used, limit: limitFor_(u),
            ref: u.ref || '', invited: invited, bonus: bonus, refBonus: S.refBonus, refMax: S.refMax,
-           isAdmin: isAdmin_(u), announce: S.announce, planUntil: u.plan !== 'free' ? u.planUntil : '' };
+           isAdmin: isAdmin_(u), announce: S.announce, planUntil: u.plan !== 'free' ? u.planUntil : '',
+           mcp: S.mcpPlans.indexOf(u.plan) >= 0 || isAdmin_(u), mcpPlans: S.mcpPlans };
 }
 
 /* ============ Takliflar (referral) ============ */
@@ -511,6 +513,8 @@ function readUser_(row) {
 /** Tarif muddati o'tgan bo'lsa, foydalanuvchini bepul tarifda hisoblaydi */
 function expire_(u) {
   u.planUntil = u.planUntil instanceof Date ? u.planUntil.toISOString() : String(u.planUntil || '');
+  if (u.planUntil === 'undefined') u.planUntil = '';
+  if (String(u.mcpKey) === 'undefined') u.mcpKey = '';
   if (u.planUntil && u.plan !== 'free' && new Date(u.planUntil).getTime() < Date.now()) { u.paidPlan = u.plan; u.plan = 'free'; }
 }
 
@@ -604,7 +608,9 @@ function set_() {
     refMax: s.refMax != null ? Number(s.refMax) : CFG.REF_MAX,
     announce: String(s.announce || ''),
     prices: Object.assign({}, CFG.PRICES, s.prices || {}),
-    discount: s.discount != null ? Number(s.discount) : CFG.YEAR_DISCOUNT
+    discount: s.discount != null ? Number(s.discount) : CFG.YEAR_DISCOUNT,
+    mcpPlans: Array.isArray(s.mcpPlans) ? s.mcpPlans : ['max', 'business'],   // Claude konnektori qaysi tariflarda bor
+    mcpBase: String(s.mcpBase || '')                                         // Cloudflare Worker manzili
   };
 }
 
@@ -724,7 +730,7 @@ function adminLogs_(req) {
   const logs = lg.getRange(from, 1, last - from + 1, LOG_HEADERS.length).getValues().reverse().map(function (r) {
     const note = String(r[5] || ''), ok = r[4] === true || r[4] === 'TRUE', u = map[r[1]] || {};
     return { time: String(r[0]), name: u.name || (r[1] === 'gapi' ? 'Gapi yordamchi' : '—'), phone: u.phone || '', chars: Number(r[2]) || 0, model: String(r[3] || ''), ok: ok,
-      kind: note.indexOf('stt') === 0 ? 'stt' : note.indexOf('translate') === 0 ? 'translate' : note.indexOf('chat') === 0 ? 'chat' : 'tts',
+      kind: note.indexOf('stt') === 0 ? 'stt' : note.indexOf('translate') === 0 ? 'translate' : note.indexOf('chat') === 0 ? 'chat' : note.indexOf('mcp') === 0 ? 'mcp' : 'tts',
       note: ok ? '' : note.replace(/^(stt|translate)\s*/, '').slice(0, 200) };
   });
   return { ok: true, logs: logs };
@@ -740,7 +746,9 @@ function adminSave_(req) {
     refBonus: Math.max(0, Math.min(1000000, Math.round(Number(s.refBonus) || 0))),
     refMax: Math.max(0, Math.min(1000, Math.round(Number(s.refMax) || 0))),
     announce: String(s.announce || '').slice(0, 300),
-    prices: {}, discount: Math.max(0, Math.min(90, Math.round(Number(s.discount) || 0))) };
+    prices: {}, discount: Math.max(0, Math.min(90, Math.round(Number(s.discount) || 0))),
+    mcpPlans: (Array.isArray(s.mcpPlans) ? s.mcpPlans : []).filter(function (p) { return CFG.PLANS.hasOwnProperty(p); }),
+    mcpBase: /^https:\/\/[\w.-]+(\/[\w.-]*)*$/.test(String(s.mcpBase || '').trim().replace(/\/+$/, '')) ? String(s.mcpBase).trim().replace(/\/+$/, '') : '' };
   Object.keys(CFG.PRICES).forEach(function (p) {
     const v = Math.round(Number((s.prices || {})[p]));
     out.prices[p] = v >= 1000 && v < 100000000 ? v : CFG.PRICES[p];
@@ -1095,8 +1103,10 @@ const MCP_TOOLS = [
 function mcp_(e) {
   let body = null;
   try { body = JSON.parse((e.postData && e.postData.contents) || 'null'); } catch (x) {}
-  if (String(e.parameter.mcp) !== mcpKey_()) return json_({ jsonrpc: '2.0', id: body && body.id != null ? body.id : null, error: { code: -32001, message: 'Kalit noto\'g\'ri' } });
+  const who = mcpWho_(String(e.parameter.mcp || ''));
+  if (!who) return json_({ jsonrpc: '2.0', id: body && body.id != null ? body.id : null, error: { code: -32001, message: 'Kalit noto\'g\'ri yoki eskirgan. Gapir AI kabinetidan yangi manzil oling.' } });
   if (!body) return json_({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Parse error' } });
+  MCP_WHO = who;
   if (Array.isArray(body)) {
     const out = body.map(mcpOne_).filter(function (x) { return x; });
     return out.length ? json_(out) : ContentService.createTextOutput('');
@@ -1127,6 +1137,33 @@ function mcpOne_(m) {
   }
 }
 
+let MCP_WHO = null;
+/** Kalit egasini aniqlaydi: admin kaliti yoki foydalanuvchining shaxsiy kaliti */
+function mcpWho_(key) {
+  if (!key || key.length < 20) return null;
+  if (key === mcpKey_()) return { admin: true };
+  const row = findRow_('Users', USER_HEADERS, 'mcpKey', key);
+  if (!row) return null;
+  const u = readUser_(row);
+  if (u.status === 'blocked') return null;
+  return { admin: false, row: row, user: u };
+}
+
+/** Kabinet: shaxsiy konnektor kaliti (op: 'get' | 'new') */
+function mcpUserKey_(req) {
+  const auth = auth_(req.token);
+  if (!auth) return { ok: false, error: 'auth' };
+  const S = set_(), u = auth.user;
+  if (S.mcpPlans.indexOf(u.plan) < 0 && !isAdmin_(u)) return { ok: false, locked: true, plans: S.mcpPlans, error: 'Claude konnektori ' + S.mcpPlans.join(', ') + ' tariflarida mavjud' };
+  if (!S.mcpBase) return { ok: false, error: "Konnektor hali sozlanmagan. Admin bilan bog'laning." };
+  let key = String(u.mcpKey || '');
+  if (!key || req.op === 'new') {
+    key = 'u' + Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '').slice(0, 10);
+    sheet_('Users', USER_HEADERS).getRange(auth.row, USER_HEADERS.indexOf('mcpKey') + 1).setNumberFormat('@').setValue(key);
+  }
+  return { ok: true, url: S.mcpBase + '/' + key };
+}
+
 function mcpText_(t, isErr) { const r = { content: [{ type: 'text', text: t }] }; if (isErr) r.isError = true; return r; }
 
 function mcpCall_(name, a) {
@@ -1143,10 +1180,23 @@ function mcpCall_(name, a) {
   if (!voice) return mcpText_("Bunday ovoz yo'q: " + a.voice + '. list_voices ni chaqiring.', true);
   const st = String(a.style || '').trim();
   const style = STYLE_MAP.hasOwnProperty(st) ? STYLE_MAP[st] : st.slice(0, 160);
-  if (!ghToken_()) return mcpText_("Sozlanmagan: Script Properties'ga GITHUB_TOKEN qo'shing (repo Contents: Read and write).", true);
+  if (!ghToken_()) return mcpText_("Konnektor sozlanmagan (GITHUB_TOKEN yo'q). Gapir AI admini bilan bog'laning.", true);
+  const W = MCP_WHO || { admin: true }, uid = W.admin ? 'mcp' : W.user.id;
+  let reserve = null;
+  if (!W.admin) {
+    const S = set_(), u = readUser_(W.row);
+    if (S.mcpPlans.indexOf(u.plan) < 0 && !isAdmin_(u))
+      return mcpText_("Claude konnektori sizning tarifingizda yo'q (hozir: " + u.plan + "). Tarifni oshiring: " + CFG.SITE_URL + '#/app/plans', true);
+    reserve = reserveQuota_(W.row, text.length);
+    if (!reserve.ok) return mcpText_((reserve.message || 'Bugungi limit tugadi.') + ' ' + CFG.SITE_URL + '#/app/plans', true);
+  }
   const key = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
   const res = callGemini_(text, voice, style, key);
-  if (!res.ok) { log_('mcp', text.length, res.model || '', false, 'mcp: ' + res.error); return mcpText_('Ovoz yaratilmadi: ' + (res.userError || res.error), true); }
+  if (!res.ok) {
+    if (reserve) refundQuota_(W.row, text.length);
+    log_(uid, text.length, res.model || '', false, 'mcp: ' + res.error);
+    return mcpText_('Ovoz yaratilmadi: ' + (res.userError || res.error), true);
+  }
   const wav = toWav_(res.audio, res.mime);
   const slug = String(a.name || voice).toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'audio';
   const path = 'mcp-audio/' + Utilities.formatDate(new Date(), CFG.TZ, 'yyyyMMdd-HHmmss') + '-' + slug + '.wav';
@@ -1156,11 +1206,15 @@ function mcpCall_(name, a) {
     payload: JSON.stringify({ message: 'Gapir AI audio: ' + slug, content: wav.b64 })
   });
   if (gh.getResponseCode() >= 300) {
-    log_('mcp', text.length, res.model, false, 'mcp github ' + gh.getResponseCode() + ' ' + gh.getContentText().slice(0, 150));
+    if (reserve) refundQuota_(W.row, text.length);
+    log_(uid, text.length, res.model, false, 'mcp github ' + gh.getResponseCode() + ' ' + gh.getContentText().slice(0, 150));
     return mcpText_('Audio tayyor, lekin GitHub\'ga yozilmadi (' + gh.getResponseCode() + '). GITHUB_TOKEN ruxsatlarini tekshiring.', true);
   }
-  log_('mcp', text.length, res.model, true, 'mcp ' + voice);
+  log_(uid, text.length, res.model, true, 'mcp ' + voice);
+  if (Math.random() < 0.08) { try { mcpCleanup_(); } catch (ce) { console.error(ce); } }
+  const left = reserve ? Math.max(0, reserve.limit - reserve.used) : null;
   return mcpText_(JSON.stringify({ ok: true, voice: voice, style: st || 'Tabiiy', seconds: Math.round(wav.seconds * 10) / 10,
+    chars_left_today: left, note: "Fayl 3 kundan keyin o'chiriladi — darhol yuklab oling.",
     path: path, repo: ghRepo_(), raw_url: 'https://raw.githubusercontent.com/' + ghRepo_() + '/main/' + path }, null, 1));
 }
 
@@ -1176,5 +1230,17 @@ function toWav_(b64, mime) {
   s('RIFF'); u32(36 + n); s('WAVE'); s('fmt '); u32(16); u16(1); u16(1); u32(rate); u32(rate * 2); u16(2); u16(16); s('data'); u32(n);
   const head = h.map(function (b) { return b > 127 ? b - 256 : b; });
   return { b64: Utilities.base64Encode(head.concat(Array.isArray(pcm) ? pcm : Array.prototype.slice.call(pcm))), seconds: n / 2 / rate };
+}
+
+/** GitHub'dagi 3 kundan eski audiolarni o'chiradi (bir chaqiruvda 8 tagacha) */
+function mcpCleanup_() {
+  const H = { Authorization: 'Bearer ' + ghToken_(), Accept: 'application/vnd.github+json' };
+  const r = UrlFetchApp.fetch('https://api.github.com/repos/' + ghRepo_() + '/contents/mcp-audio', { headers: H, muteHttpExceptions: true });
+  if (r.getResponseCode() !== 200) return;
+  const limit = Utilities.formatDate(new Date(Date.now() - 3 * 86400000), CFG.TZ, 'yyyyMMdd');
+  JSON.parse(r.getContentText()).filter(function (f) { return f.type === 'file' && f.name.slice(0, 8) < limit; }).slice(0, 8).forEach(function (f) {
+    UrlFetchApp.fetch('https://api.github.com/repos/' + ghRepo_() + '/contents/' + f.path, { method: 'delete', headers: H, contentType: 'application/json',
+      payload: JSON.stringify({ message: 'Eski audio: ' + f.name, sha: f.sha }), muteHttpExceptions: true });
+  });
 }
 

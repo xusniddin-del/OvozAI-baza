@@ -330,6 +330,7 @@ body.light .msg.ok{background:rgba(52,211,153,.1);color:#7be6bd;border-color:rgb
 .qcard>*{position:relative}
 .qcard .qi{width:30px;height:30px;border-radius:50%;background:var(--grad);display:grid;place-items:center;margin-bottom:6px;box-shadow:0 0 16px rgba(47,107,255,.7)}.qcard .qi svg{width:15px;height:15px;color:#fff}
 .qcard b{font-size:14px}.qcard small{color:#a9b7df;font-size:12.5px;line-height:1.45}
+.qcard{flex:none}@media(max-height:960px){.qcard .qi{display:none}.qcard{padding:12px;gap:2px}}@media(max-height:820px){.qcard{display:none}}
 .qcard.low{border-color:rgba(255,107,107,.4);background:linear-gradient(160deg,rgba(255,80,80,.18),rgba(255,255,255,.03))}
 .qbar{height:5px;background:rgba(255,255,255,.1);border-radius:9px;overflow:hidden;margin:8px 0 10px}.qbar i{display:block;height:100%;background:var(--grad);border-radius:9px;transition:width .6s;box-shadow:0 0 10px #3d7bff}
 .qcard.low .qbar i{background:linear-gradient(90deg,#ff6b6b,#ffa26b)}
@@ -628,6 +629,12 @@ kbd{font:700 10.5px var(--fb);border:1px solid var(--ln2);border-radius:6px;padd
 .lnk{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid var(--ln);border-radius:14px;padding:8px 8px 8px 14px}
 .lnk code{flex:1;min-width:0;overflow:auto;white-space:nowrap;font-size:13px;color:#cfe0ff;scrollbar-width:none}
 .st4{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--ln)}
+.rfh.cl{background:radial-gradient(380px 160px at 18% 30%,#ff8a4c,transparent),radial-gradient(420px 180px at 82% 20%,#7c5cff,transparent),linear-gradient(135deg,#1d4ed8,#2f6bff,#60a5fa);background-size:200% 200%}
+.how.num{counter-reset:s}.how.num li{counter-increment:s}.how.num li::before{content:counter(s);width:24px;height:24px;flex:none;border-radius:8px;display:grid;place-items:center;font-size:12.5px;font-weight:800;background:rgba(47,107,255,.25);color:#cfe0ff}
+.exs{display:grid;gap:8px}.exs button{text-align:left;padding:11px 14px;border-radius:14px;border:1px solid var(--ln);background:rgba(255,255,255,.04);color:#dbe4ff;font:600 13.5px var(--fb);transition:.2s}
+.exs button:hover{border-color:var(--ln2);background:rgba(47,107,255,.12)}
+.lockb{display:flex;gap:12px;align-items:center;padding:14px 16px;border-radius:16px;border:1px dashed var(--ln2);background:rgba(255,255,255,.03);margin:6px 0 14px}.lockb svg{width:22px;height:22px;color:#ffb27a;flex:none}
+.warn3{font-size:12.5px;color:#ffcf9a;font-weight:600;margin-top:10px}
 .st4>div{padding:16px 20px}.st4>div+div{border-left:1px solid var(--ln)}
 .st4 small{display:block;color:var(--mt);font-size:12px;font-weight:600}.st4 b{font-family:var(--fh);font-size:20px;font-weight:500}
 /* modal */
@@ -877,9 +884,9 @@ const CONFIG = {
     {id:"pro", name:"Pro", price:"49 000", per:" so'm / oy", daily:"10 000 belgi / kun", hot:true,
       feats:["Barcha ovozlar","Uzun matnlar","Ko'p ovozli dialog","Telegram yordam"], cta:"Pro olish"},
     {id:"max", name:"Max", price:"99 000", per:" so'm / oy", daily:"30 000 belgi / kun",
-      feats:["Audiokitob va dublyaj","Tezkor navbat","Ustuvor yordam"], cta:"Max olish"},
+      feats:["Claude AI konnektori","Audiokitob va dublyaj","Tezkor navbat","Ustuvor yordam"], cta:"Max olish"},
     {id:"business", name:"Biznes", price:"199 000", per:" so'm / oy", daily:"80 000 belgi / kun",
-      feats:["Eng yuqori limit","Reklama va katta loyihalar uchun","Shaxsiy yordam"], cta:"Biznes olish"}
+      feats:["Eng yuqori limit","Claude AI konnektori","Reklama va katta loyihalar uchun","Shaxsiy yordam"], cta:"Biznes olish"}
   ]
 };
 
@@ -1646,6 +1653,7 @@ const APP_NAV = [
   {id:"books", t:"Audiokitoblar", ic:IC.book},
   {g:"Hisob"},
   {id:"plans", t:"Tarif va to'lovlar", ic:IC.card},
+  {id:"connect", t:"Claude'ga ulash", ic:IC.link},
   {id:"ref", t:"Takliflar", ic:IC.gift}
 ];
 const PAGE_T = Object.fromEntries(APP_NAV.filter(n=>n.id).map(n=>[n.id,n.t])); PAGE_T.book = "Audiokitob";
@@ -1713,7 +1721,7 @@ async function palette(){
   if($(".pal")) return;
   const assets = USER ? await listAssets() : [];
   const acts = [["tts","Nutq yaratish","Matnni nutqqa",IC.wave],["stt","Matnga o'girish","Nutqdan matnga",IC.text],["dub","Dublyaj qilish","Audioni boshqa tilga",IC.trans],
-    ["books","Audiokitob yaratish","Uzun matndan kitob",IC.book],["voices","Ovozlar kutubxonasi","30 ta ovoz",IC.grid],["assets","Fayllarim","Saqlangan fayllar",IC.folder],["plans","Tarif va to'lovlar","Limit va tariflar",IC.card]];
+    ["books","Audiokitob yaratish","Uzun matndan kitob",IC.book],["voices","Ovozlar kutubxonasi","30 ta ovoz",IC.grid],["assets","Fayllarim","Saqlangan fayllar",IC.folder],["plans","Tarif va to'lovlar","Limit va tariflar",IC.card],["connect","Claude'ga ulash","AI konnektori",IC.link]];
   const {el, close} = modal(`<div class="srch big2">${IC.search}<input id="pq" placeholder="Amal, ovoz yoki fayl qidirish..."></div><div class="pl4" id="pr"></div>`, "pal");
   const draw = () => {
     const q = el.querySelector("#pq").value.toLowerCase();
@@ -2206,6 +2214,47 @@ const PAGES = {
     payReturn();
   },
 
+  async connect(){
+    const u = USER, names = (u.mcpPlans||["max","business"]).map(planName).join(" va ");
+    const EX = ["Gapir AI'dagi ovozlar ro'yxatini ko'rsat",
+      "Puck ovozida, quvnoq uslubda 15 soniyalik reklama matni yozib, audiosini yarat",
+      "Shu matnni Kore ovozida diktor uslubida o'qib ber: …",
+      "Gapir AI ovozi bilan mahsulotim uchun 30 soniyalik reels video tayyorla"];
+    const shell = inner => `<div class="pg"><div class="rf"><div class="rfh cl"></div><div class="rfb">
+      <h2>Claude'ga ulash</h2><p>Claude AI chatida Gapir AI ovozlari bilan audio yarating — video, reklama va kontent uchun. Belgilar kunlik limitingizdan yechiladi.</p>${inner}</div></div></div>`;
+    if(!u.mcp){
+      $("#pgv").innerHTML = shell(`<div class="lockb">${IC.bolt}<div><b>Bu imkoniyat ${esc(names)} tariflarida</b><br><small class="muted">Tarifni oshiring — shaxsiy konnektor manzilingiz shu yerda paydo bo'ladi.</small></div></div>
+        <small class="cap">Nimalar qila olasiz</small>
+        <ul class="how"><li>${IC.chat} Claude'ga «reklama audiosi yarat» deysiz — u matnni yozadi va ovozlashtiradi</li>
+          <li>${IC.wave} 30 ta ovoz va uslubni Claude o'zi tanlaydi yoki siz aytasiz</li>
+          <li>${IC.spark} Video, reels va audiokitoblar uchun tayyor audio fayllar</li></ul>
+        <a class="btn-k lg wide" style="margin-top:20px" href="#/app/plans">${IC.bolt} Tarifni oshirish</a>`);
+      return;
+    }
+    $("#pgv").innerHTML = shell(`<small class="cap">Shaxsiy konnektor manzilingiz</small>
+      <div class="lnk"><code id="ml"><span class="spin dk"></span></code><button class="ib dk" id="mcp" title="Nusxalash">${IC.copy}</button><button class="ib dk" id="mnew" title="Yangi manzil">${IC.reset}</button></div>
+      <p class="warn3">⚠ Manzilni hech kimga bermang — u bilan sizning limitingizdan foydalanish mumkin. Tarqalib ketsa, ↻ tugmasi bilan yangilang.</p>
+      <small class="cap">Qanday ulanadi</small>
+      <ul class="how num"><li>claude.ai → Settings → Connectors → <b>Add custom connector</b></li>
+        <li>Name: <b>Gapir AI</b>, URL: yuqoridagi manzil → <b>Add</b> → <b>Connect</b></li>
+        <li>Yangi chat oching va Claude'ga Gapir AI orqali audio yaratishni ayting</li></ul>
+      <small class="cap">Misol buyruqlar — bosing, nusxalanadi</small>
+      <div class="exs" id="exs">${EX.map(x=>`<button>${esc(x)}</button>`).join("")}</div>`);
+    const load = async (op) => {
+      $("#ml").innerHTML = '<span class="spin dk"></span>';
+      const r = await api("mcp_key", op ? {op} : {});
+      if(!$("#ml")) return;
+      if(!r.ok){ $("#ml").textContent = apiFail(r).error || "Xatolik"; return; }
+      $("#ml").textContent = r.url; $("#ml").dataset.u = r.url;
+      if(op) toast("Yangi manzil yaratildi — eski manzil endi ishlamaydi");
+    };
+    load();
+    const copy = async t => { try{ await navigator.clipboard.writeText(t); toast("Nusxalandi ✓"); }catch(e){ toast(t); } };
+    $("#mcp").onclick = () => { const t = $("#ml").dataset.u; if(t) copy(t); };
+    $("#mnew").onclick = () => { if(confirm("Yangi manzil yaratilsinmi? Claude'dagi eski konnektor ishlamay qoladi va uni yangi manzil bilan qayta ulashingiz kerak bo'ladi.")) load("new"); };
+    $("#exs").onclick = e => { const b = e.target.closest("button"); if(b) copy(b.textContent); };
+  },
+
   ref(){
     const u = USER, link = u.ref ? location.href.split("#")[0] + "#/register?ref=" + u.ref : "";
     $("#pgv").innerHTML = `<div class="pg"><div class="rf">
@@ -2423,7 +2472,7 @@ const ADMIN = {
   async logs(b){
     const r = await aapi("logs", {limit:400}); if(!r.ok) return b.innerHTML = `<div class="msg err">${esc(apiFail(r).error||"Xatolik")}</div>`;
     const all = r.logs; let f = "";
-    const KN = {tts:["Nutq",IC.wave], stt:["Matnga",IC.text], translate:["Tarjima",IC.trans], chat:["Gapi",IC.chat]};
+    const KN = {tts:["Nutq",IC.wave], stt:["Matnga",IC.text], translate:["Tarjima",IC.trans], chat:["Gapi",IC.chat], mcp:["Claude",IC.link]};
     b.innerHTML = `<div class="chips4" id="lf">${[["","Hammasi"],["err","Faqat xatolar"],["tts","Nutq"],["stt","Matnga"],["translate","Tarjima"]].map(c=>`<button class="tchip ${c[0]===f?"on":""}" data-f="${c[0]}">${c[1]}</button>`).join("")}</div>
       <p class="note">Oxirgi ${fmt(all.length)} ta yozuv. Xato bo'lsa, Google'ning javobi «Izoh» ustunida.</p><div class="ltbl" id="ll"></div>`;
     const draw = () => {
@@ -2458,15 +2507,18 @@ const ADMIN = {
       <div class="box pad" style="margin-top:20px"><div class="chh"><div><b>Claude konnektori</b><small>Claude saytdagi ovozlar bilan audio yaratadi (video va reklamalar uchun)</small></div>
         <span class="sbg ${r.gh?"ok":"bad"}">${r.gh?IC.check+" Tayyor":IC.x+" GITHUB_TOKEN yo'q"}</span></div>
         <div class="lb">Cloudflare Worker manzili <em>masalan https://gapir-mcp.ismingiz.workers.dev</em></div>
-        <input class="inp" id="cfw" placeholder="https://....workers.dev" value="${esc((()=>{ try{ return localStorage.getItem("ovoz_cfw")||""; }catch(e){ return ""; } })())}">
-        <div class="lb">Claude'ga qo'yiladigan manzil <em>maxfiy — hech kimga bermang</em></div>
+        <input class="inp" id="cfw" placeholder="https://....workers.dev" value="${esc(s.mcpBase||(()=>{ try{ return localStorage.getItem("ovoz_cfw")||""; }catch(e){ return ""; } })())}">
+        <div class="lb">Konnektor qaysi tariflarda bor</div>
+        <div class="chips4" id="mcpp">${CONFIG.PLANS.map(p=>`<label class="chk" style="margin:0 14px 0 0"><input type="checkbox" value="${p.id}" ${(s.mcpPlans||[]).includes(p.id)?"checked":""}> ${esc(p.name)}</label>`).join("")}</div>
+        <p class="note">Worker manzili va tariflar «Saqlash» tugmasi bilan saqlanadi. Foydalanuvchilar o'z manzilini kabinetdagi «Claude'ga ulash» bo'limidan oladi.</p>
+        <div class="lb">Admin manzili (limitsiz) <em>maxfiy — hech kimga bermang</em></div>
         <div class="mdf"><input class="inp" id="mcpu" readonly style="flex:1;min-width:0;font-size:12.5px"><button class="btn-l" id="mcpc">${IC.copy} Nusxa</button></div>
         <p class="sub3">Claude → Settings → Connectors → <b>Add custom connector</b> → nomi «Gapir AI», URL — shu manzil. Audio fayllar GitHub'dagi <code>mcp-audio</code> papkasiga yoziladi.</p></div>
       <div class="box pad" style="margin-top:20px"><div class="chh"><div><b>Adminlar</b><small>Kim admin panelga kira oladi</small></div></div>
         <p class="sub3">Apps Script → Project Settings → Script Properties → <b>ADMIN_PHONES</b>. Bir nechta admin bo'lsa vergul bilan yozing: <code>+998901234567, +998911112233</code></p></div>`;
-    const mcpUrl = () => { let w = $("#cfw").value.trim().replace(/\/+$/,""); if(w && !/^https?:\/\//i.test(w)) w = "https://" + w;
-      $("#mcpu").value = w ? w + "/" + (r.mcp||"") : "Avval yuqoriga Cloudflare Worker manzilini yozing";
-      try{ localStorage.setItem("ovoz_cfw", w); }catch(e){} };
+    const cfw = () => { let w = $("#cfw").value.trim().replace(/\/+$/,""); if(w && !/^https?:\/\//i.test(w)) w = "https://" + w; return w; };
+    const mcpUrl = () => { const w = cfw();
+      $("#mcpu").value = w ? w + "/" + (r.mcp||"") : "Avval yuqoriga Cloudflare Worker manzilini yozing"; };
     $("#cfw").oninput = mcpUrl; mcpUrl();
     $("#mcpc").onclick = async () => { try{ await navigator.clipboard.writeText($("#mcpu").value); toast("Nusxa olindi ✓"); }catch(e){ $("#mcpu").select(); } };
     $("#sv").onclick = async () => {
@@ -2475,7 +2527,8 @@ const ADMIN = {
       const prices = {}; document.querySelectorAll("[data-price]").forEach(i => prices[i.dataset.price] = +i.value);
       if(Object.values(prices).some(v => !(v >= 1000))){ btn.disabled = false; btn.innerHTML = `${IC.check} Saqlash`;
         return toast("Narx kamida 1 000 so'm bo'lishi kerak — TezCheck undan kam to'lov qabul qilmaydi"); }
-      const r2 = await aapi("save", {settings:{plans, prices, discount:+$("#dc").value, refBonus:+$("#rb").value, refMax:+$("#rm").value, announce:$("#an").value.trim()}});
+      const mcpPlans = [...document.querySelectorAll("#mcpp input:checked")].map(i => i.value);
+      const r2 = await aapi("save", {settings:{plans, prices, mcpPlans, mcpBase: cfw(), discount:+$("#dc").value, refBonus:+$("#rb").value, refMax:+$("#rm").value, announce:$("#an").value.trim()}});
       btn.disabled = false; btn.innerHTML = `${IC.check} Saqlash`;
       if(!r2.ok) return toast(apiFail(r2).error || "Saqlanmadi");
       USER.announce = r2.settings.announce; paintAnnounce();
