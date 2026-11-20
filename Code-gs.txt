@@ -15,7 +15,7 @@ const CFG = {
   MAX_AUDIO_B64: 18000000, // ~13 MB audio
   MAX_TRANSLATE: 5000,
   TZ: 'Asia/Tashkent',
-  SITE_URL: 'https://nevra.uz/', // bot xabarlaridagi sayt havolasi
+  SITE_URL: 'https://xusniddin-del.github.io/OvozAI-baza/', // bot xabarlaridagi sayt havolasi
   // Kunlik belgi limiti (tarif bo'yicha). Foydalanuvchi tarifini Users varag'idan o'zgartirasiz.
   PLANS: { free: 1000, pro: 10000, max: 30000, business: 80000 }, // kunlik belgi limiti
   MAX_CHARS_PER_REQUEST: 1200,
