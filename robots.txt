@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /mcp-audio/
+Disallow: /android-template/
+Sitemap: https://nevra.uz/sitemap.xml
