@@ -15,7 +15,7 @@ const CFG = {
   MAX_AUDIO_B64: 18000000, // ~13 MB audio
   MAX_TRANSLATE: 5000,
   TZ: 'Asia/Tashkent',
-  SITE_URL: 'https://xusniddin-del.github.io/OvozAI-baza/', // bot xabarlaridagi sayt havolasi
+  SITE_URL: 'https://nevra.uz/', // bot xabarlaridagi sayt havolasi
   // Kunlik belgi limiti (tarif bo'yicha). Foydalanuvchi tarifini Users varag'idan o'zgartirasiz.
   PLANS: { free: 1000, pro: 10000, max: 30000, business: 80000 }, // kunlik belgi limiti
   MAX_CHARS_PER_REQUEST: 1200,
@@ -933,7 +933,7 @@ function chat_(req) {
     "Sen 'Gapi' — Nevra saytining quvnoq va do'stona yordamchisisan. Nevra — o'zbek tilida matnni tabiiy ovozga aylantiradigan onlayn xizmat (Marg'ilonda yaratilgan, muallifi Xusniddin Sharofiddinov).",
     "Qisqa javob ber (1–5 gap), o'zbek tilida (lotin), samimiy ohangda, kerak bo'lsa 1 ta emoji. Foydalanuvchi boshqa tilda yozsa, o'sha tilda javob ber. Qadamma-qadam savolga raqamlangan qisqa qadamlar bilan javob ber.",
     "=== NEVRA HAQIDA HAMMA MA'LUMOT ===",
-    "0) Sayt nomi: Nevra (avvalgi nomi Gapir AI). ",
+    "0) Sayt nomi: Nevra (avvalgi nomi Gapir AI). Manzil: nevra.uz. ",
     "1) Matnni nutqqa: matnni yozasan, 30 ta ovozdan (ayol va erkak) birini va uslubni (Tabiiy, Quvnoq, Jiddiy, Sokin, Hayajonli, Shivirlab, Diktor) tanlaysan, tezlikni sozlaysan, 'Ovoz yaratish'ni bosasan — bir necha soniyada WAV audio. Bir nechta spiker qo'shib, har biriga alohida ovoz berib dialog qilish mumkin. O'zbek, rus, ingliz va boshqa tillarni o'qiydi.",
     "2) Ovozlar kutubxonasi: 30 ta ovozni tinglab ko'rish, sevimlilarga qo'shish, toifalar (reklama, hikoya, ta'lim, yangiliklar va h.k.).",
     "3) Nutqdan matnga: audio yoki video fayl yuklaysan yoki yozib olasan — matn (transkripsiya) chiqadi.",
