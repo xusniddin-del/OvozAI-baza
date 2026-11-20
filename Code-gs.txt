@@ -796,6 +796,18 @@ function botName_() {
   return '';
 }
 
+/** Yangi bot tokenini qo'ygandan keyin muharrirda BIR MARTA ishga tushiring: ulashBot */
+function ulashBot() {
+  const tok = botToken_(); if (!tok) throw new Error("Avval Script Properties → BOT_TOKEN ga yangi tokenni qo'ying");
+  const url = 'https://script.google.com/macros/s/AKfycbw7lAHdoR0Gpa13WwszMpqfVf-W7ubsnEEs7MNUL4OMXjPnFv14FeEyltANBvmlg90eJA/exec';
+  const r = UrlFetchApp.fetch('https://api.telegram.org/bot' + tok + '/setWebhook', { method: 'post', muteHttpExceptions: true,
+    payload: { url: url, drop_pending_updates: 'true' } }).getContentText();
+  PropertiesService.getScriptProperties().deleteProperty('BOT_USERNAME_AT');
+  const me = botName_();
+  console.log('Webhook: ' + r);
+  console.log(me ? ('Tayyor! Bot: @' + me) : 'Token noto\'g\'ri — BotFather bergan tokenni tekshiring');
+}
+
 function tgApi_(method, payload) {
   const tok = botToken_(); if (!tok) return null;
   try {
