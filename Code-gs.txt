@@ -787,10 +787,11 @@ function botToken_() { return String(PropertiesService.getScriptProperties().get
 function botName_() {
   const tok = botToken_(); if (!tok) return '';
   const p = PropertiesService.getScriptProperties(), saved = p.getProperty('BOT_USERNAME_FOR');
-  if (saved === tok.slice(-12) && p.getProperty('BOT_USERNAME')) return p.getProperty('BOT_USERNAME');
+  const at = Number(p.getProperty('BOT_USERNAME_AT') || 0);
+  if (saved === tok.slice(-12) && p.getProperty('BOT_USERNAME') && Date.now() - at < 3 * 3600 * 1000) return p.getProperty('BOT_USERNAME');
   try {
     const r = JSON.parse(UrlFetchApp.fetch('https://api.telegram.org/bot' + tok + '/getMe', { muteHttpExceptions: true }).getContentText());
-    if (r.ok) { p.setProperty('BOT_USERNAME', r.result.username); p.setProperty('BOT_USERNAME_FOR', tok.slice(-12)); return r.result.username; }
+    if (r.ok) { p.setProperty('BOT_USERNAME', r.result.username); p.setProperty('BOT_USERNAME_FOR', tok.slice(-12)); p.setProperty('BOT_USERNAME_AT', String(Date.now())); return r.result.username; }
   } catch (e) { console.error(e); }
   return '';
 }
@@ -930,7 +931,7 @@ function chat_(req) {
     "7) Claude'ga ulash (YANGI): Nevra'ni Claude AI chatiga konnektor qilib ulash mumkin. Kabinet → 'Claude'ga ulash' bo'limida shaxsiy manzil olinadi; claude.ai → Settings → Connectors → Add custom connector → nomi 'Nevra', URL — o'sha manzil → Add → Connect. Keyin Claude'ga 'reklama audiosi tayyorla' desang, u matnni yozib, Nevra ovozida audio yaratadi. Bu Max va Biznes tariflarida bor, belgilar kunlik limitdan yechiladi. Manzilni hech kimga berma.",
     "Saytda rasm, video, sayt yoki mobil ilova yaratish YO'Q — so'rasa, hozircha mavjud emasligini ayt.",
     "8) Takliflar: do'st taklif qilsang, har biri uchun kunlik limitga +" + S.refBonus + " belgi (" + S.refMax + " tagacha).",
-    "9) Ro'yxatdan o'tish: saytda 'Ro'yxatdan o'tish' → ism → 'Telegram orqali tasdiqlash' → @Gapir_aibot botida 'Raqamni yuborish' → saytga qaytib parol qo'yish. Parolni unutsang — kirish sahifasida 'Parolni unutdingizmi?' orqali bot bilan tiklanadi.",
+    "9) Ro'yxatdan o'tish: saytda 'Ro'yxatdan o'tish' → ism → 'Telegram orqali tasdiqlash' → @" + (botName_() || 'bot') + " botida 'Raqamni yuborish' → saytga qaytib parol qo'yish. Parolni unutsang — kirish sahifasida 'Parolni unutdingizmi?' orqali bot bilan tiklanadi.",
     "10) Tariflar (oylik): " + tariffs + ". Yillik to'lovda " + S.discount + "% chegirma. Limit har kuni yarim tunda (Toshkent vaqti) yangilanadi.",
     "11) To'lov: kabinet → 'Tarif va to'lovlar' → tarifni tanlash → 1 oy yoki 1 yil → TezCheck sahifasida Click, Payme, Uzum yoki karta bilan to'lov. Tarif to'lovdan keyin avtomatik darhol yoqiladi va tugash sanasi ko'rinadi.",
     "12) Ovozni klonlash (o'z ovozingizni nusxalash) hozircha yo'q. Audio tijorat maqsadida (reklama, video, dars) ishlatilishi mumkin. Mobil ilova, MP3 eksport va dasturchilar uchun API hozircha yo'q (Claude konnektoridan tashqari).",
