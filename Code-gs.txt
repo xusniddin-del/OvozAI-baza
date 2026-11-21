@@ -861,15 +861,14 @@ function tgUpdate_(u) {
   const cache = CacheService.getScriptCache();
   if (cache.get('u_' + u.update_id)) return;          // Telegram qayta yuborsa, ikki marta ishlamasin
   cache.put('u_' + u.update_id, '1', 21600);
+  tgCommands_();
+  if (u.callback_query) { tgCallback_(u.callback_query); return; }
   const m = u.message; if (!m || !m.chat || m.chat.type !== 'private') return;
   const chat = m.chat.id, text = String(m.text || '');
 
   if (/^\/start\b/.test(text)) {
     const arg = text.split(/\s+/)[1] || '', mm = /^([rp])_([A-Za-z0-9]{16,40})$/.exec(arg);
-    if (!mm) {
-      tgSend_(chat, '👋 <b>' + esc_(CFG_BRAND_()) + "</b> botiga xush kelibsiz!\nMatnni tabiiy ovozga aylantirish uchun saytga kiring.", siteBtn_());
-      return;
-    }
+    if (!mm) { tgWelcome_(chat); return; }
     cache.put('c_' + chat, JSON.stringify({ purpose: mm[1], code: mm[2] }), 900);
     const what = mm[1] === 'r' ? "ro'yxatdan o'tish" : 'parolni tiklash';
     tgSend_(chat, '📱 ' + what.charAt(0).toUpperCase() + what.slice(1) + ' uchun pastdagi <b>«Raqamni ulashish»</b> tugmasini bosing.',
@@ -879,7 +878,7 @@ function tgUpdate_(u) {
 
   if (m.contact) {
     const raw = cache.get('c_' + chat);
-    if (!raw) { tgSend_(chat, "Avval saytdagi <b>«Telegram orqali tasdiqlash»</b> tugmasini bosing.", siteBtn_()); return; }
+    if (!raw) { tgLink_(chat, m); return; }
     if (!m.from || m.contact.user_id !== m.from.id) { tgSend_(chat, "Iltimos, o'z raqamingizni pastdagi tugma orqali yuboring."); return; }
     const c = JSON.parse(raw), phone = normPhone_(m.contact.phone_number);
     const done = { remove_keyboard: true };
@@ -894,7 +893,167 @@ function tgUpdate_(u) {
     return;
   }
 
-  tgSend_(chat, "Men faqat raqamni tasdiqlash uchun ishlayman. Saytdan foydalaning 👇", siteBtn_());
+  if (/^\/(ovoz|voice)\b/.test(text)) { tgVoiceMenu_(chat); return; }
+  if (/^\/(uslub|style)\b/.test(text)) { tgStyleMenu_(chat); return; }
+  if (/^\/limit\b/.test(text)) { tgLimit_(chat); return; }
+  if (/^\/(yordam|help)\b/.test(text)) { tgWelcome_(chat); return; }
+  if (/^\//.test(text)) { tgSend_(chat, "Bunday buyruq yo'q. /yordam ni bosing."); return; }
+  if (text.trim()) { tgTts_(chat, text.trim()); return; }
+  tgSend_(chat, "Menga <b>matn</b> yuboring — uni ovozga aylantirib beraman 🎙");
+}
+
+/* ============================================================
+   TELEGRAM BOTDA MATNNI OVOZGA AYLANTIRISH
+   Foydalanuvchi matn yuboradi → bot audio qaytaradi. Limit saytdagi bilan umumiy.
+   Ovoz va uslub tanlovi Script Properties'da "tgv_<chat>" kalitida saqlanadi.
+   ============================================================ */
+
+const TG_STYLES = [['Tabiiy', ''], ['Quvnoq', 'cheerful and friendly'], ['Jiddiy', 'serious and authoritative'], ['Sokin', 'calm and relaxed'],
+  ['Hayajonli', 'excited and energetic'], ['Shivirlab', 'whispering softly'], ['Diktor', 'like a professional news announcer']];
+const TG_TRAITS = { Zephyr: 'Yorqin', Puck: 'Tetik', Charon: 'Axborotli', Kore: "Qat'iy", Fenrir: 'Hayajonli', Leda: 'Yosh', Orus: "Qat'iy", Aoede: 'Yengil',
+  Callirrhoe: 'Xotirjam', Autonoe: 'Yorqin', Enceladus: 'Nafasli', Iapetus: 'Aniq', Umbriel: 'Xotirjam', Algieba: 'Silliq', Despina: 'Silliq', Erinome: 'Aniq',
+  Algenib: "Bo'g'iq", Rasalgethi: 'Axborotli', Laomedeia: 'Tetik', Achernar: 'Mayin', Alnilam: "Qat'iy", Schedar: 'Teng', Gacrux: 'Yetuk', Pulcherrima: 'Dadil',
+  Achird: "Do'stona", Zubenelgenubi: 'Oddiy', Vindemiatrix: 'Muloyim', Sadachbia: 'Jonli', Sadaltager: 'Bilimdon', Sulafat: 'Iliq' };
+const TG_FEMALE = ['Zephyr','Kore','Leda','Aoede','Callirrhoe','Autonoe','Despina','Erinome','Laomedeia','Achernar','Gacrux','Pulcherrima','Vindemiatrix','Sulafat'];
+// saytdagi samples/*.mp3 — ovoz tanlanganda namunasi yuboriladi
+const TG_SAMPLES = ['Achernar','Algenib','Algieba','Alnilam','Aoede','Autonoe','Callirrhoe','Charon','Despina','Enceladus','Erinome','Fenrir','Iapetus','Kore',
+  'Laomedeia','Leda','Orus','Puck','Rasalgethi','Schedar','Umbriel','Zephyr'];
+
+/** Bot menyusidagi buyruqlar — bir marta o'rnatiladi */
+function tgCommands_() {
+  const p = PropertiesService.getScriptProperties();
+  if (p.getProperty('TG_CMDS_V1')) return;
+  const r = tgApi_('setMyCommands', { commands: [
+    { command: 'ovoz', description: 'Ovozni tanlash' }, { command: 'uslub', description: 'Uslubni tanlash' },
+    { command: 'limit', description: 'Bugungi limit' }, { command: 'yordam', description: "Qanday ishlatiladi" }] });
+  if (r && r.ok) p.setProperty('TG_CMDS_V1', '1');
+}
+
+function tgPrefs_(chat) {
+  try { const v = JSON.parse(PropertiesService.getScriptProperties().getProperty('tgv_' + chat) || '{}'); return { v: v.v || 'Kore', s: v.s || 'Tabiiy' }; }
+  catch (e) { return { v: 'Kore', s: 'Tabiiy' }; }
+}
+function tgSetPrefs_(chat, pr) { PropertiesService.getScriptProperties().setProperty('tgv_' + chat, JSON.stringify(pr)); }
+
+/** Telegram akkauntiga ulangan foydalanuvchi qatori (0 — ulanmagan) */
+function tgUserRow_(chat) { return findRow_('Users', USER_HEADERS, 'tgId', String(chat)); }
+
+function tgShareKb_() { return { keyboard: [[{ text: '📱 Raqamni ulashish', request_contact: true }]], resize_keyboard: true, one_time_keyboard: true }; }
+
+function tgWelcome_(chat) {
+  const pr = tgPrefs_(chat), row = tgUserRow_(chat);
+  const body = '👋 <b>' + esc_(CFG_BRAND_()) + "</b> botiga xush kelibsiz!\n\n" +
+    "Menga istalgan <b>matn</b> yuboring — uni tabiiy ovozga aylantirib, audio qilib qaytaraman 🎙\n\n" +
+    '🗣 Ovoz: <b>' + pr.v + '</b> — ' + (TG_TRAITS[pr.v] || '') + ' · /ovoz\n' +
+    '🎭 Uslub: <b>' + pr.s + '</b> · /uslub\n' +
+    '📊 Bugungi limit: /limit\n\n' +
+    'Bir xabarda ' + CFG.MAX_CHARS_PER_REQUEST + ' belgigacha. Limit saytdagi hisobingiz bilan umumiy.';
+  if (row) { tgSend_(chat, body, siteBtn_()); return; }
+  tgSend_(chat, body + "\n\n🔗 Boshlash uchun akkauntingizni ulang: pastdagi <b>«Raqamni ulashish»</b> tugmasini bosing. Hali ro'yxatdan o'tmagan bo'lsangiz — avval saytda bepul ro'yxatdan o'ting.", tgShareKb_());
+}
+
+/** Saytdan kod kelmagan holda raqam yuborilsa — mavjud akkauntni shu Telegramga ulaydi */
+function tgLink_(chat, m) {
+  const done = { remove_keyboard: true };
+  if (!m.from || m.contact.user_id !== m.from.id) { tgSend_(chat, "Iltimos, o'z raqamingizni pastdagi tugma orqali yuboring."); return; }
+  const phone = normPhone_(m.contact.phone_number);
+  if (!phone) { tgSend_(chat, "Hozircha faqat O'zbekiston raqamlari (+998) qabul qilinadi.", done); return; }
+  const row = findPhoneRow_(phone);
+  if (!row) { tgSend_(chat, "ℹ️ <b>" + phone + "</b> raqami bilan akkaunt topilmadi. Avval saytda bepul ro'yxatdan o'ting, keyin qaytib keling 🙂", siteBtn_()); return; }
+  const user = readUser_(row);
+  if (user.status && user.status !== 'active') { tgSend_(chat, 'Akkaunt bloklangan. Admin bilan bog\'laning.', done); return; }
+  const old = tgUserRow_(chat);
+  const sh = sheet_('Users', USER_HEADERS), col = USER_HEADERS.indexOf('tgId') + 1;
+  if (old && old !== row) sh.getRange(old, col).setValue('');   // bitta Telegram — bitta akkaunt
+  sh.getRange(row, col).setNumberFormat('@').setValue(String(chat));
+  tgSend_(chat, '✅ Akkauntingiz ulandi, <b>' + esc_(user.name) + "</b>!\n\nEndi menga matn yuboring — ovozga aylantirib beraman 🎙", done);
+}
+
+function tgVoiceMenu_(chat) {
+  const cur = tgPrefs_(chat).v, rows = [];
+  const btn = function (n) { return { text: (n === cur ? '✅ ' : '') + n, callback_data: 'v:' + n }; };
+  const fem = TG_FEMALE, male = VOICES.filter(function (n) { return fem.indexOf(n) < 0; });
+  rows.push([{ text: '👩 Ayol ovozlari', callback_data: 'x' }]);
+  for (let i = 0; i < fem.length; i += 3) rows.push(fem.slice(i, i + 3).map(btn));
+  rows.push([{ text: '👨 Erkak ovozlari', callback_data: 'x' }]);
+  for (let i = 0; i < male.length; i += 3) rows.push(male.slice(i, i + 3).map(btn));
+  tgSend_(chat, '🗣 Ovozni tanlang (hozirgi: <b>' + cur + '</b>).\nTanlaganingizdan keyin namunasini yuboraman.', { inline_keyboard: rows });
+}
+
+function tgStyleMenu_(chat) {
+  const cur = tgPrefs_(chat).s, rows = [];
+  for (let i = 0; i < TG_STYLES.length; i += 3) rows.push(TG_STYLES.slice(i, i + 3).map(function (x) {
+    return { text: (x[0] === cur ? '✅ ' : '') + x[0], callback_data: 's:' + x[0] }; }));
+  tgSend_(chat, '🎭 Uslubni tanlang (hozirgi: <b>' + cur + '</b>):', { inline_keyboard: rows });
+}
+
+function tgLimit_(chat) {
+  const row = tgUserRow_(chat);
+  if (!row) { tgSend_(chat, "Avval akkauntingizni ulang 👇", tgShareKb_()); return; }
+  const user = readUser_(row), limit = limitFor_(user), used = user.day === today_() ? Number(user.usedToday) || 0 : 0;
+  tgSend_(chat, '📊 Bugun: <b>' + used + '</b> / ' + limit + ' belgi\nQoldi: <b>' + Math.max(0, limit - used) + '</b> belgi\nTarif: <b>' + esc_(String(user.plan).toUpperCase()) +
+    "</b>\n\nLimit har kuni yarim tunda yangilanadi.", { inline_keyboard: [[{ text: '⚡ Tarifni oshirish', url: CFG.SITE_URL + '#/app/plans' }]] });
+}
+
+function tgCallback_(q) {
+  const chat = q.message && q.message.chat && q.message.chat.id, d = String(q.data || '');
+  const ack = function (t) { tgApi_('answerCallbackQuery', { callback_query_id: q.id, text: t || '' }); };
+  if (!chat || d === 'x') { ack(); return; }
+  const pr = tgPrefs_(chat);
+  if (d.indexOf('v:') === 0 && VOICES.indexOf(d.slice(2)) >= 0) {
+    pr.v = d.slice(2); tgSetPrefs_(chat, pr); ack(pr.v + ' tanlandi');
+    tgApi_('editMessageText', { chat_id: chat, message_id: q.message.message_id, parse_mode: 'HTML',
+      text: '🗣 Ovoz: <b>' + pr.v + '</b> — ' + (TG_TRAITS[pr.v] || '') + ' (' + (TG_FEMALE.indexOf(pr.v) >= 0 ? 'ayol' : 'erkak') + ")\nEndi matn yuboring!" });
+    if (TG_SAMPLES.indexOf(pr.v) >= 0) tgApi_('sendAudio', { chat_id: chat, audio: CFG.SITE_URL + 'samples/' + pr.v + '.mp3', title: pr.v + ' — namuna', performer: 'Nevra' });
+    return;
+  }
+  if (d.indexOf('s:') === 0 && TG_STYLES.some(function (x) { return x[0] === d.slice(2); })) {
+    pr.s = d.slice(2); tgSetPrefs_(chat, pr); ack(pr.s + ' tanlandi');
+    tgApi_('editMessageText', { chat_id: chat, message_id: q.message.message_id, parse_mode: 'HTML', text: '🎭 Uslub: <b>' + pr.s + "</b>\nEndi matn yuboring!" });
+    return;
+  }
+  ack();
+}
+
+/** Matnni ovozga aylantirib, audio qilib yuboradi */
+function tgTts_(chat, text) {
+  const row = tgUserRow_(chat);
+  if (!row) { tgSend_(chat, "🔗 Ovoz yaratish uchun avval akkauntingizni ulang — pastdagi <b>«Raqamni ulashish»</b> tugmasini bosing.\nHali ro'yxatdan o'tmagan bo'lsangiz, saytda bepul ro'yxatdan o'ting.", tgShareKb_()); return; }
+  const user = readUser_(row);
+  if (user.status && user.status !== 'active') { tgSend_(chat, 'Akkaunt bloklangan. Admin bilan bog\'laning.'); return; }
+  if (text.length > CFG.MAX_CHARS_PER_REQUEST) {
+    tgSend_(chat, '✂️ Matn juda uzun (' + text.length + ' belgi). Botda bir xabarga ' + CFG.MAX_CHARS_PER_REQUEST + " belgigacha. Uzun matnni bo'lib yuboring yoki saytdan foydalaning — u o'zi bo'laklab, bitta audio qiladi.", siteBtn_());
+    return;
+  }
+  const reserve = reserveQuota_(row, text.length);
+  if (!reserve.ok) { tgSend_(chat, '⛔ ' + esc_(reserve.message), { inline_keyboard: [[{ text: '⚡ Tarifni oshirish', url: CFG.SITE_URL + '#/app/plans' }]] }); return; }
+  const key = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  if (!key) { refundQuota_(row, text.length); tgSend_(chat, "Server sozlanmagan. Admin bilan bog'laning."); return; }
+  tgApi_('sendChatAction', { chat_id: chat, action: 'record_voice' });
+  const pr = tgPrefs_(chat), st = (TG_STYLES.filter(function (x) { return x[0] === pr.s; })[0] || ['', ''])[1];
+  const r = callGemini_(text, pr.v, st, key);
+  if (!r.ok) {
+    refundQuota_(row, text.length); log_(user.id, text.length, r.model || '', false, 'tg ' + r.error);
+    tgSend_(chat, '😔 ' + esc_(r.userError || "Ovoz yaratilmadi. Birozdan keyin qayta urinib ko'ring."));
+    return;
+  }
+  log_(user.id, text.length, r.model, true, 'tg');
+  const wav = toWav_(r.audio, r.mime);
+  const title = text.replace(/\s+/g, ' ').slice(0, 40);
+  const blob = Utilities.newBlob(Utilities.base64Decode(wav.b64), 'audio/wav', slug_(title || 'nevra') + '.wav');
+  const left = Math.max(0, reserve.limit - reserve.used);
+  const cap = '🗣 ' + pr.v + ' · ' + pr.s + ' · ' + Math.max(1, Math.round(wav.seconds)) + ' s\n📊 Bugun qoldi: ' + left + ' belgi';
+  let sent = tgUpload_('sendAudio', { chat_id: String(chat), title: title, performer: 'Nevra · ' + pr.v, caption: cap, audio: blob });
+  if (!sent || !sent.ok) sent = tgUpload_('sendDocument', { chat_id: String(chat), caption: cap, document: blob });
+  if (!sent || !sent.ok) { refundQuota_(row, text.length); tgSend_(chat, "😔 Audioni yuborib bo'lmadi. Qayta urinib ko'ring."); }
+}
+
+/** Fayl bilan Telegram so'rovi (multipart) */
+function tgUpload_(method, form) {
+  const tok = botToken_(); if (!tok) return null;
+  try {
+    return JSON.parse(UrlFetchApp.fetch('https://api.telegram.org/bot' + tok + '/' + method, { method: 'post', payload: form, muteHttpExceptions: true }).getContentText());
+  } catch (e) { console.error(e); return null; }
 }
 
 function CFG_BRAND_() { return 'Nevra'; }
@@ -942,12 +1101,13 @@ function chat_(req) {
     "6) Fayllarim: yaratilgan barcha audio va matnlar shu brauzerda saqlanadi, yuklab olish mumkin.",
     "7) Claude'ga ulash (YANGI): Nevra'ni Claude AI chatiga konnektor qilib ulash mumkin. Kabinet → 'Claude'ga ulash' bo'limida shaxsiy manzil olinadi; claude.ai → Settings → Connectors → Add custom connector → nomi 'Nevra', URL — o'sha manzil → Add → Connect. Keyin Claude'ga 'reklama audiosi tayyorla' desang, u matnni yozib, Nevra ovozida audio yaratadi. Bu Max va Biznes tariflarida bor, belgilar kunlik limitdan yechiladi. Manzilni hech kimga berma.",
     "Saytda rasm, video, sayt yoki mobil ilova yaratish YO'Q — so'rasa, hozircha mavjud emasligini ayt.",
+    "7b) Telegram bot (YANGI): @" + (botName_() || 'bot') + " botiga matn yuborilsa, u ovozga aylantirib audio qaytaradi. Birinchi marta /start → 'Raqamni ulashish' tugmasi bilan sayt akkauntiga ulanadi. /ovoz — ovoz tanlash (namunasi bilan), /uslub — uslub, /limit — qolgan limit. Bir xabarda " + CFG.MAX_CHARS_PER_REQUEST + " belgigacha, limit saytdagi bilan umumiy.",
     "8) Takliflar: do'st taklif qilsang, har biri uchun kunlik limitga +" + S.refBonus + " belgi (" + S.refMax + " tagacha).",
     "9) Ro'yxatdan o'tish: saytda 'Ro'yxatdan o'tish' → ism → 'Telegram orqali tasdiqlash' → @" + (botName_() || 'bot') + " botida 'Raqamni yuborish' → saytga qaytib parol qo'yish. Parolni unutsang — kirish sahifasida 'Parolni unutdingizmi?' orqali bot bilan tiklanadi.",
     "10) Tariflar (oylik): " + tariffs + ". Yillik to'lovda " + S.discount + "% chegirma. Limit har kuni yarim tunda (Toshkent vaqti) yangilanadi.",
     "11) To'lov: kabinet → 'Tarif va to'lovlar' → tarifni tanlash → 1 oy yoki 1 yil → TezCheck sahifasida Click, Payme, Uzum yoki karta bilan to'lov. Tarif to'lovdan keyin avtomatik darhol yoqiladi va tugash sanasi ko'rinadi.",
     "12) Ovozni klonlash (o'z ovozingizni nusxalash) hozircha yo'q. Audio tijorat maqsadida (reklama, video, dars) ishlatilishi mumkin. Mobil ilova, MP3 eksport va dasturchilar uchun API hozircha yo'q (Claude konnektoridan tashqari).",
-    "13) Texnik cheklovlar: bir so'rovda " + CFG.MAX_CHARS_PER_REQUEST + " belgigacha yuboriladi, lekin uzun matnni sayt o'zi bo'laklarga bo'lib, bitta audioga yig'adi. Audio faqat WAV formatda (24 kHz) chiqadi; MP3 kerak bo'lsa, istalgan bepul konvertor bilan o'giriladi. 'Nutqdan matnga' va 'Dublyaj' uchun fayl 13 MB gacha. Namuna tinglash ham limitdan ~70 belgi oladi. 'Fayllarim' faqat shu brauzerda saqlanadi: brauzer tozalansa yoki boshqa qurilmadan kirilsa ko'rinmaydi — muhim audiolarni darhol yuklab olib qo'yish kerak.",
+    "13) Texnik cheklovlar: bir so'rovda " + CFG.MAX_CHARS_PER_REQUEST + " belgigacha yuboriladi, lekin uzun matnni sayt o'zi bo'laklarga bo'lib, bitta audioga yig'adi. Audio faqat WAV formatda (24 kHz) chiqadi; MP3 kerak bo'lsa, istalgan bepul konvertor bilan o'giriladi. 'Nutqdan matnga' va 'Dublyaj' uchun fayl 13 MB gacha. Ovoz namunalarini tinglash bepul (ko'pchiligi limit olmaydi). 'Fayllarim' faqat shu brauzerda saqlanadi: brauzer tozalansa yoki boshqa qurilmadan kirilsa ko'rinmaydi — muhim audiolarni darhol yuklab olib qo'yish kerak.",
     "14) Xatolar va yechimi: 'So'rovlar ko'p' — server band, 1 daqiqadan keyin qayta urinish. 'Bugungi limit tugadi' — limit yarim tunda yangilanadi yoki tarifni oshirish/do'st taklif qilish. 'Ovoz yaratilmadi' — matnni qisqartirib yoki boshqa ovoz bilan qayta urinish. 'To'lov topilmadi yoki bekor qilindi' — to'lov sahifasida to'lov tugallanmagan; pul yechilgan bo'lsa, 1–2 daqiqada tarif o'zi yoqiladi, 'Tarif va to'lovlar' sahifasini yangilash kerak, yoqilmasa admin bilan bog'lanish. 'Telegram tasdiqlash ishlamayapti' — botda /start bosib, 'Raqamni yuborish' tugmasidan foydalanish (raqamni qo'lda yozish emas). Kirish xatosi — raqam +998 bilan to'g'ri yozilganini tekshirish yoki parolni tiklash.",
     "15) Pulni qaytarish va boshqa qoidalar hali e'lon qilinmagan — bunday savollarda admin bilan bog'lanishni ayt, o'zingdan qoida to'qima.",
     "TUGMALAR: javob oxiriga kerakli bo'lsa bitta yoki ikkita tugma qo'sh, aynan shu shaklda: [[go:plans]] (Tariflar), [[go:tts]] (Ovoz yaratish), [[go:voices]] (Ovozlar), [[go:stt]] (Nutqdan matnga), [[go:dub]] (Dublyaj), [[go:books]] (Audiokitob), [[go:connect]] (Claude'ga ulash), [[go:ref]] (Takliflar), [[go:assets]] (Fayllarim), [[go:register]] (Ro'yxatdan o'tish), [[go:login]] (Kirish), [[go:reset]] (Parolni tiklash). Boshqa shakl ishlatma.",
