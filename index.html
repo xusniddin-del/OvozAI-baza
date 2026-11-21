@@ -971,6 +971,26 @@ body[data-page=tts] .gp-panel{right:404px;bottom:166px}
   .gp-panel,body[data-page=tts] .gp-panel{left:8px;right:8px;width:auto;bottom:calc(72px + env(safe-area-inset-bottom));height:calc(100dvh - 150px);border-radius:22px}
   input,select,textarea{font-size:16px}
 }
+/* Ovozlarni tinglang (landing) */
+.lvf{display:flex;justify-content:center;gap:8px;margin:-18px 0 26px}
+.lvf button{padding:8px 18px;border-radius:99px;border:1px solid var(--line);background:var(--glass);font-size:13.5px;font-weight:600;color:#c3cfef;transition:.2s}
+.lvf button.on{background:var(--grad);border-color:transparent;color:#fff}
+.lvg{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;max-width:1000px;margin:0 auto}
+.lvc{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.018));text-align:left;transition:border-color .25s,transform .25s}
+.lvc:hover{border-color:rgba(108,154,255,.5);transform:translateY(-2px)}
+.lvc.on{border-color:var(--blue2);box-shadow:0 0 0 3px rgba(47,107,255,.18)}
+.lvc[hidden]{display:none}
+.lvp{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--grad);color:#fff}
+.lvp svg{width:14px;height:14px}
+.lvn{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3}
+.lvn b{font-size:14.5px;color:#fff;font-weight:700}.lvn small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lvw{display:flex;align-items:center;gap:3px;height:18px;opacity:0;transition:opacity .2s}
+.lvw i{width:3px;height:40%;border-radius:2px;background:var(--cyan)}
+.lvc.on .lvw{opacity:1}.lvc.on .lvw i{animation:lvb .8s ease-in-out infinite}
+.lvc.on .lvw i:nth-child(2){animation-delay:-.2s}.lvc.on .lvw i:nth-child(3){animation-delay:-.4s}.lvc.on .lvw i:nth-child(4){animation-delay:-.6s}
+@keyframes lvb{0%,100%{height:30%}50%{height:100%}}
+.lvcta{text-align:center;margin-top:30px}
+@media(prefers-reduced-motion:reduce){.lvc.on .lvw i{animation:none;height:70%}}
 </style>
 </head>
 <body>
@@ -1128,7 +1148,7 @@ function navHTML(fix){
   const logged = !!store.token;
   return `<div class="nav ${fix?"fix":""}"><div class="wrap">
     <a class="logo" href="#/">${BRAND_MARK}</a>
-    <div class="links"><a href="#/">Bosh sahifa</a><a href="#/" data-s="features">Imkoniyatlar</a><a href="#/" data-s="ai">AI ulanish</a><a href="#/" data-s="pricing">Tariflar</a><a href="#/" data-s="faq">Savollar</a></div>
+    <div class="links"><a href="#/">Bosh sahifa</a><a href="#/" data-s="features">Imkoniyatlar</a><a href="#/" data-s="voices">Ovozlar</a><a href="#/" data-s="ai">AI ulanish</a><a href="#/" data-s="pricing">Tariflar</a><a href="#/" data-s="faq">Savollar</a></div>
     <div class="nav-cta">${logged
       ? `<a class="btn btn-p" href="#/app">Kabinet</a>`
       : `<a class="btn btn-p" href="#/login">Kirish</a>`}</div>
@@ -1208,6 +1228,15 @@ function landing(){
         <div class="bvis v4"><div class="pl"><div class="row"><div class="pb">${ICON_PLAY}</div><div class="wv">${wave}</div></div>
           <div class="meta"><span>Audiokitob · Charon</span><span>⬇ WAV</span></div></div></div></div>
     </div>
+  </div></section>
+
+  <section id="voices"><div class="wrap">
+    <div class="sec-h rv"><span class="tag">${ICON_PLAY} Ro'yxatdan o'tmasdan tinglang</span>
+      <h2>Ovozlarni <span>eshitib ko'ring</span></h2><p>Har bir ovoz o'zbekcha gapiradi. Yoqqanini tanlang — matningizni shu ovozda o'qib beradi.</p></div>
+    <div class="lvf rv" id="lvf"><button class="on" data-g="">Hammasi</button><button data-g="Ayol">Ayol</button><button data-g="Erkak">Erkak</button></div>
+    <div class="lvg" id="lvg">${VOICES.map(v=>v[0]).filter(n=>STATIC_SAMPLES.has(n)).map(VM).map((v,i)=>`<button class="lvc rv" style="--d:${(i%6*0.04).toFixed(2)}s" data-v="${v.name}" data-g="${v.g}">
+      <span class="lvp">${ICON_PLAY}</span>${vav(v.name,40)}<span class="lvn"><b>${v.name}</b><small>${v.trait} · ${v.g}</small></span><span class="lvw"><i></i><i></i><i></i><i></i></span></button>`).join("")}</div>
+    <div class="lvcta rv"><a class="btn btn-p" href="${store.token?"#/app/tts":"#/register"}">Shu ovozlar bilan yaratish →</a></div>
   </div></section>
 
   <section><div class="wrap">
@@ -1409,7 +1438,25 @@ function bindNav(){
 }
 function scrollToId(id){ const el=document.getElementById(id); if(el) el.scrollIntoView({behavior:"smooth"}); }
 
+function bindVoiceDemo(){
+  const g = $("#lvg"); if(!g) return;
+  let au = null, cur = null;
+  const stop = () => { if(au){ au.pause(); au = null; } if(cur){ cur.classList.remove("on"); cur = null; } };
+  g.onclick = e => {
+    const c = e.target.closest(".lvc"); if(!c) return;
+    const same = cur === c; stop(); if(same) return;
+    cur = c; c.classList.add("on");
+    au = new Audio("samples/" + c.dataset.v + ".mp3");
+    au.onended = stop; au.play().catch(stop);
+  };
+  $("#lvf").onclick = e => { const b = e.target.closest("button"); if(!b) return;
+    $("#lvf").querySelectorAll("button").forEach(x=>x.classList.toggle("on", x===b));
+    g.querySelectorAll(".lvc").forEach(c => c.hidden = !!b.dataset.g && c.dataset.g!==b.dataset.g); };
+  window.addEventListener("hashchange", stop, {once:true});
+}
+
 function bindLanding(){
+  bindVoiceDemo();
   const f = $("#hf"); if(!f) return;
   bindPhoneMask($("#hphone"));
   f.onsubmit = e => { e.preventDefault(); PREFILL = maskPhone($("#hphone").value); location.hash = "#/register"; };
@@ -1545,6 +1592,17 @@ const saveSel = () => { try{ localStorage.setItem("ovoz_sel", JSON.stringify(SEL
 const LANGS = [["","Avto (matndan aniqlaydi)"],["Uzbek","O'zbek"],["Russian","Rus"],["English","Ingliz"],["Turkish","Turk"],["Kazakh","Qozoq"],["Arabic","Arab"],["Korean","Koreys"],["Chinese","Xitoy"],["German","Nemis"]];
 const LNAME = Object.fromEntries(LANGS);
 const STARTERS = [
+  // [emoji, nom, matn (ko'rinish), uslub, uslub nomi, (ixtiyoriy) spikerlar: [[ovoz, matn], ...]]
+  ["💬","Dialogli reklama","Voy, yana sochim qiyshiq olindi! Yaxshi sartarosh topish shunchalik qiyinmi?","cheerful and friendly","Quvnoq",
+    [["Leda","Voy, yana sochim qiyshiq olindi! Yaxshi sartarosh topish shunchalik qiyinmi?"],
+     ["Puck","Qiyin emas! [Sartaroshxona nomi]ga boring — tajribali ustalar, navbatsiz xizmat va birinchi tashrifga [20] foiz chegirma. Manzil: [manzil]. Hoziroq yoziling!"]]],
+  ["🛍","Do'kon reklamasi","[Do'kon nomi]da katta chegirmalar boshlandi! Barcha mahsulotlarga [30] foizgacha chegirma — faqat [sana]gacha. Manzil: [manzil]. Telefon: [raqam]. Shoshiling, mahsulotlar soni cheklangan!","excited and energetic","Hayajonli"],
+  ["🎤","Intervyu","Assalomu alaykum! Bugun studiyamizda [mehmon ismi]. Xush kelibsiz!","","Tabiiy",
+    [["Charon","Assalomu alaykum! Bugun studiyamizda [mehmon ismi]. Xush kelibsiz! Avvalo o'zingiz haqingizda gapirib bersangiz."],
+     ["Kore","Rahmat, taklif uchun! Men [soha] sohasida [yil] yildan beri ishlayman va bugun tajribam bilan o'rtoqlashaman."]]],
+  ["🎂","Tug'ilgan kun tabrigi","Aziz [ism]! Tug'ilgan kuningiz muborak bo'lsin! Sizga mustahkam sog'lik, cheksiz baxt va barcha orzularingiz ushalishini tilaymiz. Har bir kuningiz quvonchga to'la bo'lsin!","cheerful and friendly","Quvnoq"],
+  ["📢","Telegram kanal intro","Assalomu alaykum! [Kanal nomi] kanaliga xush kelibsiz! Bu yerda har kuni [mavzu] bo'yicha foydali ma'lumotlar ulashamiz. Obuna bo'ling va do'stlaringizga ham ulashing!","cheerful and friendly","Quvnoq"],
+  ["🏥","Navbat e'loni","Hurmatli mijoz! [Raqam] raqamli navbat egasi, iltimos, [xona] xonaga kiring.","like a professional news announcer","Diktor"],
   ["📖","Hikoya aytish","Bir bor ekan, bir yo'q ekan, olis bir qishloqda Alisher ismli bola yashar ekan. U har kuni tongda tog'larga qarab, katta orzular qilardi.","calm and warm storyteller","Sokin"],
   ["😄","Hazil aytish","Dasturchi do'konga kiribdi: «Bitta non bering, agar tuxum bo'lsa — o'nta». Sotuvchi unga o'nta non beribdi.","cheerful and friendly","Quvnoq"],
   ["📣","Reklama matni","Faqat shu hafta! Barcha kurslarimizga 30 foiz chegirma. Hoziroq ro'yxatdan o'ting va kelajak kasbini o'rganing!","excited and energetic","Hayajonli"],
@@ -1556,6 +1614,10 @@ const STARTERS = [
 let FAV = (()=>{ try{ return new Set(JSON.parse(localStorage.getItem("ovoz_fav")||"[]")); }catch(e){ return new Set(); } })();
 const saveFav = () => { try{ localStorage.setItem("ovoz_fav", JSON.stringify([...FAV])); }catch(e){} };
 const SAMPLES = {};
+// Oldindan tayyorlangan namunalar (samples/*.mp3) — limit sarflamaydi, kirishsiz ishlaydi
+const STATIC_SAMPLES = new Set(["Achernar","Algenib","Algieba","Alnilam","Aoede","Autonoe","Callirrhoe","Charon","Despina","Enceladus","Erinome","Fenrir","Iapetus","Kore","Laomedeia","Leda","Orus","Puck","Rasalgethi","Schedar","Umbriel","Zephyr"]);
+const starterBlocks = s => s[5] ? s[5].map(([voice, text]) => ({voice, text})) : [{voice:SEL.voice, text:s[2]}];
+const HOLE = /\[[^\]\n]{1,40}\]/;   // to'ldirilmagan joy: [Do'kon nomi]
 let PLAYER = null, RENDER = 0, BUSY = false;
 
 /* ---- Brauzer xotirasi (IndexedDB): fayllar va kitoblar ---- */
@@ -1670,6 +1732,7 @@ async function togglePlay(key, getUrl, btn){
 }
 function voiceSample(name){
   return async () => {
+    if(STATIC_SAMPLES.has(name)) return "samples/" + name + ".mp3";
     if(SAMPLES[name]) return SAMPLES[name];
     const r = await api("tts", {text:`Assalomu alaykum! Men ${name}. Matningizni shu ovozda o'qib beraman.`, voice:name, style:""});
     if(!r.ok){ const f = apiFail(r); if(f.error) toast(f.error); return null; }
@@ -1697,7 +1760,7 @@ function pickVoice(current, onPick){
   const {el, close} = modal(`<div class="vpk">
     <aside><b class="cap2">Toifalar</b><div class="chips3" id="vpc">${CATS.map(c=>`<button class="tchip" data-c="${c[0]}">${c[1]}${c[0]}</button>`).join("")}</div>
       <b class="cap2">Jins</b><div class="chips3" id="vpg"><button class="tchip on" data-g="">Hammasi</button><button class="tchip" data-g="Ayol">Ayol</button><button class="tchip" data-g="Erkak">Erkak</button></div>
-      <p class="note">▶ Namuna tinglash limitdan ~70 belgi oladi.</p></aside>
+      <p class="note">▶ ${STATIC_SAMPLES.size>=VOICES.length ? "Namunalarni tinglash bepul." : "Ko'pchilik namunalar bepul, ayrimlari ~70 belgi oladi."}</p></aside>
     <section><div class="vph"><div class="seg sm"><button class="on" data-t="all">Kutubxona</button><button data-t="fav">Sevimlilar</button></div>
       <div class="srch">${IC.search}<input id="vpq" placeholder="Ovoz qidirish..."></div><button class="ib" data-close>${IC.x}</button></div>
       <div class="vpl" id="vpl"></div></section></div>`, "wide");
@@ -2034,7 +2097,7 @@ const PAGES = {
       $("#tools").innerHTML = b.dataset.t==="tools" ? TOOLS.map(tcard).join("")
         : STARTERS.map((s,i)=>`<button class="tool ex" data-i="${i}"><span class="th2 em">${s[0]}</span><span><b>${s[1]}</b><small>${esc(s[2].slice(0,58))}…</small></span></button>`).join(""); };
     $("#tools").onclick = e => { const b = e.target.closest(".ex"); if(!b) return; const s = STARTERS[+b.dataset.i];
-      SEL.style = s[3]; SEL.styleName = s[4]; saveSel(); setDraft([{voice:SEL.voice, text:s[2]}]); location.hash = "#/app/tts"; };
+      SEL.style = s[3]; SEL.styleName = s[4]; saveSel(); setDraft(starterBlocks(s)); location.hash = "#/app/tts"; };
     let all = await listAssets(), k = "", q = "";
     if(!$("#rec")) return;   // foydalanuvchi boshqa sahifaga o'tib ketgan
     const draw = () => {
@@ -2168,7 +2231,8 @@ const PAGES = {
     $("#rst").onclick = () => { SEL = Object.assign({}, SEL_DEFAULT); saveSel(); blocks[0].voice = SEL.voice; save(); PAGES.tts(); toast("Standart sozlamalar tiklandi"); };
     $("#clr").onclick = () => { if(total() && !confirm("Matn tozalansinmi?")) return; blocks = [{voice:blocks[0].voice, text:""}]; save(); drawBlocks(); $("#out").innerHTML = ""; };
     $("#st").onclick = e => { const b = e.target.closest(".stc"); if(!b) return; const s = STARTERS[+b.dataset.i];
-      blocks[0].text = s[2]; SEL.style = s[3]; SEL.styleName = s[4]; saveSel(); save();
+      blocks = starterBlocks(s); SEL.style = s[3]; SEL.styleName = s[4]; saveSel(); save();
+      if(blocks.some(b=>HOLE.test(b.text))) toast("[ ] ichidagi joylarni o'z ma'lumotingiz bilan almashtiring");
       document.querySelectorAll("#chips .ch").forEach(c=>c.classList.toggle("on", c.dataset.l===s[4])); $("#cst").value = ""; drawBlocks(); };
     const drawHist = async () => { const l = (await listAssets()).filter(a=>a.kind==="tts").slice(0,15);
       $("#tabH").innerHTML = l.length ? `<div class="mini">${l.map(a=>`<div class="ar" data-id="${a.id}"><div class="an"><button class="pb" data-play="a:${a.id}">${IC.play}</button><div><b>${esc(a.title)}</b><small>${esc(a.sub)} · ${ago(a.time)}</small></div></div><span class="aa"><button class="ib" data-dl>${IC.dl}</button><button class="ib" data-del>${IC.trash}</button></span></div>`).join("")}</div>`
@@ -2179,6 +2243,8 @@ const PAGES = {
       $("#tabS").hidden = b.dataset.t!=="S"; $("#tabH").hidden = b.dataset.t!=="H"; if(b.dataset.t==="H") drawHist(); };
     $("#go").onclick = async () => {
       if(BUSY) return; const go = $("#go"), out = $("#out");
+      const hole = blocks.map(b=>b.text.match(HOLE)).find(Boolean);
+      if(hole){ out.innerHTML = `<div class="msg err">Avval ${esc(hole[0])} joyini o'z ma'lumotingiz bilan almashtiring.</div>`; return; }
       out.innerHTML = ""; BUSY = true; go.disabled = true; const old = go.innerHTML; go.innerHTML = '<span class="spin"></span> Yaratilmoqda...';
       Gapi.dance();
       const r = await synth(blocks, (i,n) => { const pg = $("#pg"); if(pg) pg.innerHTML = `<span class="eq">${eqBars(7,.1)}</span>${n>1?`Bo'lak ${i+1} / ${n}...`:"Ovoz tayyorlanmoqda..."}`; });
