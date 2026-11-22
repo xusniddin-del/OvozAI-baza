@@ -991,6 +991,25 @@ body[data-page=tts] .gp-panel{right:404px;bottom:166px}
 @keyframes lvb{0%,100%{height:30%}50%{height:100%}}
 .lvcta{text-align:center;margin-top:30px}
 @media(prefers-reduced-motion:reduce){.lvc.on .lvw i{animation:none;height:70%}}
+/* Rasmni tiniqlash */
+.upfree{color:#f9a8d4;font-weight:700}
+.upprev{display:flex;align-items:center;gap:14px;padding:12px}
+.upprev img{width:64px;height:64px;object-fit:cover;border-radius:12px;border:1px solid var(--ln2)}
+.upprev div{flex:1;min-width:0;display:flex;flex-direction:column}.upprev b{color:#fff;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.upprev small{color:var(--mt2);font-size:12.5px}
+.upw{color:#fbbf24;font-weight:600}
+.upbar{margin:6px 0 16px}.upbt{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:#dbe5ff;margin-bottom:8px}
+.upbar i{display:block;height:8px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}
+.upbar s{display:block;height:100%;background:var(--grad);border-radius:99px;transition:width .3s}
+.upres{border:1px solid var(--ln2);border-radius:22px;padding:10px;background:rgba(255,255,255,.03)}
+.upcmp{position:relative;width:100%;max-height:70vh;margin:0 auto;border-radius:14px;overflow:hidden;background:repeating-conic-gradient(#1a2140 0 25%,#141a33 0 50%) 0 0/20px 20px;user-select:none}
+.upcmp img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+.upcmp .upb{clip-path:inset(0 calc(100% - var(--x)) 0 0)}
+.upcmp input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
+.upln{position:absolute;top:0;bottom:0;left:var(--x);width:2px;background:#fff;transform:translateX(-1px);pointer-events:none;box-shadow:0 0 12px rgba(0,0,0,.5)}
+.upln i{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:36px;height:36px;border-radius:50%;background:#fff;color:#1e3a8a;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:15px}
+.uplb{position:absolute;top:10px;padding:4px 10px;border-radius:99px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;font-weight:700;pointer-events:none}
+.uplb.l{left:10px}.uplb.r{right:10px}
+.upact{display:flex;align-items:center;gap:10px;padding:12px 4px 2px;flex-wrap:wrap;color:var(--mt2);font-size:13px;font-weight:600}
 </style>
 </head>
 <body>
@@ -1895,6 +1914,7 @@ const APP_NAV = [
   {id:"stt", t:"Nutqdan matnga", ic:IC.text},
   {id:"dub", t:"Dublyaj", ic:IC.trans},
   {id:"books", t:"Audiokitoblar", ic:IC.book},
+  {id:"upscale", t:"Rasmni tiniqlash", ic:IC.img},
   {g:"Hisob"},
   {id:"plans", t:"Tarif va to'lovlar", ic:IC.card},
   {id:"connect", t:"Claude'ga ulash", ic:IC.link},
@@ -2072,9 +2092,27 @@ const TOOLS = [
   ["stt","Nutqdan matnga","Audio va videoni matnga o'giring",IC.text,"linear-gradient(135deg,#064e3b,#10b981 55%,#a7f3d0)"],
   ["dub","Dublyaj","Audioni boshqa tilga ovozlang",IC.trans,"linear-gradient(135deg,#7c2d12,#f97316 55%,#fed7aa)"],
   ["books","Audiokitoblar","Uzun matndan boblarga bo'lingan kitob",IC.book,"linear-gradient(135deg,#4c1d95,#a855f7 55%,#e9d5ff)"],
+  ["upscale","Rasmni tiniqlash","Xira rasmni 2–4 barobar tiniq qiling · bepul",IC.img,"linear-gradient(135deg,#831843,#ec4899 55%,#fbcfe8)"],
   ["voices","Ovozlar","30 ta ovozni tinglang va tanlang",IC.grid,"linear-gradient(135deg,#0f172a,#475569 55%,#cbd5e1)"]
 ];
 const tcard = t => `<a class="tool" href="#/app/${t[0]}"><span class="th2" style="background:${t[4]}">${t[3]}<i></i></span><span><b>${t[1]}</b><small>${t[2]}</small></span></a>`;
+
+/* ---- Rasmni tiniqlash (ESRGAN, brauzerda; MIT — upscalerjs.com) ---- */
+const UP_CDN = "https://cdn.jsdelivr.net/npm/";
+const UP_LIBS = ["@tensorflow/tfjs@4.22.0/dist/tf.min.js", "upscaler@1.0.0/dist/browser/umd/upscaler.min.js"];
+const UP_MAXPX = {2: 640*1000, 4: 250*1000};      // kirish rasmi chegarasi (piksel) — telefon qotmasligi uchun
+const UP_CACHE = {};
+const loadJS = src => new Promise((ok, no) => { if(document.querySelector(`script[src="${src}"]`)) return ok();
+  const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => no(new Error("script load: " + src)); document.head.appendChild(s); });
+function upFit(w, h, scale){ const k = Math.min(1, Math.sqrt(UP_MAXPX[scale] / (w*h))); return {w:Math.max(1, Math.round(w*k)), h:Math.max(1, Math.round(h*k))}; }
+async function upLoad(scale){
+  if(UP_CACHE[scale]) return UP_CACHE[scale];
+  for(const l of UP_LIBS) await loadJS(UP_CDN + l);
+  await loadJS(UP_CDN + `@upscalerjs/esrgan-medium@1.0.0/dist/umd/models/esrgan-medium/src/x${scale}/index.min.js`);
+  const up = new window.Upscaler({model: window["ESRGANMedium" + scale + "x"]});
+  await up.getModel();
+  return UP_CACHE[scale] = up;
+}
 
 const PAGES = {
   async home(){
@@ -2423,6 +2461,79 @@ const PAGES = {
     };
     $("#delb").onclick = async () => { if(!confirm("Kitob va uning audiolari o'chirilsinmi?")) return;
       for(const c of b.chapters) if(c.assetId) await dbDel("assets", c.assetId); await dbDel("books", b.id); location.hash = "#/app/books"; };
+  },
+
+  upscale(){
+    let src = null, out = null, scale = 2, up = null;
+    $("#pgv").innerHTML = `<div class="pg">
+      <div class="ph"><div><h1 class="t2">Rasmni tiniqlash</h1><p class="sub3">Xira va kichik rasmlarni sun'iy intellekt bilan 2 yoki 4 barobar kattalashtiring. <b class="upfree">Bepul — limit olmaydi</b></p></div></div>
+      <div class="box">
+        <div class="drop updrop" id="udrop"><input type="file" accept="image/png,image/jpeg,image/webp" hidden>
+          <div class="dz"><b>Tiniqlashtirish uchun rasm qo'shing</b><span>PNG, JPG yoki WEBP — shu yerga tashlang yoki tanlang</span>
+            <div class="dzb"><button class="btn-l" data-up>${IC.upload} Rasm tanlash</button></div></div>
+          <div class="upprev" hidden><img alt=""><div><b class="fn"></b><small class="fs"></small></div><button class="ib" data-clear title="Olib tashlash">${IC.x}</button></div></div>
+        <div class="boxbar"><div class="seg" id="usc"><button class="on" data-s="2">2x</button><button data-s="4">4x</button></div>
+          <span class="prog2" id="uinfo"></span><div class="flex1"></div>
+          <button class="gob" id="ugo" disabled title="Tiniqlashtirish">${IC.up}</button></div></div>
+      <div class="note">🔒 Rasm hech qayerga yuborilmaydi — hammasi qurilmangizda bajariladi. Birinchi marta ~4 MB model yuklanadi. Telefonda 4x biroz vaqt olishi mumkin.</div>
+      <div id="uout"></div></div>`;
+    const box = $("#udrop"), inp = box.querySelector("input"), dz = box.querySelector(".dz"), pv = box.querySelector(".upprev");
+    const info = () => { if(!src) { $("#uinfo").textContent = ""; return; }
+      const f = upFit(src.w, src.h, scale);
+      $("#uinfo").innerHTML = `${src.w}×${src.h} → <b>${f.w*scale}×${f.h*scale}</b>` + (f.w < src.w ? ` <span class="upw">(avval ${f.w}×${f.h} ga kichraytiriladi)</span>` : ""); };
+    const pick = async f => {
+      if(!f) return;
+      if(!/^image\/(png|jpe?g|webp)$/.test(f.type)){ toast("Faqat PNG, JPG yoki WEBP rasm"); return; }
+      if(f.size > 20*1024*1024){ toast("Rasm 20 MB dan katta bo'lmasin"); return; }
+      const url = URL.createObjectURL(f), img = new Image(); img.src = url;
+      try{ await img.decode(); }catch(e){ toast("Rasmni ochib bo'lmadi"); return; }
+      src = {img, url, w:img.naturalWidth, h:img.naturalHeight, name:f.name.replace(/\.[^.]+$/,"")};
+      dz.hidden = true; pv.hidden = false; pv.querySelector("img").src = url;
+      pv.querySelector(".fn").textContent = f.name; pv.querySelector(".fs").textContent = `${src.w}×${src.h} · ${(f.size/1024/1024).toFixed(2)} MB`;
+      $("#ugo").disabled = false; $("#uout").innerHTML = ""; info();
+    };
+    box.querySelector("[data-up]").onclick = () => inp.click();
+    inp.onchange = () => pick(inp.files[0]);
+    box.addEventListener("dragover", e => { e.preventDefault(); box.classList.add("hov"); });
+    box.addEventListener("dragleave", () => box.classList.remove("hov"));
+    box.addEventListener("drop", e => { e.preventDefault(); box.classList.remove("hov"); pick(e.dataTransfer.files[0]); });
+    box.querySelector("[data-clear]").onclick = () => { if(BUSY) return; src = null; dz.hidden = false; pv.hidden = true; inp.value = ""; $("#ugo").disabled = true; $("#uout").innerHTML = ""; info(); };
+    $("#usc").onclick = e => { const b = e.target.closest("button"); if(!b || BUSY) return;
+      $("#usc").querySelectorAll("button").forEach(x=>x.classList.toggle("on", x===b)); scale = +b.dataset.s; info(); };
+
+    $("#ugo").onclick = async () => {
+      if(!src || BUSY) return; BUSY = true;
+      const go = $("#ugo"); go.disabled = true; go.innerHTML = '<span class="spin"></span>';
+      const bar = p => { const o = $("#uout"); if(o) o.innerHTML = `<div class="upbar"><div class="upbt"><span>${p.t}</span><b>${p.v!=null ? Math.round(p.v*100)+"%" : ""}</b></div><i><s style="width:${(p.v||0)*100}%"></s></i></div>`; };
+      const t0 = Date.now();
+      try{
+        bar({t:"Model yuklanmoqda (bir marta)..."});
+        up = await upLoad(scale);
+        // katta rasmni oldindan kichraytirish (telefon qotib qolmasligi uchun)
+        const f = upFit(src.w, src.h, scale), cv = document.createElement("canvas");
+        cv.width = f.w; cv.height = f.h; const cx = cv.getContext("2d"); cx.imageSmoothingQuality = "high"; cx.drawImage(src.img, 0, 0, f.w, f.h);
+        bar({t:"Tiniqlashtirilmoqda...", v:0});
+        const data = await up.execute(cv, {patchSize:64, padding:6, awaitNextFrame:true, output:"base64",
+          progress: v => { if($("#uout")) bar({t:"Tiniqlashtirilmoqda...", v}); }});
+        const blob = await (await fetch(data)).blob();
+        if(out) URL.revokeObjectURL(out.url);
+        out = {url:URL.createObjectURL(blob), w:f.w*scale, h:f.h*scale, size:blob.size};
+        if(!$("#uout")) return;
+        const sec = Math.max(1, Math.round((Date.now()-t0)/1000));
+        $("#uout").innerHTML = `<div class="upres">
+          <div class="upcmp" id="ucmp" style="--x:50%;aspect-ratio:${out.w}/${out.h};width:min(100%, calc(70vh * ${(out.w/out.h).toFixed(4)}))"><img src="${out.url}" alt="Keyin"><img class="upb" src="${src.url}" alt="Oldin">
+            <span class="uplb l">Oldin</span><span class="uplb r">Keyin · ${scale}x</span><span class="upln"><i>⟷</i></span>
+            <input type="range" min="0" max="100" value="50" aria-label="Solishtirish"></div>
+          <div class="upact"><span>${out.w}×${out.h} · ${(out.size/1024/1024).toFixed(2)} MB · ${sec} s</span><div class="flex1"></div>
+            <a class="btn-k" href="${out.url}" download="${esc(src.name)}-${scale}x.png">${IC.dl} PNG yuklab olish</a></div></div>`;
+        const cmp = $("#ucmp"); cmp.querySelector("input").oninput = e => cmp.style.setProperty("--x", e.target.value + "%");
+      }catch(e){
+        console.error(e);
+        if($("#uout")) $("#uout").innerHTML = `<div class="msg err">${/fetch|network|load|script/i.test(String(e&&e.message||e)) ? "Model yuklanmadi. Internetni tekshirib, qayta urinib ko'ring." : "Rasmni qayta ishlab bo'lmadi. Kichikroq rasm yoki 2x bilan urinib ko'ring."}</div>`;
+      }finally{
+        BUSY = false; if($("#ugo")){ go.innerHTML = IC.up; go.disabled = !src; }
+      }
+    };
   },
 
   async assets(){
@@ -2984,7 +3095,7 @@ const Gapi = (() => {
   }
 
   const GO = {plans:["Tariflar","#/app/plans"], tts:["Ovoz yaratish","#/app/tts"], voices:["Ovozlar","#/app/voices"], stt:["Nutqdan matnga","#/app/stt"],
-    dub:["Dublyaj","#/app/dub"], books:["Audiokitob","#/app/books"], connect:["Claude'ga ulash","#/app/connect"], ref:["Takliflar","#/app/ref"],
+    dub:["Dublyaj","#/app/dub"], books:["Audiokitob","#/app/books"], connect:["Claude'ga ulash","#/app/connect"], upscale:["Rasmni tiniqlash","#/app/upscale"], ref:["Takliflar","#/app/ref"],
     assets:["Fayllarim","#/app/assets"], register:["Ro'yxatdan o'tish","#/register"], login:["Kirish","#/login"], reset:["Parolni tiklash","#/reset"]};
   function splitActs(t){ const acts = []; t = String(t).replace(/\[\[go:([a-z]+)\]\]/g, (m, k) => { if(GO[k] && !acts.includes(k)) acts.push(k); return ""; }).trim(); return {t, acts}; }
   function addActs(acts){
