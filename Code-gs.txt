@@ -72,6 +72,8 @@ function doPost(e) {
       case 'vcheck':   return json_(vcheck_(req));
       case 'reset':    return json_(reset_(req));
       case 'chat':     return json_(chat_(req));
+      case 'tgup_get': return json_(tgUpGet_(req));
+      case 'tgup_send':return json_(tgUpSend_(req));
       case 'register': return json_(register_(req));
       case 'login':    return json_(login_(req));
       case 'me':       return json_(me_(req));
@@ -868,6 +870,7 @@ function tgUpdate_(u) {
 
   if (/^\/start\b/.test(text)) {
     const arg = text.split(/\s+/)[1] || '', mm = /^([rp])_([A-Za-z0-9]{16,40})$/.exec(arg);
+    if (arg === 'rasm') { tgUpIntro_(chat); return; }
     if (!mm) { tgWelcome_(chat); return; }
     cache.put('c_' + chat, JSON.stringify({ purpose: mm[1], code: mm[2] }), 900);
     const what = mm[1] === 'r' ? "ro'yxatdan o'tish" : 'parolni tiklash';
@@ -893,6 +896,8 @@ function tgUpdate_(u) {
     return;
   }
 
+  if (m.photo || (m.document && /^image\/(jpeg|png|webp)$/.test(m.document.mime_type || ''))) { tgUpPhoto_(chat, m); return; }
+  if (/^\/(rasm|tiniq)\b/.test(text)) { tgUpIntro_(chat); return; }
   if (/^\/(ovoz|voice)\b/.test(text)) { tgVoiceMenu_(chat); return; }
   if (/^\/(uslub|style)\b/.test(text)) { tgStyleMenu_(chat); return; }
   if (/^\/limit\b/.test(text)) { tgLimit_(chat); return; }
@@ -922,11 +927,13 @@ const TG_SAMPLES = ['Achernar','Algenib','Algieba','Alnilam','Aoede','Autonoe','
 /** Bot menyusidagi buyruqlar — bir marta o'rnatiladi */
 function tgCommands_() {
   const p = PropertiesService.getScriptProperties();
-  if (p.getProperty('TG_CMDS_V1')) return;
+  if (p.getProperty('TG_CMDS_V2')) return;
   const r = tgApi_('setMyCommands', { commands: [
     { command: 'ovoz', description: 'Ovozni tanlash' }, { command: 'uslub', description: 'Uslubni tanlash' },
+    { command: 'rasm', description: 'Rasmni tiniqlash (bepul)' },
     { command: 'limit', description: 'Bugungi limit' }, { command: 'yordam', description: "Qanday ishlatiladi" }] });
-  if (r && r.ok) p.setProperty('TG_CMDS_V1', '1');
+  tgApi_('setChatMenuButton', { menu_button: { type: 'web_app', text: '✨ Rasm', web_app: { url: tgUpUrl_() } } });
+  if (r && r.ok) p.setProperty('TG_CMDS_V2', '1');
 }
 
 function tgPrefs_(chat) {
@@ -946,7 +953,8 @@ function tgWelcome_(chat) {
     "Menga istalgan <b>matn</b> yuboring — uni tabiiy ovozga aylantirib, audio qilib qaytaraman 🎙\n\n" +
     '🗣 Ovoz: <b>' + pr.v + '</b> — ' + (TG_TRAITS[pr.v] || '') + ' · /ovoz\n' +
     '🎭 Uslub: <b>' + pr.s + '</b> · /uslub\n' +
-    '📊 Bugungi limit: /limit\n\n' +
+    '📊 Bugungi limit: /limit\n' +
+    "✨ <b>Rasm</b> yuboring — tiniq qilib beraman (bepul) · /rasm\n\n" +
     'Bir xabarda ' + CFG.MAX_CHARS_PER_REQUEST + ' belgigacha. Limit saytdagi hisobingiz bilan umumiy.';
   if (row) { tgSend_(chat, body, siteBtn_()); return; }
   tgSend_(chat, body + "\n\n🔗 Boshlash uchun akkauntingizni ulang: pastdagi <b>«Raqamni ulashish»</b> tugmasini bosing. Hali ro'yxatdan o'tmagan bo'lsangiz — avval saytda bepul ro'yxatdan o'ting.", tgShareKb_());
@@ -1048,6 +1056,73 @@ function tgTts_(chat, text) {
   if (!sent || !sent.ok) { refundQuota_(row, text.length); tgSend_(chat, "😔 Audioni yuborib bo'lmadi. Qayta urinib ko'ring."); }
 }
 
+/* ============================================================
+   TELEGRAM: RASMNI TINIQLASH (Mini App)
+   Rasm botga yuboriladi → "Tiniqlashtirish" tugmasi Mini App'ni ochadi (nevra.uz/#/tg).
+   Model foydalanuvchi telefonida ishlaydi (Real-ESRGAN, brauzerda) — server va Google limiti sarflanmaydi.
+   Mini App so'rovlari Telegram initData imzosi bilan tekshiriladi.
+   ============================================================ */
+
+function tgUpUrl_() { return CFG.SITE_URL + '#/tg'; }
+function tgUpBtn_(t) { return { inline_keyboard: [[{ text: t || '✨ Tiniqlashtirish', web_app: { url: tgUpUrl_() } }]] }; }
+
+function tgUpIntro_(chat) {
+  tgSend_(chat, "✨ <b>Rasmni tiniqlash — bepul</b>\n\nXira, kichik yoki siqilgan rasmni yuboring — 2 yoki 4 barobar kattalashtirib, tiniq qilib qaytaraman.\n\n" +
+    "💡 Eng yaxshi natija uchun rasmni <b>fayl</b> sifatida yuboring (📎 → Fayl) — Telegram oddiy rasmni siqib yuboradi.", tgUpBtn_('✨ Rasm tanlash'));
+}
+
+function tgUpPhoto_(chat, m) {
+  const f = m.photo ? m.photo[m.photo.length - 1] : m.document;
+  if (f.file_size && f.file_size > 10 * 1024 * 1024) { tgSend_(chat, "Rasm 10 MB dan katta bo'lmasin."); return; }
+  CacheService.getScriptCache().put('tgf_' + chat, JSON.stringify({ id: f.file_id, mime: m.document ? m.document.mime_type : 'image/jpeg',
+    name: (m.document && m.document.file_name || 'rasm').replace(/\.[^.]+$/, '') }), 21600);
+  const sz = f.width ? ' (' + f.width + '×' + f.height + ')' : '';
+  tgSend_(chat, '🖼 Rasm qabul qilindi' + sz + '. Pastdagi tugmani bosing — rasm telefoningizda tiniqlashtiriladi va shu chatga qaytadi.', tgUpBtn_());
+}
+
+/** Telegram Mini App initData imzosini tekshiradi → {id, name} yoki null */
+function tgInit_(init) {
+  const tok = botToken_(); init = String(init || '');
+  if (!tok || !init || init.length > 4096) return null;
+  const p = {};
+  init.split('&').forEach(function (kv) { const i = kv.indexOf('='); if (i > 0) p[decodeURIComponent(kv.slice(0, i))] = decodeURIComponent(kv.slice(i + 1).replace(/\+/g, ' ')); });
+  const hash = p.hash; if (!hash) return null; delete p.hash;
+  const check = Object.keys(p).sort().map(function (k) { return k + '=' + p[k]; }).join('\n');
+  const bytes = function (s) { return Utilities.newBlob(s).getBytes(); };
+  const secret = Utilities.computeHmacSha256Signature(bytes(tok), bytes('WebAppData'));
+  if (hex_(Utilities.computeHmacSha256Signature(bytes(check), secret)) !== hash) return null;
+  if (Date.now() / 1000 - Number(p.auth_date || 0) > 86400) return null;
+  try { const u = JSON.parse(p.user || '{}'); return u.id ? { id: String(u.id), name: u.first_name || '' } : null; } catch (e) { return null; }
+}
+
+/** Mini App: botga oxirgi yuborilgan rasmni beradi */
+function tgUpGet_(req) {
+  const u = tgInit_(req.init); if (!u) return { ok: false, error: "Telegram orqali oching" };
+  const raw = CacheService.getScriptCache().get('tgf_' + u.id); if (!raw) return { ok: true, img: null };
+  const f = JSON.parse(raw), r = tgApi_('getFile', { file_id: f.id });
+  if (!r || !r.ok) return { ok: true, img: null };
+  const res = UrlFetchApp.fetch('https://api.telegram.org/file/bot' + botToken_() + '/' + r.result.file_path, { muteHttpExceptions: true });
+  if (res.getResponseCode() !== 200) return { ok: true, img: null };
+  return { ok: true, img: Utilities.base64Encode(res.getContent()), mime: f.mime, name: f.name };
+}
+
+/** Mini App: tiniqlashgan rasmni foydalanuvchining o'z chatiga fayl qilib yuboradi */
+function tgUpSend_(req) {
+  const u = tgInit_(req.init); if (!u) return { ok: false, error: "Telegram orqali oching" };
+  const data = String(req.data || ''), mime = req.mime === 'image/png' ? 'image/png' : 'image/jpeg';
+  if (!data || data.length > 20 * 1024 * 1024) return { ok: false, error: "Rasm juda katta" };
+  const cache = CacheService.getScriptCache(), n = Number(cache.get('tgr_' + u.id) || 0);
+  if (n >= 40) return { ok: false, error: "Bir soatda 40 tagacha rasm. Birozdan keyin urinib ko'ring." };
+  cache.put('tgr_' + u.id, String(n + 1), 3600);
+  const scale = Number(req.scale) === 4 ? 4 : 2, name = slug_(String(req.name || 'rasm')) + '-' + scale + 'x.' + (mime === 'image/png' ? 'png' : 'jpg');
+  const blob = Utilities.newBlob(Utilities.base64Decode(data), mime, name);
+  const sent = tgUpload_('sendDocument', { chat_id: u.id, document: blob, parse_mode: 'HTML',
+    caption: '✨ Tiniqlashtirildi · ' + scale + 'x · ' + String(req.size || '') + '\nYana rasm yuboring yoki 🎙 matn yozing — ovozga aylantiraman.' });
+  if (!sent || !sent.ok) return { ok: false, error: "Telegramga yuborib bo'lmadi" };
+  log_('tg:' + u.id, 0, 'upscale', true, scale + 'x ' + String(req.size || ''));
+  return { ok: true };
+}
+
 /** Fayl bilan Telegram so'rovi (multipart) */
 function tgUpload_(method, form) {
   const tok = botToken_(); if (!tok) return null;
@@ -1102,7 +1177,7 @@ function chat_(req) {
     "7) Claude'ga ulash (YANGI): Nevra'ni Claude AI chatiga konnektor qilib ulash mumkin. Kabinet → 'Claude'ga ulash' bo'limida shaxsiy manzil olinadi; claude.ai → Settings → Connectors → Add custom connector → nomi 'Nevra', URL — o'sha manzil → Add → Connect. Keyin Claude'ga 'reklama audiosi tayyorla' desang, u matnni yozib, Nevra ovozida audio yaratadi. Bu Max va Biznes tariflarida bor, belgilar kunlik limitdan yechiladi. Manzilni hech kimga berma.",
     "7c) Rasmni tiniqlash (YANGI, BEPUL): kabinet → 'Rasmni tiniqlash' — xira yoki kichik rasm (PNG/JPG/WEBP) 2x yoki 4x kattalashtiriladi va tiniqlashadi. Limit olmaydi, rasm hech qayerga yuborilmaydi — hammasi foydalanuvchi qurilmasida bajariladi. Real-ESRGAN modeli xiralik, JPEG katakchalari va shovqinni tozalaydi. Birinchi marta ~5 MB model yuklanadi; telefonda 4x biroz vaqt oladi. Katta rasm avval avtomatik kichraytiriladi. Natija PNG.",
     "Saytda rasm, video, sayt yoki mobil ilova yaratish YO'Q — so'rasa, hozircha mavjud emasligini ayt.",
-    "7b) Telegram bot (YANGI): @" + (botName_() || 'bot') + " botiga matn yuborilsa, u ovozga aylantirib audio qaytaradi. Birinchi marta /start → 'Raqamni ulashish' tugmasi bilan sayt akkauntiga ulanadi. /ovoz — ovoz tanlash (namunasi bilan), /uslub — uslub, /limit — qolgan limit. Bir xabarda " + CFG.MAX_CHARS_PER_REQUEST + " belgigacha, limit saytdagi bilan umumiy.",
+    "7b) Telegram bot (YANGI): @" + (botName_() || 'bot') + " botiga matn yuborilsa, u ovozga aylantirib audio qaytaradi. Birinchi marta /start → 'Raqamni ulashish' tugmasi bilan sayt akkauntiga ulanadi. /ovoz — ovoz tanlash (namunasi bilan), /uslub — uslub, /limit — qolgan limit, /rasm yoki botga rasm yuborish — rasmni bepul tiniqlashtiradi (Telegram ichida ochiladi, natija chatga fayl bo'lib keladi). Bir xabarda " + CFG.MAX_CHARS_PER_REQUEST + " belgigacha, limit saytdagi bilan umumiy.",
     "8) Takliflar: do'st taklif qilsang, har biri uchun kunlik limitga +" + S.refBonus + " belgi (" + S.refMax + " tagacha).",
     "9) Ro'yxatdan o'tish: saytda 'Ro'yxatdan o'tish' → ism → 'Telegram orqali tasdiqlash' → @" + (botName_() || 'bot') + " botida 'Raqamni yuborish' → saytga qaytib parol qo'yish. Parolni unutsang — kirish sahifasida 'Parolni unutdingizmi?' orqali bot bilan tiklanadi.",
     "10) Tariflar (oylik): " + tariffs + ". Yillik to'lovda " + S.discount + "% chegirma. Limit har kuni yarim tunda (Toshkent vaqti) yangilanadi.",
